@@ -22,6 +22,18 @@
         "current": 8,
         "digits": 3,
         "interval": 1
+      },
+      "visuals": {
+        "bounds": {
+          "x": 93,
+          "y": 192,
+          "width": 177,
+          "height": 20
+        },
+        "pivot": {
+          "x": 93.5,
+          "y": 192
+        }
       }
     },
     "Sqr": {
@@ -46,6 +58,18 @@
           "nick": "y",
           "optional": false,
           "instanceGuid": "4d0d43d1-377b-4b27-8b0a-71fd10ef4b02"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 317,
+          "y": 169,
+          "width": 55,
+          "height": 31
+        },
+        "pivot": {
+          "x": 343,
+          "y": 185
         }
       }
     }

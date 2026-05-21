@@ -14,6 +14,18 @@
           "nick": "V",
           "instanceGuid": "7cc69cbd-1bc4-4bd6-8fb1-7ac429c196e9"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 824,
+          "y": 305,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 849.8335,
+          "y": 315.33334
+        }
       }
     },
     "Area": {
@@ -44,6 +56,18 @@
           "nick": "C",
           "optional": true,
           "instanceGuid": "558b7bf7-4590-447b-a7f0-196b4d03acc8"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 895,
+          "y": 352,
+          "width": 66,
+          "height": 44
+        },
+        "pivot": {
+          "x": 927,
+          "y": 374
         }
       }
     },
@@ -101,6 +125,18 @@
           "optional": false,
           "instanceGuid": "20827a8c-83ae-4a7c-b7f0-e1a9d13a70bf"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1102,
+          "y": 288,
+          "width": 71,
+          "height": 104
+        },
+        "pivot": {
+          "x": 1138,
+          "y": 340
+        }
       }
     },
     "Srf CP": {
@@ -145,6 +181,18 @@
           "optional": false,
           "instanceGuid": "43144173-4824-42eb-ab7f-f5b601f9e08d"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 998,
+          "y": 333,
+          "width": 75,
+          "height": 64
+        },
+        "pivot": {
+          "x": 1028,
+          "y": 365
+        }
       }
     },
     "Group": {
@@ -160,6 +208,9 @@
           "nick": "V",
           "instanceGuid": "5493eb71-1c24-4364-b077-14808540269b"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "Srf",

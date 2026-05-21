@@ -35,6 +35,18 @@
           "optional": false,
           "instanceGuid": "fbc29c86-07a0-4ada-91df-e1ecf75eea3c"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 61,
+          "y": 344,
+          "width": 64,
+          "height": 44
+        },
+        "pivot": {
+          "x": 87,
+          "y": 366
+        }
       }
     },
     "IPy2": {
@@ -75,6 +87,18 @@
         "language": "python",
         "code": "\"\"\"Grasshopper Script\"\"\"\na = \"Hello IronPython 2 in Grasshopper!\"\nprint(a)\n",
         "title": "IPy2"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 277,
+          "y": 476,
+          "width": 64,
+          "height": 44
+        },
+        "pivot": {
+          "x": 303,
+          "y": 498
+        }
       }
     }
   },

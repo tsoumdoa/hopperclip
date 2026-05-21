@@ -14,6 +14,18 @@
           "nick": "V",
           "instanceGuid": "a6300f0a-18bc-4ccf-8108-8ed80f944ca2"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1222,
+          "y": 593,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 1247.9573,
+          "y": 603.58435
+        }
       }
     },
     "Txt_2": {
@@ -37,6 +49,18 @@
           "nick": "V",
           "instanceGuid": "411d643a-a343-4890-bd83-1d1393bb8379"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1422,
+          "y": 632,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 1447.9573,
+          "y": 642.58435
+        }
       }
     },
     "Group": {
@@ -52,6 +76,9 @@
           "nick": "V",
           "instanceGuid": "8cb402ab-34f4-4473-8225-bf6f3ee262cf"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Txt",

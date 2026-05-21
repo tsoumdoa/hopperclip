@@ -32,6 +32,21 @@
           "optional": false,
           "instanceGuid": "c1bc66ac-940c-4811-81cd-d11e33a17e99"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 5588,
+          "y": 1933,
+          "width": 123,
+          "height": 107
+        },
+        "pivot": {
+          "x": 5645,
+          "y": 1987
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Partition": {
@@ -64,6 +79,21 @@
           "optional": false,
           "instanceGuid": "4ad876e5-2893-4618-9151-94ee58ded32b"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 5745,
+          "y": 1986,
+          "width": 64,
+          "height": 70
+        },
+        "pivot": {
+          "x": 5775,
+          "y": 2021
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Group": {
@@ -89,6 +119,21 @@
           "optional": false,
           "instanceGuid": "44b0f181-75fd-451f-975e-b267388e180f"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 5980,
+          "y": 2001,
+          "width": 67,
+          "height": 54
+        },
+        "pivot": {
+          "x": 6012,
+          "y": 2028
+        }
+      },
+      "state": {
+        "hidden": true
       },
       "members": []
     },
@@ -121,6 +166,21 @@
           "optional": false,
           "instanceGuid": "53c32eb3-5d9f-41a3-a3e1-4dc5a1b21bb7"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 6058,
+          "y": 2007,
+          "width": 65,
+          "height": 44
+        },
+        "pivot": {
+          "x": 6090,
+          "y": 2029
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Path Mapper": {
@@ -143,6 +203,14 @@
         "value": {
           "nick": "V",
           "instanceGuid": "d03c5214-d019-4550-ba1f-40f61cd401b7"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 5833.2524,
+          "y": 2006.8865,
+          "width": 125,
+          "height": 40
         }
       }
     },
@@ -181,6 +249,21 @@
           "optional": false,
           "instanceGuid": "7842c82e-43d0-4008-b864-44b2438a355d"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 5621,
+          "y": 2084,
+          "width": 64,
+          "height": 64
+        },
+        "pivot": {
+          "x": 5651,
+          "y": 2116
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Group_2": {
@@ -196,6 +279,9 @@
           "nick": "V",
           "instanceGuid": "e3824912-1b44-4637-b7a4-9726014c1546"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;82"
       },
       "members": [
         ".01ChildCutter",

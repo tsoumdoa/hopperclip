@@ -26,6 +26,18 @@
         "language": "csharp",
         "code": "// Grasshopper Script Instance\n#region Usings\nusing System;\nusing System.Linq;\nusing System.Collections;\nusing System.Collections.Generic;\nusing System.Drawing;\n\nusing Rhino;\nusing Rhino.Geometry;\n\nusing Grasshopper;\nusing Grasshopper.Kernel;\nusing Grasshopper.Kernel.Data;\nusing Grasshopper.Kernel.Types;\nusing Layer = Rhino.DocObjects.Layer;\n#endregion\n\npublic class Script_Instance : GH_ScriptInstance\n{\n    #region Notes\n    /* \n      Members:\n        RhinoDoc RhinoDocument\n        GH_Document GrasshopperDocument\n        IGH_Component Component\n        int Iteration\n\n      Methods (Virtual & overridable):\n        Print(string text)\n        Print(string format, params object[] args)\n        Reflect(object obj)\n        Reflect(object obj, string method_name)\n    */\n    #endregion\n\n    private void RunScript(ref object a)\n    {\n   // Get the active document\n    RhinoDoc doc = RhinoDoc.ActiveDoc;\n\n    // Get all layers\n    var layers = doc.Layers;\n\n    // Iterate over all layers\n    for (int i = layers.Count - 1; i >= 0; i--)\n    {\n      Layer layer = layers[i];\n\n      // If the layer has a parent, move it to the top level\n      if (layer.ParentLayerId != Guid.Empty)\n      {\n        layer.ParentLayerId = Guid.Empty;\n      }\n\n      // Check for duplicate layer names and merge objects\n      foreach (Layer otherLayer in layers)\n      {\n        if (otherLayer != layer && otherLayer.Name == layer.Name)\n        {\n          // Move objects from the duplicate layer to the current layer\n          foreach (Rhino.DocObjects.RhinoObject obj in doc.Objects.FindByLayer(otherLayer))\n          {\n            obj.Attributes.LayerIndex = layer.Index;\n            obj.CommitChanges();\n          }\n\n          // Delete the duplicate layer\n          layers.Delete(otherLayer.Index, true);\n          break;\n        }\n      }\n    }\n  }  \n   }\n\n",
         "title": "dangerouslyFlattenLayers"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 304,
+          "y": -16,
+          "width": 57,
+          "height": 179
+        },
+        "pivot": {
+          "x": 318,
+          "y": 74
+        }
       }
     }
   },

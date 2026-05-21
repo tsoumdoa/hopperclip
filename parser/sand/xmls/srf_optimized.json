@@ -36,6 +36,18 @@
           "optional": false,
           "instanceGuid": "5b6f0593-d445-4506-ac96-c564ba89e0e9"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 239,
+          "y": 198,
+          "width": 55,
+          "height": 64
+        },
+        "pivot": {
+          "x": 265,
+          "y": 230
+        }
       }
     }
   },

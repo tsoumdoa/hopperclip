@@ -41,6 +41,21 @@
           "optional": false,
           "instanceGuid": "88df00e9-bbe8-400c-9b04-4d95989652cf"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 364,
+          "y": 198,
+          "width": 57,
+          "height": 84
+        },
+        "pivot": {
+          "x": 391,
+          "y": 240
+        }
+      },
+      "state": {
+        "hidden": true
       }
     }
   },

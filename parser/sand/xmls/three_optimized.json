@@ -23,6 +23,21 @@
           "optional": false,
           "instanceGuid": "ab2fb9dc-2112-499a-a0c8-59dfced848c5"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 312,
+          "y": 46,
+          "width": 72,
+          "height": 92
+        },
+        "pivot": {
+          "x": 355,
+          "y": 92
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Support": {
@@ -95,6 +110,21 @@
           "optional": false,
           "instanceGuid": "443989f6-b00d-4611-93f6-fde775d87c41"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 294,
+          "y": 80,
+          "width": 90,
+          "height": 184
+        },
+        "pivot": {
+          "x": 355,
+          "y": 172
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "BlendCPt": {
@@ -137,6 +167,21 @@
           "optional": false,
           "instanceGuid": "b9ba030a-a04b-425e-9236-6e90b3508b0e"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 328,
+          "y": 210,
+          "width": 56,
+          "height": 84
+        },
+        "pivot": {
+          "x": 355,
+          "y": 252
+        }
+      },
+      "state": {
+        "hidden": true
       }
     }
   },

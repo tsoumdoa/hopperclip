@@ -30,6 +30,18 @@
           "optional": true,
           "instanceGuid": "4e935ac2-07d0-4918-b11c-9a11fe045cff"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 360,
+          "y": 128,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 387,
+          "y": 150
+        }
       }
     },
     "Brep": {
@@ -44,6 +56,18 @@
         "value": {
           "nick": "V",
           "instanceGuid": "fb6c9287-cd45-4367-b9ba-f7db4cadbbb8"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 263,
+          "y": 142,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 288,
+          "y": 152
         }
       }
     }

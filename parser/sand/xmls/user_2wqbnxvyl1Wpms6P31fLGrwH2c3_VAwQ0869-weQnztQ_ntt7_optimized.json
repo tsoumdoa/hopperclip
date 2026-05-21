@@ -37,6 +37,18 @@
           "optional": false,
           "instanceGuid": "0c4268b8-de11-4411-a587-7b255f82ab7d"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 527,
+          "y": 109,
+          "width": 66,
+          "height": 66
+        },
+        "pivot": {
+          "x": 559,
+          "y": 131
+        }
       }
     },
     "Panel": {
@@ -56,6 +68,18 @@
       "value": {
         "type": "panel",
         "text": "C:\\Program Files\\IDEA StatiCa\\StatiCa 24.1"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 121,
+          "y": 111,
+          "width": 300,
+          "height": 21
+        },
+        "pivot": {
+          "x": 121.76581,
+          "y": 111.42615
+        }
       }
     },
     "Path": {
@@ -79,6 +103,18 @@
           "nick": "V",
           "instanceGuid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 449,
+          "y": 111,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 474.5636,
+          "y": 121.372795
+        }
       }
     },
     "click Run": {
@@ -94,6 +130,9 @@
           "nick": "V",
           "instanceGuid": "47a82ede-78ac-4255-b9da-e81db379fd4d"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "SR",

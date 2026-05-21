@@ -29,6 +29,18 @@
           "optional": false,
           "instanceGuid": "864d141b-c843-42dc-8bd5-36b9960be699"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 607,
+          "y": 81,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 634,
+          "y": 103
+        }
       }
     }
   },

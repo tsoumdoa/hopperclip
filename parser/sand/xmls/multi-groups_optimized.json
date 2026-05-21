@@ -15,6 +15,9 @@
           "instanceGuid": "02f91e17-2002-4964-9437-67dff1a1e270"
         }
       },
+      "visuals": {
+        "color": "150;170;135;255"
+      },
       "members": [
         "Panel",
         "Area",
@@ -40,6 +43,14 @@
       "value": {
         "type": "panel",
         "text": "Double click to edit panel content…"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 278,
+          "y": 176,
+          "width": 160,
+          "height": 100
+        }
       }
     },
     "Area": {
@@ -70,6 +81,18 @@
           "optional": true,
           "instanceGuid": "75afeb39-03c2-412d-9be4-a8653f2e232a"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 387,
+          "y": 106,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 414,
+          "y": 128
+        }
       }
     },
     "Group_2": {
@@ -85,6 +108,9 @@
           "nick": "V",
           "instanceGuid": "a1bff6ff-e122-4d58-b675-a255d44205b6"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Panel",
@@ -104,6 +130,18 @@
           "nick": "V",
           "instanceGuid": "5fb0704e-1d8f-4919-8700-a93615ee2821"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 505,
+          "y": 66,
+          "width": 51,
+          "height": 20
+        },
+        "pivot": {
+          "x": 530.5,
+          "y": 76
+        }
       }
     },
     "Group_3": {
@@ -119,6 +157,9 @@
           "nick": "V",
           "instanceGuid": "81a1d073-605d-42e1-84ea-f89483f7a14e"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Linetype"

@@ -22,6 +22,18 @@
           "nick": "V",
           "instanceGuid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 128,
+          "y": 138,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 153,
+          "y": 148
+        }
       }
     }
   },

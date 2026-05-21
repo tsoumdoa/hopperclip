@@ -15,6 +15,9 @@
           "instanceGuid": "6474c9d1-f864-4e12-9fc2-143d2274c5a0"
         }
       },
+      "visuals": {
+        "color": "150;170;135;255"
+      },
       "members": [
         "Srf",
         "Area",
@@ -36,6 +39,18 @@
         "value": {
           "nick": "V",
           "instanceGuid": "e995ec7a-7203-4f73-ba50-d86ae1387233"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 139,
+          "y": 856,
+          "width": 69,
+          "height": 20
+        },
+        "pivot": {
+          "x": 183.70828,
+          "y": 866.85254
         }
       }
     },
@@ -67,6 +82,18 @@
           "nick": "C",
           "optional": true,
           "instanceGuid": "75bce79b-a5fb-40ad-a1a5-2326373a0614"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 233,
+          "y": 902,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 260,
+          "y": 924
         }
       }
     },
@@ -128,6 +155,18 @@
           "optional": false,
           "instanceGuid": "3ff7e5a5-7af7-4a8c-929c-1e42bf943766"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 404,
+          "y": 838,
+          "width": 97,
+          "height": 104
+        },
+        "pivot": {
+          "x": 471,
+          "y": 890
+        }
       }
     },
     "Srf CP": {
@@ -172,6 +211,18 @@
           "optional": false,
           "instanceGuid": "a94d667b-f5c1-44b5-9c32-c4d573f3cc74"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 335,
+          "y": 883,
+          "width": 66,
+          "height": 64
+        },
+        "pivot": {
+          "x": 361,
+          "y": 915
+        }
       }
     },
     "Group_2": {
@@ -187,6 +238,9 @@
           "nick": "V",
           "instanceGuid": "d8079aca-ca0f-4eb9-8073-e810bca9a355"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "Srf",
@@ -217,7 +271,19 @@
           "instanceGuid": "3351e93b-9500-4b97-9109-3eec86791653"
         }
       },
-      "internalExpression": "x/2"
+      "internalExpression": "x/2",
+      "visuals": {
+        "bounds": {
+          "x": 359,
+          "y": 1003,
+          "width": 69,
+          "height": 20
+        },
+        "pivot": {
+          "x": 403.13715,
+          "y": 1013.39056
+        }
+      }
     }
   },
   "wires": [

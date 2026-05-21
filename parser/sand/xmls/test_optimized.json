@@ -18,6 +18,18 @@
       "value": {
         "type": "panel",
         "text": "fa"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 487,
+          "y": 143,
+          "width": 160,
+          "height": 100
+        },
+        "pivot": {
+          "x": 487.99176,
+          "y": 143.4917
+        }
       }
     }
   },

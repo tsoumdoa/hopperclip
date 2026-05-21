@@ -30,6 +30,18 @@
           "optional": false,
           "instanceGuid": "43640f23-fc16-4fbc-a15e-a65e396ec861"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 518,
+          "y": 239,
+          "width": 56,
+          "height": 48
+        },
+        "pivot": {
+          "x": 544,
+          "y": 263
+        }
       }
     },
     "Bend": {
@@ -59,6 +71,18 @@
           "nick": "G",
           "optional": false,
           "instanceGuid": "76e35598-4e0c-40f4-a916-02ccc5c42774"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 382,
+          "y": 156,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 409,
+          "y": 178
         }
       }
     },
@@ -97,6 +121,18 @@
           "optional": false,
           "instanceGuid": "ea3507a9-b662-4dc4-a821-b325ee0759d1"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 464,
+          "y": 124,
+          "width": 185,
+          "height": 64
+        },
+        "pivot": {
+          "x": 567,
+          "y": 156
+        }
       }
     },
     "whatAmI": {
@@ -112,6 +148,9 @@
           "nick": "V",
           "instanceGuid": "420fb7fd-eff0-4827-be1c-24717ecd7109"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "ptIsoE",

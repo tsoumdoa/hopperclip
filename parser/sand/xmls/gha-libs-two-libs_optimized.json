@@ -30,6 +30,18 @@
           "optional": false,
           "instanceGuid": "9078adcb-786e-414b-b434-8a337c76f26e"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 488,
+          "y": 209,
+          "width": 56,
+          "height": 48
+        },
+        "pivot": {
+          "x": 514,
+          "y": 233
+        }
       }
     },
     "Bend": {
@@ -59,6 +71,18 @@
           "nick": "G",
           "optional": false,
           "instanceGuid": "b3588b9a-082e-44a3-a7db-219098b47d3a"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 352,
+          "y": 126,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 379,
+          "y": 148
         }
       }
     }

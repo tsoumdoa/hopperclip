@@ -30,7 +30,19 @@
           "instanceGuid": "29d772fc-9323-4943-a115-1c33afacc07a"
         }
       },
-      "expression": "Format(\"{0}, {1}\", x, y)"
+      "expression": "Format(\"{0}, {1}\", x, y)",
+      "visuals": {
+        "bounds": {
+          "x": 342,
+          "y": 201,
+          "width": 220,
+          "height": 44
+        },
+        "pivot": {
+          "x": 451,
+          "y": 223
+        }
+      }
     }
   },
   "wires": [],
