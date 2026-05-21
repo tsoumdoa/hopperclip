@@ -4,15 +4,19 @@
     "Group": {
       "id": "Group",
       "type": "Group",
-      "guid": "6474c9d1-f864-4e12-9fc2-143d2274c5a0",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "6474c9d1-f864-4e12-9fc2-143d2274c5a0",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "6474c9d1-f864-4e12-9fc2-143d2274c5a0"
+          "instanceGuid": "6474c9d1-f864-4e12-9fc2-143d2274c5a0"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Srf",
@@ -26,21 +30,35 @@
     "Srf": {
       "id": "Srf",
       "type": "Surface",
-      "guid": "e995ec7a-7203-4f73-ba50-d86ae1387233",
+      "typeGuid": "deaf8653-5528-4286-807c-3de8b8dad781",
+      "instanceGuid": "e995ec7a-7203-4f73-ba50-d86ae1387233",
       "description": "Contains a collection of generic surfaces",
       "nickName": "Srf",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "e995ec7a-7203-4f73-ba50-d86ae1387233"
+          "instanceGuid": "e995ec7a-7203-4f73-ba50-d86ae1387233"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 139,
+          "y": 856,
+          "width": 69,
+          "height": 20
+        },
+        "pivot": {
+          "x": 183.70828,
+          "y": 866.85254
         }
       }
     },
     "Area": {
       "id": "Area",
       "type": "Area",
-      "guid": "fa40702d-c0bc-4aa5-bf77-87a35e688c6e",
+      "typeGuid": "86b28a7e-94d9-4791-8306-e13e10d5f8d5",
+      "instanceGuid": "fa40702d-c0bc-4aa5-bf77-87a35e688c6e",
       "description": "Solve area properties for breps, meshes and planar closed curves.",
       "nickName": "Area",
       "inputs": {
@@ -48,7 +66,7 @@
           "description": "Brep, mesh or planar closed curve for area computation",
           "nick": "G",
           "optional": false,
-          "guid": "fd49c6c8-83d7-43c0-87f5-73f76df0aed1",
+          "instanceGuid": "fd49c6c8-83d7-43c0-87f5-73f76df0aed1",
           "source": "Srf.value"
         }
       },
@@ -57,20 +75,33 @@
           "description": "Area of geometry",
           "nick": "A",
           "optional": true,
-          "guid": "215b7b7e-ad23-4c37-afae-9035e25fd59f"
+          "instanceGuid": "215b7b7e-ad23-4c37-afae-9035e25fd59f"
         },
         "c": {
           "description": "Area centroid of geometry",
           "nick": "C",
           "optional": true,
-          "guid": "75bce79b-a5fb-40ad-a1a5-2326373a0614"
+          "instanceGuid": "75bce79b-a5fb-40ad-a1a5-2326373a0614"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 233,
+          "y": 902,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 260,
+          "y": 924
         }
       }
     },
     "EvalSrf": {
       "id": "EvalSrf",
       "type": "Evaluate Surface",
-      "guid": "b333b8a1-6f3b-4966-af63-97333e2c8dde",
+      "typeGuid": "353b206e-bde5-4f02-a913-b3b8a977d4b9",
+      "instanceGuid": "b333b8a1-6f3b-4966-af63-97333e2c8dde",
       "description": "Evaluate local surface properties at a {uv} coordinate.",
       "nickName": "EvalSrf",
       "inputs": {
@@ -78,7 +109,7 @@
           "description": "Base surface",
           "nick": "S",
           "optional": false,
-          "guid": "cf3677ef-e4e4-4995-9148-0fc25d6ba2c8",
+          "instanceGuid": "cf3677ef-e4e4-4995-9148-0fc25d6ba2c8",
           "source": "Srf.value",
           "options": {
             "mapping": "graft",
@@ -89,7 +120,7 @@
           "description": "{uv} coordinate to evaluate",
           "nick": "uv",
           "optional": false,
-          "guid": "a41d66cb-0630-43e3-84df-6dce5a88906c",
+          "instanceGuid": "a41d66cb-0630-43e3-84df-6dce5a88906c",
           "source": "Srf CP.uvp"
         }
       },
@@ -98,38 +129,51 @@
           "description": "Point at {uv}",
           "nick": "P",
           "optional": false,
-          "guid": "abb68490-3383-49d2-adfc-5ff3158cc31c"
+          "instanceGuid": "abb68490-3383-49d2-adfc-5ff3158cc31c"
         },
         "n": {
           "description": "Normal at {uv}",
           "nick": "N",
           "optional": false,
-          "guid": "f0ebca52-ecc8-4b8a-8cdd-2c4a9b514dd0"
+          "instanceGuid": "f0ebca52-ecc8-4b8a-8cdd-2c4a9b514dd0"
         },
         "u": {
           "description": "U direction at {uv}",
           "nick": "U",
           "optional": false,
-          "guid": "891e7e4b-a0b8-435b-8fae-660c5b7cf2d9"
+          "instanceGuid": "891e7e4b-a0b8-435b-8fae-660c5b7cf2d9"
         },
         "v": {
           "description": "V direction at {uv}",
           "nick": "V",
           "optional": false,
-          "guid": "fe6ac738-f845-4c5a-a7a4-2b3dc2890c74"
+          "instanceGuid": "fe6ac738-f845-4c5a-a7a4-2b3dc2890c74"
         },
         "f": {
           "description": "Frame at {uv}",
           "nick": "F",
           "optional": false,
-          "guid": "3ff7e5a5-7af7-4a8c-929c-1e42bf943766"
+          "instanceGuid": "3ff7e5a5-7af7-4a8c-929c-1e42bf943766"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 404,
+          "y": 838,
+          "width": 97,
+          "height": 104
+        },
+        "pivot": {
+          "x": 471,
+          "y": 890
         }
       }
     },
     "Srf CP": {
       "id": "Srf CP",
       "type": "Surface Closest Point",
-      "guid": "3b227dee-3ecb-4b9b-934f-cd9417adf17e",
+      "typeGuid": "4a9e9a8e-0943-4438-b360-129c30f2bb0f",
+      "instanceGuid": "3b227dee-3ecb-4b9b-934f-cd9417adf17e",
       "description": "Find the closest point on a surface.",
       "nickName": "Srf CP",
       "inputs": {
@@ -137,14 +181,14 @@
           "description": "Sample point",
           "nick": "P",
           "optional": false,
-          "guid": "8f1125ae-688f-441d-a126-98405193b349",
+          "instanceGuid": "8f1125ae-688f-441d-a126-98405193b349",
           "source": "Area.c"
         },
         "s": {
           "description": "Base surface",
           "nick": "S",
           "optional": false,
-          "guid": "3ef4f7f8-2676-4a11-9dd1-4587571be7c9",
+          "instanceGuid": "3ef4f7f8-2676-4a11-9dd1-4587571be7c9",
           "source": "Srf.value"
         }
       },
@@ -153,34 +197,50 @@
           "description": "Closest point",
           "nick": "P",
           "optional": false,
-          "guid": "89bf423f-aaa8-437d-b006-595a6977b4bf"
+          "instanceGuid": "89bf423f-aaa8-437d-b006-595a6977b4bf"
         },
         "uvp": {
           "description": "{uv} coordinates of closest point",
           "nick": "uvP",
           "optional": false,
-          "guid": "b3a2442b-3c47-464d-8dc3-25a960ff8e43"
+          "instanceGuid": "b3a2442b-3c47-464d-8dc3-25a960ff8e43"
         },
         "d": {
           "description": "Distance between sample point and surface",
           "nick": "D",
           "optional": false,
-          "guid": "a94d667b-f5c1-44b5-9c32-c4d573f3cc74"
+          "instanceGuid": "a94d667b-f5c1-44b5-9c32-c4d573f3cc74"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 335,
+          "y": 883,
+          "width": 66,
+          "height": 64
+        },
+        "pivot": {
+          "x": 361,
+          "y": 915
         }
       }
     },
     "Group_2": {
       "id": "Group_2",
       "type": "Group",
-      "guid": "d8079aca-ca0f-4eb9-8073-e810bca9a355",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "d8079aca-ca0f-4eb9-8073-e810bca9a355",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "d8079aca-ca0f-4eb9-8073-e810bca9a355"
+          "instanceGuid": "d8079aca-ca0f-4eb9-8073-e810bca9a355"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "Srf",
@@ -192,7 +252,8 @@
     "Num": {
       "id": "Num",
       "type": "Number",
-      "guid": "3351e93b-9500-4b97-9109-3eec86791653",
+      "typeGuid": "3e8ca6be-fda8-4aaf-b5c0-3c54c8bb7312",
+      "instanceGuid": "3351e93b-9500-4b97-9109-3eec86791653",
       "description": "Contains a collection of floating point numbers",
       "nickName": "Num",
       "inputs": {
@@ -201,16 +262,28 @@
           "nick": "V",
           "optional": true,
           "source": "Area.a",
-          "guid": "3351e93b-9500-4b97-9109-3eec86791653"
+          "instanceGuid": "3351e93b-9500-4b97-9109-3eec86791653"
         }
       },
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "3351e93b-9500-4b97-9109-3eec86791653"
+          "instanceGuid": "3351e93b-9500-4b97-9109-3eec86791653"
         }
       },
-      "internalExpression": "x/2"
+      "internalExpression": "x/2",
+      "visuals": {
+        "bounds": {
+          "x": 359,
+          "y": 1003,
+          "width": 69,
+          "height": 20
+        },
+        "pivot": {
+          "x": 403.13715,
+          "y": 1013.39056
+        }
+      }
     }
   },
   "wires": [

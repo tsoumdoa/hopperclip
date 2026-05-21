@@ -4,7 +4,8 @@
     "Area": {
       "id": "Area",
       "type": "Area",
-      "guid": "bfd08430-973c-49e8-adab-04487445d763",
+      "typeGuid": "86b28a7e-94d9-4791-8306-e13e10d5f8d5",
+      "instanceGuid": "bfd08430-973c-49e8-adab-04487445d763",
       "description": "Solve area properties for breps, meshes and planar closed curves.",
       "nickName": "Area",
       "inputs": {
@@ -12,8 +13,8 @@
           "description": "Brep, mesh or planar closed curve for area computation",
           "nick": "G",
           "optional": false,
-          "guid": "",
-          "source": "Brep"
+          "instanceGuid": "3a6e01b6-1fbd-4fd4-a8c1-ccdbbdc197d1",
+          "source": "Brep.value"
         }
       },
       "outputs": {
@@ -21,30 +22,38 @@
           "description": "Area of geometry",
           "nick": "A",
           "optional": true,
-          "guid": ""
+          "instanceGuid": "90103901-cd88-4eaf-af07-834c472aaea5"
         },
         "c": {
           "description": "Area centroid of geometry",
           "nick": "C",
           "optional": true,
-          "guid": ""
+          "instanceGuid": "4e935ac2-07d0-4918-b11c-9a11fe045cff"
         }
       }
     },
     "Brep": {
       "id": "Brep",
       "type": "Brep",
-      "guid": "fb6c9287-cd45-4367-b9ba-f7db4cadbbb8",
+      "typeGuid": "919e146f-30ae-4aae-be34-4d72f555e7da",
+      "instanceGuid": "fb6c9287-cd45-4367-b9ba-f7db4cadbbb8",
       "description": "Contains a collection of Breps (Boundary REPresentations)",
       "nickName": "Brep",
       "inputs": {},
-      "outputs": {}
+      "outputs": {
+        "value": {
+          "nick": "V",
+          "instanceGuid": "fb6c9287-cd45-4367-b9ba-f7db4cadbbb8"
+        }
+      }
     }
   },
   "wires": [
     {
-      "from": "Brep",
-      "to": "Area.g"
+      "from": "Brep.value",
+      "to": "Area.g",
+      "sourceComponentGuid": "fb6c9287-cd45-4367-b9ba-f7db4cadbbb8",
+      "targetPortGuid": "3a6e01b6-1fbd-4fd4-a8c1-ccdbbdc197d1"
     }
   ],
   "metadata": {

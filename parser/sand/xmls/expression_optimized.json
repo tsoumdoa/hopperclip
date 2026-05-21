@@ -4,7 +4,8 @@
     "Expression": {
       "id": "Expression",
       "type": "Expression",
-      "guid": "8164cdef-d24c-48a8-855a-dc973c8385e6",
+      "typeGuid": "9df5e896-552d-4c8c-b9ca-4fc147ffa022",
+      "instanceGuid": "8164cdef-d24c-48a8-855a-dc973c8385e6",
       "description": "Evaluate an expression",
       "nickName": "Expression",
       "inputs": {
@@ -12,13 +13,13 @@
           "description": "'x' value used to evaluate ''",
           "nick": "x",
           "optional": true,
-          "guid": "855880ca-8a2d-4ca4-b3b1-0fec07e30467"
+          "instanceGuid": "855880ca-8a2d-4ca4-b3b1-0fec07e30467"
         },
         "y": {
           "description": "'y' value used to evaluate ''",
           "nick": "y",
           "optional": true,
-          "guid": "8fece0ce-86fd-4c3a-9cac-7fa625a1a5aa"
+          "instanceGuid": "8fece0ce-86fd-4c3a-9cac-7fa625a1a5aa"
         }
       },
       "outputs": {
@@ -26,10 +27,22 @@
           "description": "Result of expression",
           "nick": "R",
           "optional": false,
-          "guid": "29d772fc-9323-4943-a115-1c33afacc07a"
+          "instanceGuid": "29d772fc-9323-4943-a115-1c33afacc07a"
         }
       },
-      "expression": "Format(\"{0}, {1}\", x, y)"
+      "expression": "Format(\"{0}, {1}\", x, y)",
+      "visuals": {
+        "bounds": {
+          "x": 342,
+          "y": 201,
+          "width": 220,
+          "height": 44
+        },
+        "pivot": {
+          "x": 451,
+          "y": 223
+        }
+      }
     }
   },
   "wires": [],

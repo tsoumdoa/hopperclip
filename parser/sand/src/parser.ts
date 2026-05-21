@@ -166,13 +166,13 @@ function parseParamChunk(
 	const nickName = items.NickName;
 	if (!nickName || typeof nickName !== "string") return null;
 
-	const guid = (items.InstanceGuid as string) || "";
+	const instanceGuid = (items.InstanceGuid as string) || "";
 
 	const port: InputPort | OutputPort = {
 		description: items.Description as string,
 		nick: nickName,
 		optional: (items.Optional as boolean) ?? false,
-		guid,
+		instanceGuid,
 	};
 
 	if (type === "input") {
@@ -469,7 +469,7 @@ function parseComponentState(
 
 interface ParsedComponent {
 	component: Component;
-	guid: string;
+	instanceGuid: string;
 	objectChunk: XmlChunk;
 }
 
@@ -479,11 +479,11 @@ function parseComponent(
 	libraryMap?: Map<string, string>
 ): ParsedComponent | null {
 	const items = extractItems(objectChunk);
-	const guid = items.GUID as string;
+	const typeGuid = items.GUID as string;
 	const name = items.Name as string;
 	const libGuid = items.Lib as string | undefined;
 
-	if (!guid || !name) {
+	if (!typeGuid || !name) {
 		return null;
 	}
 
@@ -493,7 +493,7 @@ function parseComponent(
 	}
 
 	const containerItems = extractItems(containerChunk);
-	const instanceGuid = (containerItems.InstanceGuid as string) || guid;
+	const instanceGuid = (containerItems.InstanceGuid as string) || typeGuid;
 	const nickName = (containerItems.NickName as string) || name;
 
 	const libraryName =
@@ -502,7 +502,8 @@ function parseComponent(
 	const component: Component = {
 		id: "", // Will be set by caller
 		type: name,
-		guid: instanceGuid,
+		typeGuid,
+		instanceGuid: instanceGuid,
 		library: libraryName,
 		description: containerItems.Description as string,
 		nickName: nickName,
@@ -580,7 +581,7 @@ function parseComponent(
 			nick: "V",
 			optional: true,
 			source: sourceGuids[0],
-			guid: instanceGuid,
+			instanceGuid: instanceGuid,
 		};
 	}
 
@@ -590,7 +591,7 @@ function parseComponent(
 	if (Object.keys(component.outputs).length === 0) {
 		component.outputs["value"] = {
 			nick: "V",
-			guid: instanceGuid,
+			instanceGuid: instanceGuid,
 		};
 	}
 
@@ -640,7 +641,7 @@ function parseComponent(
 		}
 	}
 
-	return { component, guid: instanceGuid, objectChunk };
+	return { component, instanceGuid, objectChunk };
 }
 
 export function parseGrasshopper(
@@ -724,14 +725,14 @@ export function parseGrasshopper(
 		parsed.component.id = uniqueId;
 
 		components[uniqueId] = parsed.component;
-		guidToId.set(parsed.guid, uniqueId);
+		guidToId.set(parsed.instanceGuid, uniqueId);
 
 		// Also map InstanceGuid if it exists and is different
 		const containerChunk = findChunk(objectChunk, "Container");
 		if (containerChunk) {
 			const containerItems = extractItems(containerChunk);
 			const instanceGuid = containerItems.InstanceGuid as string;
-			if (instanceGuid && instanceGuid !== parsed.guid) {
+			if (instanceGuid && instanceGuid !== parsed.instanceGuid) {
 				guidToId.set(instanceGuid, uniqueId);
 			}
 		}
@@ -739,8 +740,8 @@ export function parseGrasshopper(
 		// Map output port GUIDs → full handle ID ("${componentId}.${portKey}")
 		// so input.source referencing an output port resolves to the correct handle
 		for (const [portKey, outputPort] of Object.entries(parsed.component.outputs)) {
-			if (outputPort.guid) {
-				outputPortGuidToHandle.set(outputPort.guid, `${uniqueId}.${portKey}`);
+			if (outputPort.instanceGuid) {
+				outputPortGuidToHandle.set(outputPort.instanceGuid, `${uniqueId}.${portKey}`);
 			}
 		}
 
@@ -765,14 +766,14 @@ export function parseGrasshopper(
 						from: resolvedFrom,
 						to: `${compId}.${inputName}`,
 						sourceComponentGuid: src,
-						targetPortGuid: input.guid,
+						targetPortGuid: input.instanceGuid,
 					});
 				} else {
 					wires.push({
 						from: src,
 						to: `${compId}.${inputName}`,
 						sourceComponentGuid: src,
-						targetPortGuid: input.guid,
+						targetPortGuid: input.instanceGuid,
 					});
 				}
 			}

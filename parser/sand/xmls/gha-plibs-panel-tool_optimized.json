@@ -4,7 +4,8 @@
     "ptIsoE": {
       "id": "ptIsoE",
       "type": "Iso Edges",
-      "guid": "db9dff29-7343-463f-89bd-8f4c60adc6ed",
+      "typeGuid": "d4ffcfd6-0d9d-407d-9789-ccefb6bafe0f",
+      "instanceGuid": "db9dff29-7343-463f-89bd-8f4c60adc6ed",
       "library": "PTComponentLibrary v2021.4.1.0",
       "description": "Extract iso-edges on surface from linear edges",
       "nickName": "ptIsoE",
@@ -13,13 +14,13 @@
           "description": "Lines to extract their iso",
           "nick": "L",
           "optional": false,
-          "guid": "c54955ad-d52f-438d-b2f5-b0f424ae4ed0"
+          "instanceGuid": "c54955ad-d52f-438d-b2f5-b0f424ae4ed0"
         },
         "s": {
           "description": "Surface",
           "nick": "S",
           "optional": false,
-          "guid": "840c735e-b4b6-4614-b037-788cdef437d1"
+          "instanceGuid": "840c735e-b4b6-4614-b037-788cdef437d1"
         }
       },
       "outputs": {
@@ -27,7 +28,19 @@
           "description": "Iso curve segments",
           "nick": "C",
           "optional": false,
-          "guid": "9078adcb-786e-414b-b434-8a337c76f26e"
+          "instanceGuid": "9078adcb-786e-414b-b434-8a337c76f26e"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 488,
+          "y": 209,
+          "width": 56,
+          "height": 48
+        },
+        "pivot": {
+          "x": 514,
+          "y": 233
         }
       }
     }

@@ -4,7 +4,8 @@
     "VB": {
       "id": "VB",
       "type": "VB Script",
-      "guid": "8a4d4f7b-3b40-4ebf-9a8c-8c08b36c4bb7",
+      "typeGuid": "079bd9bd-54a0-41d4-98af-db999015f63d",
+      "instanceGuid": "8a4d4f7b-3b40-4ebf-9a8c-8c08b36c4bb7",
       "description": "A VB.NET scriptable component",
       "nickName": "VB",
       "inputs": {
@@ -12,13 +13,13 @@
           "description": "Script Variable x",
           "nick": "x",
           "optional": true,
-          "guid": "574036e1-06a3-4181-943a-dbe74528a17c"
+          "instanceGuid": "574036e1-06a3-4181-943a-dbe74528a17c"
         },
         "y": {
           "description": "Script Variable y",
           "nick": "y",
           "optional": true,
-          "guid": "5a2ca6eb-632d-4d0f-b4b4-801c6f30b84d"
+          "instanceGuid": "5a2ca6eb-632d-4d0f-b4b4-801c6f30b84d"
         }
       },
       "outputs": {
@@ -26,33 +27,46 @@
           "description": "Print, Reflect and Error streams",
           "nick": "out",
           "optional": false,
-          "guid": "459fdd20-f683-439f-8d1a-6e8ca1d0eb31"
+          "instanceGuid": "459fdd20-f683-439f-8d1a-6e8ca1d0eb31"
         },
         "a": {
           "description": "Output parameter A",
           "nick": "A",
           "optional": false,
-          "guid": "fbc29c86-07a0-4ada-91df-e1ecf75eea3c"
+          "instanceGuid": "fbc29c86-07a0-4ada-91df-e1ecf75eea3c"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 61,
+          "y": 344,
+          "width": 64,
+          "height": 44
+        },
+        "pivot": {
+          "x": 87,
+          "y": 366
         }
       }
     },
     "IPy2": {
       "id": "IPy2",
       "type": "IronPython 2 Script",
-      "guid": "55d419a2-a62c-4dfd-8ce3-7899806dbbe5",
+      "typeGuid": "97aa26ef-88ae-4ba6-98a6-ed6ddeca11d1",
+      "instanceGuid": "55d419a2-a62c-4dfd-8ce3-7899806dbbe5",
       "nickName": "IPy2",
       "inputs": {
         "x": {
           "description": "rhinoscriptsyntax geometry",
           "nick": "x",
           "optional": true,
-          "guid": "245f618e-1b71-42f0-a817-1d950ab594e7"
+          "instanceGuid": "245f618e-1b71-42f0-a817-1d950ab594e7"
         },
         "y": {
           "description": "rhinoscriptsyntax geometry",
           "nick": "y",
           "optional": true,
-          "guid": "fd3a3927-6591-4d39-842d-1bb6f38bd15d"
+          "instanceGuid": "fd3a3927-6591-4d39-842d-1bb6f38bd15d"
         }
       },
       "outputs": {
@@ -60,19 +74,31 @@
           "description": "Standard output and error contents collected during script run",
           "nick": "out",
           "optional": false,
-          "guid": "a9699d06-960d-4e7d-9b9d-1487f3294e02"
+          "instanceGuid": "a9699d06-960d-4e7d-9b9d-1487f3294e02"
         },
         "a": {
           "description": "rhinoscriptsyntax geometry",
           "nick": "a",
           "optional": false,
-          "guid": "99734d04-d818-43b5-bebc-9a451cb41b82"
+          "instanceGuid": "99734d04-d818-43b5-bebc-9a451cb41b82"
         }
       },
       "script": {
         "language": "python",
         "code": "\"\"\"Grasshopper Script\"\"\"\na = \"Hello IronPython 2 in Grasshopper!\"\nprint(a)\n",
         "title": "IPy2"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 277,
+          "y": 476,
+          "width": 64,
+          "height": 44
+        },
+        "pivot": {
+          "x": 303,
+          "y": 498
+        }
       }
     }
   },

@@ -4,7 +4,8 @@
     "SR": {
       "id": "SR",
       "type": "Connection Service Runner",
-      "guid": "dd394a47-b7de-4f1a-840e-2039b9d95bea",
+      "typeGuid": "f9c90ac2-4669-44f3-a76b-f6cf743d4b4c",
+      "instanceGuid": "dd394a47-b7de-4f1a-840e-2039b9d95bea",
       "library": "IDEAStatiCa v0.2.0",
       "description": "Run Idea StatiCa Connection API Service",
       "nickName": "SR",
@@ -13,14 +14,14 @@
           "description": "Path to directory where ConnectionRestApi.exe is saved. Directory where IdeaStatiCa was installed is used by default if no path provided.",
           "nick": "U",
           "optional": true,
-          "guid": "e1fd465e-b807-4b8e-a6fa-23ad2f17a54d",
+          "instanceGuid": "e1fd465e-b807-4b8e-a6fa-23ad2f17a54d",
           "source": "Path.value"
         },
         "a": {
           "description": "Run the API component via a boolean input",
           "nick": "A",
           "optional": false,
-          "guid": "75f430b8-cbd4-4f28-8984-9c585f8dd497"
+          "instanceGuid": "75f430b8-cbd4-4f28-8984-9c585f8dd497"
         }
       },
       "outputs": {
@@ -28,38 +29,64 @@
           "description": "Connected to the Idea StatiCa API Service",
           "nick": "C",
           "optional": false,
-          "guid": "effebd5c-eadb-4526-b490-8101594d39a4"
+          "instanceGuid": "effebd5c-eadb-4526-b490-8101594d39a4"
         },
         "v": {
           "description": "Version of the Idea StatiCa Connection API Service",
           "nick": "V",
           "optional": false,
-          "guid": "0c4268b8-de11-4411-a587-7b255f82ab7d"
+          "instanceGuid": "0c4268b8-de11-4411-a587-7b255f82ab7d"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 527,
+          "y": 109,
+          "width": 66,
+          "height": 66
+        },
+        "pivot": {
+          "x": 559,
+          "y": 131
         }
       }
     },
     "Panel": {
       "id": "Panel",
       "type": "Panel",
-      "guid": "ed0605be-d1c5-48b5-9129-0188a391cbd1",
+      "typeGuid": "59e0b89a-e487-49f8-bab8-b5bab16be14c",
+      "instanceGuid": "ed0605be-d1c5-48b5-9129-0188a391cbd1",
       "description": "A panel for custom notes and text values",
       "nickName": "Panel",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "ed0605be-d1c5-48b5-9129-0188a391cbd1"
+          "instanceGuid": "ed0605be-d1c5-48b5-9129-0188a391cbd1"
         }
       },
       "value": {
         "type": "panel",
         "text": "C:\\Program Files\\IDEA StatiCa\\StatiCa 24.1"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 121,
+          "y": 111,
+          "width": 300,
+          "height": 21
+        },
+        "pivot": {
+          "x": 121.76581,
+          "y": 111.42615
+        }
       }
     },
     "Path": {
       "id": "Path",
       "type": "File Path",
-      "guid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e",
+      "typeGuid": "06953bda-1d37-4d58-9b38-4b3c74e54c8f",
+      "instanceGuid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e",
       "description": "Contains a collection of file paths",
       "nickName": "Path",
       "inputs": {
@@ -68,28 +95,44 @@
           "nick": "V",
           "optional": true,
           "source": "Panel.value",
-          "guid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e"
+          "instanceGuid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e"
         }
       },
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e"
+          "instanceGuid": "db19b4f3-ccf1-48b6-94b5-eb3398b18d1e"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 449,
+          "y": 111,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 474.5636,
+          "y": 121.372795
         }
       }
     },
     "click Run": {
       "id": "click Run",
       "type": "Group",
-      "guid": "47a82ede-78ac-4255-b9da-e81db379fd4d",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "47a82ede-78ac-4255-b9da-e81db379fd4d",
       "description": "A group of Grasshopper objects",
       "nickName": "click Run",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "47a82ede-78ac-4255-b9da-e81db379fd4d"
+          "instanceGuid": "47a82ede-78ac-4255-b9da-e81db379fd4d"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "SR",

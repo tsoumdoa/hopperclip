@@ -4,7 +4,8 @@
     "PlaneSrf": {
       "id": "PlaneSrf",
       "type": "Plane Surface",
-      "guid": "4b95b58a-690b-46e5-bb2c-920d2d0c65c8",
+      "typeGuid": "439a55a5-2f9e-4f66-9de2-32f24fec2ef5",
+      "instanceGuid": "4b95b58a-690b-46e5-bb2c-920d2d0c65c8",
       "description": "Create a plane surface",
       "nickName": "PlaneSrf",
       "inputs": {
@@ -12,20 +13,20 @@
           "description": "Surface base plane",
           "nick": "P",
           "optional": false,
-          "guid": "2ce00add-efaf-490b-98d5-a6e387552f9c",
+          "instanceGuid": "2ce00add-efaf-490b-98d5-a6e387552f9c",
           "source": "7100986d-a381-44a7-a723-933eb8b98fd3"
         },
         "x": {
           "description": "Dimensions in X direction",
           "nick": "X",
           "optional": false,
-          "guid": "fce2b5ba-9fa3-4838-885e-7feb0a09078f"
+          "instanceGuid": "fce2b5ba-9fa3-4838-885e-7feb0a09078f"
         },
         "y": {
           "description": "Dimensions in Y direction",
           "nick": "Y",
           "optional": false,
-          "guid": "ad2a85a5-ee60-4493-968f-7fa987712f2f"
+          "instanceGuid": "ad2a85a5-ee60-4493-968f-7fa987712f2f"
         }
       },
       "outputs": {
@@ -33,7 +34,19 @@
           "description": "Resulting plane surface",
           "nick": "P",
           "optional": false,
-          "guid": "5b6f0593-d445-4506-ac96-c564ba89e0e9"
+          "instanceGuid": "5b6f0593-d445-4506-ac96-c564ba89e0e9"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 239,
+          "y": 198,
+          "width": 55,
+          "height": 64
+        },
+        "pivot": {
+          "x": 265,
+          "y": 230
         }
       }
     }

@@ -4,14 +4,15 @@
     "Number Slider": {
       "id": "Number Slider",
       "type": "Number Slider",
-      "guid": "fbe9a838-5173-40be-944f-4af700c06b49",
+      "typeGuid": "57da07bd-ecab-415d-9d86-af36d7073abc",
+      "instanceGuid": "fbe9a838-5173-40be-944f-4af700c06b49",
       "description": "Numeric slider for single values",
       "nickName": "Number Slider",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "fbe9a838-5173-40be-944f-4af700c06b49"
+          "instanceGuid": "fbe9a838-5173-40be-944f-4af700c06b49"
         }
       },
       "value": {
@@ -21,12 +22,25 @@
         "current": 8,
         "digits": 3,
         "interval": 1
+      },
+      "visuals": {
+        "bounds": {
+          "x": 93,
+          "y": 192,
+          "width": 177,
+          "height": 20
+        },
+        "pivot": {
+          "x": 93.5,
+          "y": 192
+        }
       }
     },
     "Sqr": {
       "id": "Sqr",
       "type": "Square",
-      "guid": "b825c75c-d8ab-4770-84da-5e921e584f74",
+      "typeGuid": "2280dde4-9fa2-4b4a-ae2f-37d554861367",
+      "instanceGuid": "b825c75c-d8ab-4770-84da-5e921e584f74",
       "description": "Compute the square of a value",
       "nickName": "Sqr",
       "inputs": {
@@ -34,7 +48,7 @@
           "description": "Input value",
           "nick": "x",
           "optional": false,
-          "guid": "3568ec7d-f881-4dea-895e-be1e78d97b8e",
+          "instanceGuid": "3568ec7d-f881-4dea-895e-be1e78d97b8e",
           "source": "Number Slider.value"
         }
       },
@@ -43,7 +57,19 @@
           "description": "Output value",
           "nick": "y",
           "optional": false,
-          "guid": "4d0d43d1-377b-4b27-8b0a-71fd10ef4b02"
+          "instanceGuid": "4d0d43d1-377b-4b27-8b0a-71fd10ef4b02"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 317,
+          "y": 169,
+          "width": 55,
+          "height": 31
+        },
+        "pivot": {
+          "x": 343,
+          "y": 185
         }
       }
     }

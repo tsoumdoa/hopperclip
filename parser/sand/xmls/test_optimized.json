@@ -4,19 +4,32 @@
     "Panel": {
       "id": "Panel",
       "type": "Panel",
-      "guid": "fbb386c0-7f2a-474b-b0a2-18df7a0ff03f",
+      "typeGuid": "59e0b89a-e487-49f8-bab8-b5bab16be14c",
+      "instanceGuid": "fbb386c0-7f2a-474b-b0a2-18df7a0ff03f",
       "description": "A panel for custom notes and text values",
       "nickName": "Panel",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "fbb386c0-7f2a-474b-b0a2-18df7a0ff03f"
+          "instanceGuid": "fbb386c0-7f2a-474b-b0a2-18df7a0ff03f"
         }
       },
       "value": {
         "type": "panel",
         "text": "fa"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 487,
+          "y": 143,
+          "width": 160,
+          "height": 100
+        },
+        "pivot": {
+          "x": 487.99176,
+          "y": 143.4917
+        }
       }
     }
   },

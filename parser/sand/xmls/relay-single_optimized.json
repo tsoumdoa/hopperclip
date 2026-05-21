@@ -4,7 +4,8 @@
     "Pln": {
       "id": "Pln",
       "type": "Plane",
-      "guid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30",
+      "typeGuid": "4f8984c4-7c7a-4d69-b0a2-183cbb330d20",
+      "instanceGuid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30",
       "description": "Contains a collection of three-dimensional axis-systems",
       "nickName": "Pln",
       "inputs": {
@@ -13,13 +14,25 @@
           "nick": "V",
           "optional": true,
           "source": "7100986d-a381-44a7-a723-933eb8b98fd3",
-          "guid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30"
+          "instanceGuid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30"
         }
       },
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30"
+          "instanceGuid": "f51d7cfb-c27f-4610-ab5f-2d27a00ebd30"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 128,
+          "y": 138,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 153,
+          "y": 148
         }
       }
     }

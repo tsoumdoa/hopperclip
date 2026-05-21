@@ -4,15 +4,19 @@
     "Group": {
       "id": "Group",
       "type": "Group",
-      "guid": "02f91e17-2002-4964-9437-67dff1a1e270",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "02f91e17-2002-4964-9437-67dff1a1e270",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "02f91e17-2002-4964-9437-67dff1a1e270"
+          "instanceGuid": "02f91e17-2002-4964-9437-67dff1a1e270"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Panel",
@@ -25,25 +29,35 @@
     "Panel": {
       "id": "Panel",
       "type": "Panel",
-      "guid": "e3e89320-2800-4cdb-8238-d48b5ba094b3",
+      "typeGuid": "59e0b89a-e487-49f8-bab8-b5bab16be14c",
+      "instanceGuid": "e3e89320-2800-4cdb-8238-d48b5ba094b3",
       "description": "A panel for custom notes and text values",
       "nickName": "Panel",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "e3e89320-2800-4cdb-8238-d48b5ba094b3"
+          "instanceGuid": "e3e89320-2800-4cdb-8238-d48b5ba094b3"
         }
       },
       "value": {
         "type": "panel",
         "text": "Double click to edit panel content…"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 278,
+          "y": 176,
+          "width": 160,
+          "height": 100
+        }
       }
     },
     "Area": {
       "id": "Area",
       "type": "Area",
-      "guid": "774156f5-7faa-4178-9d6d-d31289d251b5",
+      "typeGuid": "86b28a7e-94d9-4791-8306-e13e10d5f8d5",
+      "instanceGuid": "774156f5-7faa-4178-9d6d-d31289d251b5",
       "description": "Solve area properties for breps, meshes and planar closed curves.",
       "nickName": "Area",
       "inputs": {
@@ -51,7 +65,7 @@
           "description": "Brep, mesh or planar closed curve for area computation",
           "nick": "G",
           "optional": false,
-          "guid": "294abc28-673e-4a7e-bb49-5f9b7517d039"
+          "instanceGuid": "294abc28-673e-4a7e-bb49-5f9b7517d039"
         }
       },
       "outputs": {
@@ -59,28 +73,44 @@
           "description": "Area of geometry",
           "nick": "A",
           "optional": true,
-          "guid": "351e05d7-0423-4235-b8ef-601d33448917"
+          "instanceGuid": "351e05d7-0423-4235-b8ef-601d33448917"
         },
         "c": {
           "description": "Area centroid of geometry",
           "nick": "C",
           "optional": true,
-          "guid": "75afeb39-03c2-412d-9be4-a8653f2e232a"
+          "instanceGuid": "75afeb39-03c2-412d-9be4-a8653f2e232a"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 387,
+          "y": 106,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 414,
+          "y": 128
         }
       }
     },
     "Group_2": {
       "id": "Group_2",
       "type": "Group",
-      "guid": "a1bff6ff-e122-4d58-b675-a255d44205b6",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "a1bff6ff-e122-4d58-b675-a255d44205b6",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "a1bff6ff-e122-4d58-b675-a255d44205b6"
+          "instanceGuid": "a1bff6ff-e122-4d58-b675-a255d44205b6"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Panel",
@@ -90,29 +120,46 @@
     "Linetype": {
       "id": "Linetype",
       "type": "Model Linetype",
-      "guid": "5fb0704e-1d8f-4919-8700-a93615ee2821",
+      "typeGuid": "c2c85a16-98f4-4f29-b1e4-9ea45744f80e",
+      "instanceGuid": "5fb0704e-1d8f-4919-8700-a93615ee2821",
       "description": "Contains a collection of model linetypes",
       "nickName": "Linetype",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "5fb0704e-1d8f-4919-8700-a93615ee2821"
+          "instanceGuid": "5fb0704e-1d8f-4919-8700-a93615ee2821"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 505,
+          "y": 66,
+          "width": 51,
+          "height": 20
+        },
+        "pivot": {
+          "x": 530.5,
+          "y": 76
         }
       }
     },
     "Group_3": {
       "id": "Group_3",
       "type": "Group",
-      "guid": "81a1d073-605d-42e1-84ea-f89483f7a14e",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "81a1d073-605d-42e1-84ea-f89483f7a14e",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "81a1d073-605d-42e1-84ea-f89483f7a14e"
+          "instanceGuid": "81a1d073-605d-42e1-84ea-f89483f7a14e"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Linetype"

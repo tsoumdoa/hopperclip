@@ -4,21 +4,35 @@
     "Txt": {
       "id": "Txt",
       "type": "Text",
-      "guid": "a6300f0a-18bc-4ccf-8108-8ed80f944ca2",
+      "typeGuid": "3ede854e-c753-40eb-84cb-b48008f14fd4",
+      "instanceGuid": "a6300f0a-18bc-4ccf-8108-8ed80f944ca2",
       "description": "Contains a collection of text fragments",
       "nickName": "Txt",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "a6300f0a-18bc-4ccf-8108-8ed80f944ca2"
+          "instanceGuid": "a6300f0a-18bc-4ccf-8108-8ed80f944ca2"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1222,
+          "y": 593,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 1247.9573,
+          "y": 603.58435
         }
       }
     },
     "Txt_2": {
       "id": "Txt_2",
       "type": "Text",
-      "guid": "411d643a-a343-4890-bd83-1d1393bb8379",
+      "typeGuid": "3ede854e-c753-40eb-84cb-b48008f14fd4",
+      "instanceGuid": "411d643a-a343-4890-bd83-1d1393bb8379",
       "description": "Contains a collection of text fragments",
       "nickName": "Txt",
       "inputs": {
@@ -27,28 +41,44 @@
           "nick": "V",
           "optional": true,
           "source": "Txt.value",
-          "guid": "411d643a-a343-4890-bd83-1d1393bb8379"
+          "instanceGuid": "411d643a-a343-4890-bd83-1d1393bb8379"
         }
       },
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "411d643a-a343-4890-bd83-1d1393bb8379"
+          "instanceGuid": "411d643a-a343-4890-bd83-1d1393bb8379"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1422,
+          "y": 632,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 1447.9573,
+          "y": 642.58435
         }
       }
     },
     "Group": {
       "id": "Group",
       "type": "Group",
-      "guid": "8cb402ab-34f4-4473-8225-bf6f3ee262cf",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "8cb402ab-34f4-4473-8225-bf6f3ee262cf",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "8cb402ab-34f4-4473-8225-bf6f3ee262cf"
+          "instanceGuid": "8cb402ab-34f4-4473-8225-bf6f3ee262cf"
         }
+      },
+      "visuals": {
+        "color": "150;170;135;255"
       },
       "members": [
         "Txt",

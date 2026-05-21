@@ -4,7 +4,8 @@
     "Cluster": {
       "id": "Cluster",
       "type": "Cluster",
-      "guid": "dc49083d-1af0-40f8-896d-81e3774609fc",
+      "typeGuid": "f31d8d7a-7536-4ac8-9c96-fde6ecda4d0a",
+      "instanceGuid": "dc49083d-1af0-40f8-896d-81e3774609fc",
       "description": "Contains a cluster of Grasshopper components",
       "nickName": "Cluster",
       "inputs": {
@@ -12,7 +13,7 @@
           "description": "Base curve",
           "nick": "C",
           "optional": true,
-          "guid": "7ceab4f4-4e3e-4307-916a-1005ea0916ac"
+          "instanceGuid": "7ceab4f4-4e3e-4307-916a-1005ea0916ac"
         }
       },
       "outputs": {
@@ -20,12 +21,24 @@
           "description": "Resulting Pipe",
           "nick": "P",
           "optional": false,
-          "guid": "fce0e3c4-87d5-4c7a-842e-95c08a921e86"
+          "instanceGuid": "fce0e3c4-87d5-4c7a-842e-95c08a921e86"
         }
       },
       "cluster": {
         "data": "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",
         "size": 3784
+      },
+      "visuals": {
+        "bounds": {
+          "x": 269,
+          "y": 183,
+          "width": 56,
+          "height": 54
+        },
+        "pivot": {
+          "x": 296,
+          "y": 210
+        }
       }
     }
   },

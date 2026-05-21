@@ -4,7 +4,8 @@
     "Environments": {
       "id": "Environments",
       "type": "Query Model Environments",
-      "guid": "e6e6637e-b1aa-4e4d-853d-b665fe5b295f",
+      "typeGuid": "00c2fe26-2082-44e4-a4ff-9460e8cecbd2",
+      "instanceGuid": "e6e6637e-b1aa-4e4d-853d-b665fe5b295f",
       "description": "Query a Rhino document for all available render environments",
       "nickName": "Environments",
       "inputs": {
@@ -12,7 +13,7 @@
           "description": "Name filter. Right-click on this parameter to set the matching method.",
           "nick": "N",
           "optional": true,
-          "guid": "9f8d333f-fde4-4289-aa02-5817f254f618"
+          "instanceGuid": "9f8d333f-fde4-4289-aa02-5817f254f618"
         }
       },
       "outputs": {
@@ -20,14 +21,30 @@
           "description": "The resultant list of available environments in the model.",
           "nick": "E",
           "optional": false,
-          "guid": "ab2fb9dc-2112-499a-a0c8-59dfced848c5"
+          "instanceGuid": "ab2fb9dc-2112-499a-a0c8-59dfced848c5"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 312,
+          "y": 46,
+          "width": 72,
+          "height": 92
+        },
+        "pivot": {
+          "x": 355,
+          "y": 92
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "Support": {
       "id": "Support",
       "type": "Support",
-      "guid": "d6945b3c-d4f7-4877-831f-592ffe224eb7",
+      "typeGuid": "0b3b7956-f88b-4ca3-99f6-b6508a8dac3f",
+      "instanceGuid": "d6945b3c-d4f7-4877-831f-592ffe224eb7",
       "description": "Set support conditions for a beam end or rigid body",
       "nickName": "Support",
       "inputs": {
@@ -35,55 +52,55 @@
           "description": "The plane to restrain",
           "nick": "Frame",
           "optional": true,
-          "guid": "7d5525c1-e9ec-4eb5-9a7f-a667615c093f"
+          "instanceGuid": "7d5525c1-e9ec-4eb5-9a7f-a667615c093f"
         },
         "target": {
           "description": "Target plane. If none supplied, the initial Frame will be used",
           "nick": "Target",
           "optional": true,
-          "guid": "c2f059a0-91bf-4b54-ad62-80140efe3f6c"
+          "instanceGuid": "c2f059a0-91bf-4b54-ad62-80140efe3f6c"
         },
         "x": {
           "description": "Translation in X",
           "nick": "X",
           "optional": false,
-          "guid": "1fa8e8f9-4df0-4b09-8170-7d916f0d3339"
+          "instanceGuid": "1fa8e8f9-4df0-4b09-8170-7d916f0d3339"
         },
         "y": {
           "description": "Translation in Y",
           "nick": "Y",
           "optional": false,
-          "guid": "e7fe98ac-4d52-4720-bee5-bf65a0d53d78"
+          "instanceGuid": "e7fe98ac-4d52-4720-bee5-bf65a0d53d78"
         },
         "z": {
           "description": "Translation in Z",
           "nick": "Z",
           "optional": false,
-          "guid": "edb67d55-12e1-4658-863d-cb9b425822a0"
+          "instanceGuid": "edb67d55-12e1-4658-863d-cb9b425822a0"
         },
         "xx": {
           "description": "Rotation about X",
           "nick": "XX",
           "optional": false,
-          "guid": "6af95085-488f-4388-9be2-681080eff6d9"
+          "instanceGuid": "6af95085-488f-4388-9be2-681080eff6d9"
         },
         "yy": {
           "description": "Rotation about Y",
           "nick": "YY",
           "optional": false,
-          "guid": "a6d9da13-d0f1-4717-8a21-3a54ee8fae1f"
+          "instanceGuid": "a6d9da13-d0f1-4717-8a21-3a54ee8fae1f"
         },
         "zz": {
           "description": "Rotation about Z",
           "nick": "ZZ",
           "optional": false,
-          "guid": "c80bd40d-d113-48eb-9499-b320bd61cf7c"
+          "instanceGuid": "c80bd40d-d113-48eb-9499-b320bd61cf7c"
         },
         "strength": {
           "description": "Strength",
           "nick": "Strength",
           "optional": false,
-          "guid": "064048a0-11a1-4023-a813-ad498838aa31"
+          "instanceGuid": "064048a0-11a1-4023-a813-ad498838aa31"
         }
       },
       "outputs": {
@@ -91,14 +108,30 @@
           "description": "S",
           "nick": "S",
           "optional": false,
-          "guid": "443989f6-b00d-4611-93f6-fde775d87c41"
+          "instanceGuid": "443989f6-b00d-4611-93f6-fde775d87c41"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 294,
+          "y": 80,
+          "width": 90,
+          "height": 184
+        },
+        "pivot": {
+          "x": 355,
+          "y": 172
+        }
+      },
+      "state": {
+        "hidden": true
       }
     },
     "BlendCPt": {
       "id": "BlendCPt",
       "type": "Blend Curve Pt",
-      "guid": "3b59e3a7-bd7d-45a3-95d0-5979573cac74",
+      "typeGuid": "14cf43b6-5eb9-460f-899c-bdece732213a",
+      "instanceGuid": "3b59e3a7-bd7d-45a3-95d0-5979573cac74",
       "description": "Create a blend curve between two curves that intersects a point.",
       "nickName": "BlendCPt",
       "inputs": {
@@ -106,25 +139,25 @@
           "description": "First curve for blend",
           "nick": "A",
           "optional": false,
-          "guid": "76885245-4126-4ab2-a533-d53f471a89c1"
+          "instanceGuid": "76885245-4126-4ab2-a533-d53f471a89c1"
         },
         "b": {
           "description": "Second curve for blend",
           "nick": "B",
           "optional": false,
-          "guid": "0520f3f4-f580-4b7a-9d85-8e0f14594f82"
+          "instanceGuid": "0520f3f4-f580-4b7a-9d85-8e0f14594f82"
         },
         "p": {
           "description": "Point for blend intersection",
           "nick": "P",
           "optional": false,
-          "guid": "b6850a10-7dc2-4d74-ae9c-0e1111aee6e7"
+          "instanceGuid": "b6850a10-7dc2-4d74-ae9c-0e1111aee6e7"
         },
         "c": {
           "description": "Continuity of blend (1=tangency, 2=curvature)",
           "nick": "C",
           "optional": false,
-          "guid": "71e228ce-328a-473e-887c-51b80e5e583b"
+          "instanceGuid": "71e228ce-328a-473e-887c-51b80e5e583b"
         }
       },
       "outputs": {
@@ -132,8 +165,23 @@
           "description": "Blend curve connecting the end of A to the start of B, ideally coincident with P",
           "nick": "B",
           "optional": false,
-          "guid": "b9ba030a-a04b-425e-9236-6e90b3508b0e"
+          "instanceGuid": "b9ba030a-a04b-425e-9236-6e90b3508b0e"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 328,
+          "y": 210,
+          "width": 56,
+          "height": 84
+        },
+        "pivot": {
+          "x": 355,
+          "y": 252
+        }
+      },
+      "state": {
+        "hidden": true
       }
     }
   },

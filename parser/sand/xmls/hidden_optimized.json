@@ -4,7 +4,8 @@
     "Stretch": {
       "id": "Stretch",
       "type": "Stretch",
-      "guid": "ef64a7fd-a71d-4000-9ed5-8dbff36770a8",
+      "typeGuid": "2a27f87c-61c5-47c2-a0b7-7863f31a3594",
+      "instanceGuid": "ef64a7fd-a71d-4000-9ed5-8dbff36770a8",
       "description": "Deforms objects by\n\t\t\t\t\t\t\t\t\t\t\tstretching them along a finite axis.",
       "nickName": "Stretch",
       "inputs": {
@@ -12,25 +13,25 @@
           "description": "Base geometry",
           "nick": "G",
           "optional": false,
-          "guid": "ecc215b9-b681-47eb-b429-46acd0f1a307"
+          "instanceGuid": "ecc215b9-b681-47eb-b429-46acd0f1a307"
         },
         "x": {
           "description": "Stretch axis",
           "nick": "X",
           "optional": false,
-          "guid": "ab785ca2-40dd-406d-b273-8d305e2bde62"
+          "instanceGuid": "ab785ca2-40dd-406d-b273-8d305e2bde62"
         },
         "l": {
           "description": "Length of new\n\t\t\t\t\t\t\t\t\t\t\t\t\tstretch axis.",
           "nick": "L",
           "optional": false,
-          "guid": "d42666ce-7057-4377-a5aa-1144e4fd35ab"
+          "instanceGuid": "d42666ce-7057-4377-a5aa-1144e4fd35ab"
         },
         "r": {
           "description": "Geometry will\n\t\t\t\t\t\t\t\t\t\t\t\t\tnot be deformed as it is transformed",
           "nick": "R",
           "optional": false,
-          "guid": "d8e21bf4-f6f5-437c-a05a-370824577c9f"
+          "instanceGuid": "d8e21bf4-f6f5-437c-a05a-370824577c9f"
         }
       },
       "outputs": {
@@ -38,8 +39,23 @@
           "description": "Morphed\n\t\t\t\t\t\t\t\t\t\t\t\t\tgeometry",
           "nick": "G",
           "optional": false,
-          "guid": "88df00e9-bbe8-400c-9b04-4d95989652cf"
+          "instanceGuid": "88df00e9-bbe8-400c-9b04-4d95989652cf"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 364,
+          "y": 198,
+          "width": 57,
+          "height": 84
+        },
+        "pivot": {
+          "x": 391,
+          "y": 240
+        }
+      },
+      "state": {
+        "hidden": true
       }
     }
   },

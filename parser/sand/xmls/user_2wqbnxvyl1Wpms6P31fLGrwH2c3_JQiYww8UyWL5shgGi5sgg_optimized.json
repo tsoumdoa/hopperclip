@@ -4,21 +4,35 @@
     "Crv": {
       "id": "Crv",
       "type": "Curve",
-      "guid": "1d6217a3-3d5c-45f6-bac5-441c742698f3",
+      "typeGuid": "d5967b9f-e8ee-436b-a8ad-29fdcecf32d5",
+      "instanceGuid": "1d6217a3-3d5c-45f6-bac5-441c742698f3",
       "description": "Contains a collection of generic curves",
       "nickName": "Crv",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "1d6217a3-3d5c-45f6-bac5-441c742698f3"
+          "instanceGuid": "1d6217a3-3d5c-45f6-bac5-441c742698f3"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1115,
+          "y": 590,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 1140.3226,
+          "y": 600.29395
         }
       }
     },
     "MidPt": {
       "id": "MidPt",
       "type": "Curve Middle",
-      "guid": "b795b005-9364-4247-bdd1-86376eed18bb",
+      "typeGuid": "ccc7b468-e743-4049-891f-299432545898",
+      "instanceGuid": "b795b005-9364-4247-bdd1-86376eed18bb",
       "description": "Get the point in the middle of a curve",
       "nickName": "MidPt",
       "inputs": {
@@ -26,7 +40,7 @@
           "description": "Curve for mid-point.",
           "nick": "C",
           "optional": false,
-          "guid": "7e75b165-9b72-4053-b391-3b9d5cc5cb0f",
+          "instanceGuid": "7e75b165-9b72-4053-b391-3b9d5cc5cb0f",
           "source": "Crv.value"
         }
       },
@@ -35,14 +49,27 @@
           "description": "Point in the middle of the curve",
           "nick": "M",
           "optional": false,
-          "guid": "af54ded6-6ace-4fd3-9a60-9a0f28d7f482"
+          "instanceGuid": "af54ded6-6ace-4fd3-9a60-9a0f28d7f482"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1187,
+          "y": 622,
+          "width": 68,
+          "height": 53
+        },
+        "pivot": {
+          "x": 1218,
+          "y": 649
         }
       }
     },
     "Sort": {
       "id": "Sort",
       "type": "Sort List",
-      "guid": "8d4128ef-5f18-4fc6-b0f9-cc9b6484b5de",
+      "typeGuid": "6f93d366-919f-4dda-a35e-ba03dd62799b",
+      "instanceGuid": "8d4128ef-5f18-4fc6-b0f9-cc9b6484b5de",
       "description": "Sort a list of numeric keys.",
       "nickName": "Sort",
       "inputs": {
@@ -50,14 +77,14 @@
           "description": "List of sortable keys",
           "nick": "K",
           "optional": false,
-          "guid": "8786a6c5-6a48-4217-bbe5-5eb53e9b7c26",
+          "instanceGuid": "8786a6c5-6a48-4217-bbe5-5eb53e9b7c26",
           "source": "Crv.value"
         },
         "a": {
           "description": "Optional list of values to sort synchronously",
           "nick": "A",
           "optional": true,
-          "guid": "714a40b5-8170-4495-a09b-4cf2c6831ecc",
+          "instanceGuid": "714a40b5-8170-4495-a09b-4cf2c6831ecc",
           "source": "pDecon.z"
         }
       },
@@ -66,20 +93,33 @@
           "description": "Sorted keys",
           "nick": "K",
           "optional": false,
-          "guid": "deb559f5-a8e0-4c28-99c0-d9bffadd62f5"
+          "instanceGuid": "deb559f5-a8e0-4c28-99c0-d9bffadd62f5"
         },
         "a": {
           "description": "Synchronous values in A",
           "nick": "A",
           "optional": false,
-          "guid": "81417df4-adc6-491f-9540-5c676856812d"
+          "instanceGuid": "81417df4-adc6-491f-9540-5c676856812d"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1371,
+          "y": 588,
+          "width": 65,
+          "height": 44
+        },
+        "pivot": {
+          "x": 1402,
+          "y": 610
         }
       }
     },
     "pDecon": {
       "id": "pDecon",
       "type": "Deconstruct",
-      "guid": "21f2b697-a418-488f-9a05-f28412e7606a",
+      "typeGuid": "9abae6b7-fa1d-448c-9209-4a8155345841",
+      "instanceGuid": "21f2b697-a418-488f-9a05-f28412e7606a",
       "description": "Deconstruct a point into its component parts.",
       "nickName": "pDecon",
       "inputs": {
@@ -87,7 +127,7 @@
           "description": "Input point",
           "nick": "P",
           "optional": false,
-          "guid": "6c2ef317-0c4c-418c-a9bc-76367a5c6071",
+          "instanceGuid": "6c2ef317-0c4c-418c-a9bc-76367a5c6071",
           "source": "MidPt.m"
         }
       },
@@ -96,34 +136,50 @@
           "description": "Point {x} component",
           "nick": "X",
           "optional": false,
-          "guid": "e02f9069-e9c8-40be-a43c-564915a5eecd"
+          "instanceGuid": "e02f9069-e9c8-40be-a43c-564915a5eecd"
         },
         "y": {
           "description": "Point {y} component",
           "nick": "Y",
           "optional": false,
-          "guid": "bb088fd7-8051-4973-9b66-04f726a121ba"
+          "instanceGuid": "bb088fd7-8051-4973-9b66-04f726a121ba"
         },
         "z": {
           "description": "Point {z} component",
           "nick": "Z",
           "optional": false,
-          "guid": "80f2a282-5182-4437-9ee3-601e75a9b1b4"
+          "instanceGuid": "80f2a282-5182-4437-9ee3-601e75a9b1b4"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 1272,
+          "y": 616,
+          "width": 64,
+          "height": 64
+        },
+        "pivot": {
+          "x": 1302,
+          "y": 648
         }
       }
     },
     "Group": {
       "id": "Group",
       "type": "Group",
-      "guid": "d2658477-1b3b-4513-90aa-e3e81d8ad229",
+      "typeGuid": "c552a431-af5b-46a9-a8a4-0fcbc27ef596",
+      "instanceGuid": "d2658477-1b3b-4513-90aa-e3e81d8ad229",
       "description": "A group of Grasshopper objects",
       "nickName": "Group",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "d2658477-1b3b-4513-90aa-e3e81d8ad229"
+          "instanceGuid": "d2658477-1b3b-4513-90aa-e3e81d8ad229"
         }
+      },
+      "visuals": {
+        "color": "150;255;255;255"
       },
       "members": [
         "Crv",

@@ -4,21 +4,35 @@
     "Brep": {
       "id": "Brep",
       "type": "Brep",
-      "guid": "e8fb9e7f-caee-40a2-a57f-4e4472ec0664",
+      "typeGuid": "919e146f-30ae-4aae-be34-4d72f555e7da",
+      "instanceGuid": "e8fb9e7f-caee-40a2-a57f-4e4472ec0664",
       "description": "Contains a collection of Breps (Boundary REPresentations)",
       "nickName": "Brep",
       "inputs": {},
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "e8fb9e7f-caee-40a2-a57f-4e4472ec0664"
+          "instanceGuid": "e8fb9e7f-caee-40a2-a57f-4e4472ec0664"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 445,
+          "y": 351,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 470.7053,
+          "y": 361.23895
         }
       }
     },
     "Area": {
       "id": "Area",
       "type": "Area",
-      "guid": "096f0eed-8b81-4db2-bdd6-4959b5d45e70",
+      "typeGuid": "86b28a7e-94d9-4791-8306-e13e10d5f8d5",
+      "instanceGuid": "096f0eed-8b81-4db2-bdd6-4959b5d45e70",
       "description": "Solve area properties for breps, meshes and planar closed curves.",
       "nickName": "Area",
       "inputs": {
@@ -26,7 +40,7 @@
           "description": "Brep, mesh or planar closed curve for area computation",
           "nick": "G",
           "optional": false,
-          "guid": "9e7ff88b-6020-40a8-baa9-98380038bd17",
+          "instanceGuid": "9e7ff88b-6020-40a8-baa9-98380038bd17",
           "source": "Brep.value"
         }
       },
@@ -35,20 +49,33 @@
           "description": "Area of geometry",
           "nick": "A",
           "optional": true,
-          "guid": "bba969c5-ec1b-4287-8cec-ad80ec856b38"
+          "instanceGuid": "bba969c5-ec1b-4287-8cec-ad80ec856b38"
         },
         "c": {
           "description": "Area centroid of geometry",
           "nick": "C",
           "optional": true,
-          "guid": "aacdc5a0-362e-4346-96ab-b5e2778b98a2"
+          "instanceGuid": "aacdc5a0-362e-4346-96ab-b5e2778b98a2"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 606,
+          "y": 332,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 633,
+          "y": 354
         }
       }
     },
     "Pt": {
       "id": "Pt",
       "type": "Point",
-      "guid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9",
+      "typeGuid": "fbac3e32-f100-4292-8692-77240a42fd1a",
+      "instanceGuid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9",
       "description": "Contains a collection of three-dimensional points",
       "nickName": "Pt",
       "inputs": {
@@ -57,20 +84,33 @@
           "nick": "V",
           "optional": true,
           "source": "Area_2.c",
-          "guid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9"
+          "instanceGuid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9"
         }
       },
       "outputs": {
         "value": {
           "nick": "V",
-          "guid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9"
+          "instanceGuid": "1e1706e2-2a61-40f2-a7ea-1475f1b878d9"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 747,
+          "y": 351,
+          "width": 50,
+          "height": 20
+        },
+        "pivot": {
+          "x": 772.83246,
+          "y": 361.23895
         }
       }
     },
     "Area_2": {
       "id": "Area_2",
       "type": "Area",
-      "guid": "fe2c0507-d0d9-4ffd-9d7c-1aff7cb6833a",
+      "typeGuid": "86b28a7e-94d9-4791-8306-e13e10d5f8d5",
+      "instanceGuid": "fe2c0507-d0d9-4ffd-9d7c-1aff7cb6833a",
       "description": "Solve area properties for breps, meshes and planar closed curves.",
       "nickName": "Area",
       "inputs": {
@@ -78,7 +118,7 @@
           "description": "Brep, mesh or planar closed curve for area computation",
           "nick": "G",
           "optional": false,
-          "guid": "e25e9511-f027-4acb-9ef5-fccb5db960ec",
+          "instanceGuid": "e25e9511-f027-4acb-9ef5-fccb5db960ec",
           "source": "Brep.value"
         }
       },
@@ -87,13 +127,25 @@
           "description": "Area of geometry",
           "nick": "A",
           "optional": true,
-          "guid": "f04b60cb-a6a1-4211-a90f-824db542a57c"
+          "instanceGuid": "f04b60cb-a6a1-4211-a90f-824db542a57c"
         },
         "c": {
           "description": "Area centroid of geometry",
           "nick": "C",
           "optional": true,
-          "guid": "0fa0dd03-ebab-4bf9-84bd-a62cee6a2371"
+          "instanceGuid": "0fa0dd03-ebab-4bf9-84bd-a62cee6a2371"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 616,
+          "y": 386,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 643,
+          "y": 408
         }
       }
     }

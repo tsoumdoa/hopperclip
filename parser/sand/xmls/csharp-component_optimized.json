@@ -4,7 +4,8 @@
     "C#": {
       "id": "C#",
       "type": "C# Script",
-      "guid": "f7443a61-a2e9-43bb-890f-cf22f40271ff",
+      "typeGuid": "b6ba1144-02d6-4a2d-b53c-ec62e290eeb7",
+      "instanceGuid": "f7443a61-a2e9-43bb-890f-cf22f40271ff",
       "description": "C# scripting component",
       "nickName": "C#",
       "inputs": {
@@ -12,13 +13,13 @@
           "description": "No conversion",
           "nick": "x",
           "optional": true,
-          "guid": "00cb5b47-2296-4422-bd8d-74f29f5691f3"
+          "instanceGuid": "00cb5b47-2296-4422-bd8d-74f29f5691f3"
         },
         "y": {
           "description": "No conversion",
           "nick": "y",
           "optional": true,
-          "guid": "4ee489bf-3a8f-44b0-b85b-116f25028b22"
+          "instanceGuid": "4ee489bf-3a8f-44b0-b85b-116f25028b22"
         }
       },
       "outputs": {
@@ -26,19 +27,31 @@
           "description": "Standard output and error contents collected during script run",
           "nick": "out",
           "optional": false,
-          "guid": "4efb2c91-6a89-43d3-adfb-6cf994361c3d"
+          "instanceGuid": "4efb2c91-6a89-43d3-adfb-6cf994361c3d"
         },
         "a": {
           "description": "No conversion",
           "nick": "a",
           "optional": false,
-          "guid": "7fd3e494-ea63-4e49-b836-c2d726a9c506"
+          "instanceGuid": "7fd3e494-ea63-4e49-b836-c2d726a9c506"
         }
       },
       "script": {
         "language": "csharp",
         "code": "// Grasshopper Script Instance\n#region Usings\nusing System;\nusing System.Linq;\nusing System.Collections;\nusing System.Collections.Generic;\nusing System.Drawing;\n\nusing Rhino;\nusing Rhino.Geometry;\n\nusing Grasshopper;\nusing Grasshopper.Kernel;\nusing Grasshopper.Kernel.Data;\nusing Grasshopper.Kernel.Types;\n#endregion\n\npublic class Script_Instance : GH_ScriptInstance\n{\n    #region Notes\n    /* \n      Members:\n        RhinoDoc RhinoDocument\n        GH_Document GrasshopperDocument\n        IGH_Component Component\n        int Iteration\n\n      Methods (Virtual & overridable):\n        Print(string text)\n        Print(string format, params object[] args)\n        Reflect(object obj)\n        Reflect(object obj, string method_name)\n    */\n    #endregion\n\n    private void RunScript(object x, object y, ref object a)\n    {\n        // Write your logic here\n        a = null;\n    }\n}\n",
         "title": "C#"
+      },
+      "visuals": {
+        "bounds": {
+          "x": 518,
+          "y": 228,
+          "width": 64,
+          "height": 44
+        },
+        "pivot": {
+          "x": 544,
+          "y": 250
+        }
       }
     }
   },

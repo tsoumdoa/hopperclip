@@ -29,7 +29,7 @@ export interface InputPort {
 	sources?: string[];
 	optional?: boolean;
 	options?: PortOptions;
-	guid: string;
+	instanceGuid: string;
 }
 
 export interface OutputPort {
@@ -37,7 +37,7 @@ export interface OutputPort {
 	nick: string;
 	optional?: boolean;
 	options?: PortOptions;
-	guid: string;
+	instanceGuid: string;
 }
 
 export interface Visuals {
@@ -65,7 +65,8 @@ export interface ComponentState {
 export interface Component {
 	id: string; // Unique identifier (e.g., "Area_1", "Brep_2")
 	type: string; // Component type (e.g., "Area", "Brep")
-	guid: string; // Original InstanceGuid
+	typeGuid: string; // Type GUID (from Object chunk)
+	instanceGuid: string; // Instance GUID (from Container chunk)
 	library?: string; // Library name (from Lib GUID mapping)
 	description?: string;
 	nickName: string; // Display name (may have duplicates)

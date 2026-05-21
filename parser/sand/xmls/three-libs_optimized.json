@@ -4,7 +4,8 @@
     "ptIsoE": {
       "id": "ptIsoE",
       "type": "Iso Edges",
-      "guid": "db9dff29-7343-463f-89bd-8f4c60adc6ed",
+      "typeGuid": "d4ffcfd6-0d9d-407d-9789-ccefb6bafe0f",
+      "instanceGuid": "db9dff29-7343-463f-89bd-8f4c60adc6ed",
       "library": "PTComponentLibrary v2021.4.1.0",
       "description": "Extract iso-edges on surface from linear edges",
       "nickName": "ptIsoE",
@@ -13,13 +14,13 @@
           "description": "Lines to extract their iso",
           "nick": "L",
           "optional": false,
-          "guid": "c54955ad-d52f-438d-b2f5-b0f424ae4ed0"
+          "instanceGuid": "c54955ad-d52f-438d-b2f5-b0f424ae4ed0"
         },
         "s": {
           "description": "Surface",
           "nick": "S",
           "optional": false,
-          "guid": "840c735e-b4b6-4614-b037-788cdef437d1"
+          "instanceGuid": "840c735e-b4b6-4614-b037-788cdef437d1"
         }
       },
       "outputs": {
@@ -27,14 +28,27 @@
           "description": "Iso curve segments",
           "nick": "C",
           "optional": false,
-          "guid": "9078adcb-786e-414b-b434-8a337c76f26e"
+          "instanceGuid": "9078adcb-786e-414b-b434-8a337c76f26e"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 488,
+          "y": 209,
+          "width": 56,
+          "height": 48
+        },
+        "pivot": {
+          "x": 514,
+          "y": 233
         }
       }
     },
     "Bend": {
       "id": "Bend",
       "type": "Bend Deform",
-      "guid": "114fbc1d-e109-4089-bb49-26dcaf5d500a",
+      "typeGuid": "539f5564-4fc0-4fc1-a7d3-b802fa2ef072",
+      "instanceGuid": "114fbc1d-e109-4089-bb49-26dcaf5d500a",
       "description": "Deform a shape by bending it",
       "nickName": "Bend",
       "inputs": {
@@ -42,13 +56,13 @@
           "description": "Geometry to deform",
           "nick": "G",
           "optional": false,
-          "guid": "6902fb24-d44e-4636-9627-3c19481478c3"
+          "instanceGuid": "6902fb24-d44e-4636-9627-3c19481478c3"
         },
         "b": {
           "description": "Bending arc segment",
           "nick": "B",
           "optional": false,
-          "guid": "429d23ff-cff1-4ff8-94f6-2a5a33f76fd6"
+          "instanceGuid": "429d23ff-cff1-4ff8-94f6-2a5a33f76fd6"
         }
       },
       "outputs": {
@@ -56,14 +70,27 @@
           "description": "Deformed geometry",
           "nick": "G",
           "optional": false,
-          "guid": "b3588b9a-082e-44a3-a7db-219098b47d3a"
+          "instanceGuid": "b3588b9a-082e-44a3-a7db-219098b47d3a"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 352,
+          "y": 126,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 379,
+          "y": 148
         }
       }
     },
     "Sdca": {
       "id": "Sdca",
       "type": "Sdca Regression",
-      "guid": "f6de3eff-2546-4ece-b6ac-fb09ec46d258",
+      "typeGuid": "89bc7614-a135-4d75-8a6d-9d784b1d4d4f",
+      "instanceGuid": "f6de3eff-2546-4ece-b6ac-fb09ec46d258",
       "library": "LunchBoxML v2024.2.11.0",
       "description": "The Sdca trainer is used to train a regression model using the stochastic dual coordinate ascent method.",
       "nickName": "Sdca",
@@ -72,19 +99,19 @@
           "description": "The L1 regularization weight.",
           "nick": "L1 Regularization",
           "optional": false,
-          "guid": "b1361413-650e-4009-8f93-8e5e60e4d765"
+          "instanceGuid": "b1361413-650e-4009-8f93-8e5e60e4d765"
         },
         "l2 regularization": {
           "description": "The L2 regularization weight.",
           "nick": "L2 Regularization",
           "optional": false,
-          "guid": "1c500746-6c0a-4390-90b4-90dc6ac457bf"
+          "instanceGuid": "1c500746-6c0a-4390-90b4-90dc6ac457bf"
         },
         "iterations": {
           "description": "The maximum number of passes to perform over the data.",
           "nick": "Iterations",
           "optional": false,
-          "guid": "7785e9a6-8c87-40bc-91f8-b71ae0dcd13c"
+          "instanceGuid": "7785e9a6-8c87-40bc-91f8-b71ae0dcd13c"
         }
       },
       "outputs": {
@@ -92,7 +119,19 @@
           "description": "The trainer used for machine learning problems.",
           "nick": "Trainer Type",
           "optional": false,
-          "guid": "ad0c5efb-f804-49da-92e9-e15066b0b1d9"
+          "instanceGuid": "ad0c5efb-f804-49da-92e9-e15066b0b1d9"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 434,
+          "y": 94,
+          "width": 185,
+          "height": 64
+        },
+        "pivot": {
+          "x": 537,
+          "y": 126
         }
       }
     }

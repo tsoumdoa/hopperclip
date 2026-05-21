@@ -4,7 +4,8 @@
     "Pipe": {
       "id": "Pipe",
       "type": "Pipe",
-      "guid": "75a80b18-f8dd-420e-b1df-ada58c037b7e",
+      "typeGuid": "c277f778-6fdf-4890-8f78-347efb23c406",
+      "instanceGuid": "75a80b18-f8dd-420e-b1df-ada58c037b7e",
       "description": "Create a pipe surface around a rail curve.",
       "nickName": "Pipe",
       "inputs": {
@@ -12,20 +13,20 @@
           "description": "Base curve",
           "nick": "C",
           "optional": false,
-          "guid": "0c7dd691-f42b-48cc-8fd4-40880918b4f7",
+          "instanceGuid": "0c7dd691-f42b-48cc-8fd4-40880918b4f7",
           "source": "987173a6-3b32-4cf0-81b7-3252208270e2"
         },
         "r": {
           "description": "Pipe radius",
           "nick": "R",
           "optional": false,
-          "guid": "602e6f24-fd8b-4b2e-ad9f-e38c3342e829"
+          "instanceGuid": "602e6f24-fd8b-4b2e-ad9f-e38c3342e829"
         },
         "e": {
           "description": "Specifies the type of caps (0=None, 1=Flat, 2=Round)",
           "nick": "E",
           "optional": false,
-          "guid": "0a1ab0d2-003d-4112-bf97-c2a682d1b62c"
+          "instanceGuid": "0a1ab0d2-003d-4112-bf97-c2a682d1b62c"
         }
       },
       "outputs": {
@@ -33,8 +34,23 @@
           "description": "Resulting Pipe",
           "nick": "P",
           "optional": false,
-          "guid": "15ef3307-4b35-4b98-9927-cd0738b28402"
+          "instanceGuid": "15ef3307-4b35-4b98-9927-cd0738b28402"
         }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 241,
+          "y": 142,
+          "width": 56,
+          "height": 64
+        },
+        "pivot": {
+          "x": 268,
+          "y": 174
+        }
+      },
+      "state": {
+        "locked": true
       }
     }
   },

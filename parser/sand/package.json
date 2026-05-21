@@ -6,11 +6,13 @@
   },
   "scripts": {
     "parse": "bun run src/parse.ts",
-    "dev": "bun --watch run src/parse.ts"
+    "dev": "bun --watch run src/parse.ts",
+    "batch": "bun run src/batch-parse.ts \"xmls/*.xml\"",
+    "batch-visuals": "bun run src/batch-parse.ts --visuals \"xmls/*.xml\""
   },
   "type": "module",
   "dependencies": {
-    "fast-xml-parser": "^5.3.5",
-    "glob": "^13.0.3"
+    "fast-xml-parser": "^5.7.3",
+    "glob": "^13.0.6"
   }
 }

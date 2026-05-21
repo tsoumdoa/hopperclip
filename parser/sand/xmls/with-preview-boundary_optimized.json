@@ -4,7 +4,8 @@
     "Seam": {
       "id": "Seam",
       "type": "Seam",
-      "guid": "dd56fda8-9276-40b5-be7f-10538926dd33",
+      "typeGuid": "42ad8dc1-b0c0-40df-91f5-2c46e589e6c2",
+      "instanceGuid": "dd56fda8-9276-40b5-be7f-10538926dd33",
       "description": "Adjust the seam of a closed curve.",
       "nickName": "Seam",
       "inputs": {
@@ -12,13 +13,13 @@
           "description": "Curve to adjust",
           "nick": "C",
           "optional": false,
-          "guid": "7d6361f2-0cfc-425a-8b99-2f9bb04be2fb"
+          "instanceGuid": "7d6361f2-0cfc-425a-8b99-2f9bb04be2fb"
         },
         "t": {
           "description": "Parameter of new seam",
           "nick": "t",
           "optional": false,
-          "guid": "0d3e8817-ac98-42c8-85c4-7191d9ccbfdc"
+          "instanceGuid": "0d3e8817-ac98-42c8-85c4-7191d9ccbfdc"
         }
       },
       "outputs": {
@@ -26,7 +27,19 @@
           "description": "Adjusted curve",
           "nick": "C",
           "optional": false,
-          "guid": "864d141b-c843-42dc-8bd5-36b9960be699"
+          "instanceGuid": "864d141b-c843-42dc-8bd5-36b9960be699"
+        }
+      },
+      "visuals": {
+        "bounds": {
+          "x": 607,
+          "y": 81,
+          "width": 57,
+          "height": 44
+        },
+        "pivot": {
+          "x": 634,
+          "y": 103
         }
       }
     }
