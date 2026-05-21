@@ -21,6 +21,7 @@
 	},
 	"dependencies": {
 		"@clerk/nextjs": "^7.3.3",
+
 		"@effect/platform": "^0.90.10",
 		"@icons-pack/react-simple-icons": "^13.13.0",
 		"@libsql/client": "^0.15.15",
