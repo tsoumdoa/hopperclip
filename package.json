@@ -48,7 +48,7 @@
 		"jose": "^6.2.3",
 		"lucide-react": "^0.536.0",
 		"nanoid": "^5.1.11",
-		"next": "16.2.6",
+		"next": "16.2.9",
 		"pako": "^2.1.0",
 		"posthog-js": "^1.376.0",
 		"posthog-node": "^5.35.1",
