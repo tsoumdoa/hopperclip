@@ -27,6 +27,7 @@ export function GhCardXmlPaste(props: {
 	xmlError: string;
 	setXmlError: (error: string) => void;
 	handlePasteFromClipboard: () => void;
+	onClearPastedXml?: () => void;
 	isEditMode?: boolean;
 }) {
 	const { xmlData, isValidXml, setXmlError } = props;
@@ -40,6 +41,7 @@ export function GhCardXmlPaste(props: {
 	const handleClear = () => {
 		props.setXmlData(undefined);
 		props.setXmlError("");
+		props.onClearPastedXml?.();
 	};
 
 	return (

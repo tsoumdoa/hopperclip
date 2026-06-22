@@ -11,7 +11,7 @@ import {
 	AlertDialogContent,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
 import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export function AddGhDialog(props: {
 	const [addError, setAddError] = useState("");
 	const [xmlData, setXmlData] = useState<string>();
 	const [isValidXml, setIsValidXml] = useState(false);
+	const autoFilledNameRef = useRef<string | null>(null);
 	const {
 		name,
 		setName,
@@ -55,10 +56,24 @@ export function AddGhDialog(props: {
 		setAddError,
 		{
 			onSingleScriptComponent: (nickName) => {
-				if (name.length === 0 && nickName.length > 0) setName(nickName);
+				if (name.length === 0 && nickName.length > 0) {
+					setName(nickName);
+					autoFilledNameRef.current = nickName;
+				}
 			},
 		}
 	);
+
+	const handleClearPastedXml = () => {
+		if (
+			autoFilledNameRef.current !== null &&
+			name === autoFilledNameRef.current
+		) {
+			setName("");
+		}
+		autoFilledNameRef.current = null;
+		setIsValidXml(false);
+	};
 
 	const handleSubmit = async () => {
 		if (isValidXml && isValid && xmlData) {
@@ -83,6 +98,7 @@ export function AddGhDialog(props: {
 			setTags([]);
 			setName("");
 			setDescription("");
+			autoFilledNameRef.current = null;
 		}
 	};
 
@@ -103,6 +119,7 @@ export function AddGhDialog(props: {
 		setTags([]);
 		setTag("");
 		setXmlData(undefined);
+		autoFilledNameRef.current = null;
 		props.setOpen(false);
 	};
 
@@ -125,6 +142,7 @@ export function AddGhDialog(props: {
 								xmlError={addError}
 								setXmlError={setAddError}
 								handlePasteFromClipboard={handlePasteFromClipboard}
+								onClearPastedXml={handleClearPastedXml}
 							/>
 							<div className="flex flex-col gap-y-1.5">
 								<Input
