@@ -52,7 +52,12 @@ export function AddGhDialog(props: {
 	const { handlePasteFromClipboard } = useXmlPasteHandler(
 		setXmlData,
 		setIsValidXml,
-		setAddError
+		setAddError,
+		{
+			onSingleScriptComponent: (nickName) => {
+				if (name.length === 0 && nickName.length > 0) setName(nickName);
+			},
+		}
 	);
 
 	const handleSubmit = async () => {
@@ -128,6 +133,7 @@ export function AddGhDialog(props: {
 									placeholder="NameOfGhCardInPascalCase"
 									className="font-semibold"
 									maxLength={30}
+									value={name}
 									onChange={(e) => setName(e.target.value)}
 									disabled={props.adding}
 									autoComplete="off"

@@ -1,7 +1,24 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import posthog from "posthog-js";
+import { buildGhJson } from "parser/sand/src/parser";
+import type { ParsedGrasshopper } from "parser/sand/src/types";
 import { validateGhXml } from "../utils/gh-xml";
+
+export function sanitizeGhCardName(raw: string): string {
+	return raw.trim().replace(/[^\p{L}\p{N}]/gu, "").slice(0, 30);
+}
+
+export function getSingleScriptNickName(
+	parsed: ParsedGrasshopper
+): string | undefined {
+	const components = Object.values(parsed.components);
+	if (components.length !== 1 || !components[0]?.script) {
+		return undefined;
+	}
+	const sanitized = sanitizeGhCardName(components[0].nickName);
+	return sanitized.length > 0 ? sanitized : undefined;
+}
 
 export function GhCardXmlPaste(props: {
 	xmlData: string | undefined;
@@ -83,7 +100,8 @@ export function GhCardXmlPaste(props: {
 export function useXmlPasteHandler(
 	setXmlData: (data: string | undefined) => void,
 	setIsValidXml: (valid: boolean) => void,
-	setXmlError: (error: string) => void
+	setXmlError: (error: string) => void,
+	options?: { onSingleScriptComponent?: (nickName: string) => void }
 ) {
 	const handlePasteFromClipboard = async () => {
 		setXmlError("");
@@ -102,6 +120,15 @@ export function useXmlPasteHandler(
 			const { isValid, errorMsg } = validateGhXml(text);
 
 			if (isValid) {
+				try {
+					const parsed = buildGhJson(text);
+					const nickName = getSingleScriptNickName(parsed);
+					if (nickName) {
+						options?.onSingleScriptComponent?.(nickName);
+					}
+				} catch {
+					// Parse failure should not block a valid XML paste.
+				}
 				setIsValidXml(true);
 				setXmlData(text);
 			} else {
