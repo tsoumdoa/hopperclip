@@ -1,18 +1,22 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import Header from "./components/header";
-import Footer from "./components/footer";
+import { SignUpButton } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { SignUpButton } from "@clerk/nextjs";
-import Link from "next/link";
+import Footer from "@/app/components/footer";
+import Header from "@/app/components/header";
 
-export default async function Home() {
-	const { userId } = await auth();
+export const Route = createFileRoute("/")({
+	head: () => ({
+		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
+	}),
+	beforeLoad: ({ context }) => {
+		if (context.userId) {
+			throw redirect({ to: "/ghcards" });
+		}
+	},
+	component: Home,
+});
 
-	if (userId) {
-		redirect("/ghcards");
-	}
-
+function Home() {
 	return (
 		<div className="min-h-screen bg-black font-sans text-white">
 			<div className="mx-auto flex min-h-screen max-w-400 flex-col p-4 md:px-6 md:pt-6 md:pb-2">
@@ -65,7 +69,7 @@ function LandingPageContent() {
 						Grasshopper plugins. Create reference documentation instantly.
 					</p>
 					<Link
-						href="/duckerweb"
+						to="/duckerweb"
 						className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
 					>
 						Try DuckerWeb

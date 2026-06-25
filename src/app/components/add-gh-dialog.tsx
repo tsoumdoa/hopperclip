@@ -89,7 +89,9 @@ export function AddGhDialog(props: {
 
 			const ghXmlZipped = compress(xmlData);
 
-			uploadToBucket(nanoId, ghXmlZipped);
+			uploadToBucket({
+				data: { nanoId, ghXmlZipped: Array.from(ghXmlZipped) },
+			});
 
 			props.setAdding(false);
 			props.setOpen(false);

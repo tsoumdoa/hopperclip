@@ -2,20 +2,19 @@
 
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
+import { useRouterState } from "@tanstack/react-router";
 import { Suspense, useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
 import { env } from "@/env";
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
-		posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY!, {
+		posthog.init(env.VITE_POSTHOG_KEY, {
 			api_host: "/ingest",
 			ui_host: "https://us.posthog.com",
 			capture_pageview: "history_change",
 			capture_pageleave: true,
 			capture_exceptions: true,
 			debug: false,
-			// debug: process.env.NODE_ENV === "development",
 		});
 	}, []);
 
@@ -28,20 +27,19 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 }
 
 function PostHogPageView() {
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const searchStr = useRouterState({ select: (s) => s.location.searchStr });
 	const posthogClient = usePostHog();
 
 	useEffect(() => {
 		if (pathname && posthogClient) {
 			let url = window.origin + pathname;
-			const search = searchParams.toString();
-			if (search) {
-				url += "?" + search;
+			if (searchStr) {
+				url += searchStr;
 			}
 			posthogClient.capture("$pageview", { $current_url: url });
 		}
-	}, [pathname, searchParams, posthogClient]);
+	}, [pathname, searchStr, posthogClient]);
 
 	return null;
 }

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
 
 export default function Footer() {
@@ -7,13 +7,13 @@ export default function Footer() {
 			<div className="flex flex-col items-center justify-between gap-y-2 sm:flex-row">
 				<nav className="flex items-center gap-x-2">
 					<Link
-						href="/privacy"
+						to="/privacy"
 						className="text-xs text-neutral-600 hover:text-neutral-700"
 					>
 						Privacy Policy
 					</Link>
 					<Link
-						href="/terms-of-service"
+						to="/terms-of-service"
 						className="text-xs text-neutral-600 hover:text-neutral-700"
 					>
 						Term of Service
@@ -23,12 +23,12 @@ export default function Footer() {
 					<div className="text-xs text-neutral-600">
 						© {new Date().getFullYear()} HopperClip. All rights reserved.
 					</div>
-					<Link
+					<a
 						href="https://github.com/tsoumdoa/better-gh-lib"
 						className="text-xs text-neutral-600"
 					>
 						<SiRefinedgithub title="My title" color="#737373" size={16} />
-					</Link>
+					</a>
 				</div>
 			</div>
 		</footer>

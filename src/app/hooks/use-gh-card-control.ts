@@ -59,7 +59,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		// throw new Error("Test error");
 		try {
 			await deletePostConvex({ id: cardInfo["_id"] });
-			await deleteFromBucket(cardInfo.bucketUrl!);
+			await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			setTag("");
 			setEditMode(false);
 			setDeleted(true);
@@ -97,9 +97,14 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		if (xmlChanged && isValidXml) {
 			const newBucketUrl = nanoid();
 			try {
-				const deleteRes = deleteFromBucket(cardInfo.bucketUrl!);
+				const deleteRes = deleteFromBucket({ data: cardInfo.bucketUrl! });
 				const compressed = compress(newXmlData);
-				const uploadRes = await uploadToBucket(newBucketUrl, compressed);
+				const uploadRes = await uploadToBucket({
+					data: {
+						nanoId: newBucketUrl,
+						ghXmlZipped: Array.from(compressed),
+					},
+				});
 				const updateRes = await updatePost({
 					id: cardInfo["_id"],
 					name: ghInfo.name!,

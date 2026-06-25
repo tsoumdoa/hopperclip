@@ -7,7 +7,7 @@ export function useFetchGhXml() {
 	const decodedRef = useRef<string | undefined>(undefined);
 	const { mutateAsync: downloadData } = useMutation({
 		mutationFn: async (bucketId: string) => {
-			const presignedUrl = await generatePresigneDownloadUrl(bucketId);
+			const presignedUrl = await generatePresigneDownloadUrl({ data: bucketId });
 			const res = await fetch(presignedUrl, {
 				cache: "no-store",
 				headers: {

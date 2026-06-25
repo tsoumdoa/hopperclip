@@ -1,10 +1,10 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 export function DuckerwebHeader() {
 	return (
 		<header className="mb-8 flex w-full items-center justify-between">
 			<div>
-				<Link className="text-2xl font-bold md:text-4xl" href="/">
+				<Link className="text-2xl font-bold md:text-4xl" to="/">
 					Hopper Clip
 				</Link>
 				<h1 className="mt-2 text-xl font-semibold text-neutral-300">

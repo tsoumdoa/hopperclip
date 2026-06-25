@@ -1,5 +1,6 @@
 "use client";
 import FilterTagDisplay from "./user-tag-display";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import useTagFilters from "../hooks/use-tag-filters";
@@ -9,6 +10,7 @@ import { api as convex } from "../../../../convex/_generated/api";
 
 export default function UserTags(props: { tagFilters: string[] }) {
 	const [hideFilter, setHideFilter] = useState(false);
+	const navigate = useNavigate();
 
 	const {
 		tagFilters,
@@ -16,15 +18,13 @@ export default function UserTags(props: { tagFilters: string[] }) {
 		updateSearchParam,
 		removeSearchParam,
 		params,
-		pathname,
-		replace,
 		isPending,
 		startTransition,
 	} = useTagFilters();
 
 	useEffect(() => {
 		setTagFilters(props.tagFilters);
-	}, [props.tagFilters]);
+	}, [props.tagFilters, setTagFilters]);
 
 	const filterOn = params.get("searchFilterOn");
 	useEffect(() => {
@@ -36,13 +36,19 @@ export default function UserTags(props: { tagFilters: string[] }) {
 
 		const tagFilterIsStale = params.get("tagFilterIsStale");
 		if (tagFilterIsStale === "true") {
-			const newParams = new URLSearchParams(params);
-			newParams.delete("tagFilterIsStale");
 			startTransition(() => {
-				replace(`${pathname}?${newParams.toString()}`);
+				navigate({
+					to: "/ghcards",
+					search: (prev) => {
+						const next = { ...prev };
+						delete next.tagFilterIsStale;
+						return next;
+					},
+					replace: true,
+				});
 			});
 		}
-	}, [pathname, replace, params, props.tagFilters]);
+	}, [navigate, params, props.tagFilters, startTransition]);
 
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 

@@ -1,0 +1,87 @@
+/// <reference types="vite/client" />
+import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
+import { auth } from "@clerk/tanstack-react-start/server";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	HeadContent,
+	Outlet,
+	Scripts,
+	createRootRoute,
+} from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient } from "convex/react";
+import { PostHogProvider } from "@/app/providers/PostHogProvider";
+import appCss from "@/styles/app.css?url";
+import { env } from "@/env";
+
+const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
+	const { userId } = await auth();
+	return { userId };
+});
+
+const queryClient = new QueryClient();
+const convex = new ConvexReactClient(env.VITE_CONVEX_URL);
+
+export const Route = createRootRoute({
+	beforeLoad: async () => {
+		const { userId } = await fetchClerkAuth();
+		return { userId };
+	},
+	head: () => ({
+		meta: [
+			{ charSet: "utf-8" },
+			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{
+				title: "Hopper Clip",
+			},
+		],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "anonymous",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap",
+			},
+		],
+	}),
+	component: RootComponent,
+});
+
+function RootComponent() {
+	return (
+		<ClerkProvider>
+			<PostHogProvider>
+				<QueryClientProvider client={queryClient}>
+					<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+						<RootDocument>
+							<Outlet />
+						</RootDocument>
+					</ConvexProviderWithClerk>
+				</QueryClientProvider>
+			</PostHogProvider>
+		</ClerkProvider>
+	);
+}
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+	return (
+		<html lang="en">
+			<head>
+				<HeadContent />
+			</head>
+			<body className="font-sans antialiased">
+				{children}
+				<Scripts />
+			</body>
+		</html>
+	);
+}

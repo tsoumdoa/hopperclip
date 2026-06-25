@@ -1,30 +1,27 @@
 import { ShareLinkUidSchema } from "@/types/types";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-	useRouter,
-	useSearchParams,
-} from "next/dist/client/components/navigation";
 
 export function useValidateShareToken() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const token = searchParams.get("token");
+	const navigate = useNavigate();
+	const search = useSearch({ from: "/share" });
+	const token = search.token;
 	const tokenRef = useRef(token);
 	const [isValidToken, setIsValidToken] = useState(false);
 
 	useEffect(() => {
 		if (!token) {
-			router.push("/");
+			navigate({ to: "/" });
 			return;
 		}
 		const isValid = ShareLinkUidSchema.safeParse(token);
 		if (!isValid.success) {
-			router.push("/");
+			navigate({ to: "/" });
 		} else {
 			setIsValidToken(true);
-			tokenRef.current = token as string;
+			tokenRef.current = token;
 		}
-	}, [token, router]);
+	}, [token, navigate]);
 
 	return {
 		isValidToken,

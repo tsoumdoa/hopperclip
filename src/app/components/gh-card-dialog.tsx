@@ -110,7 +110,7 @@ export function ShareDialog(props: {
 					const baseUrl =
 						process.env.NODE_ENV === "development"
 							? "http://localhost:3000"
-							: env.NEXT_PUBLIC_HOSTING_DOMAIN;
+							: env.VITE_HOSTING_DOMAIN;
 					const link = `${baseUrl}/share?token=${result.shareToken}`;
 					setShareLink(link);
 					setShareToken(result.shareToken);
@@ -139,7 +139,7 @@ export function ShareDialog(props: {
 			const baseUrl =
 				process.env.NODE_ENV === "development"
 					? "http://localhost:3000"
-					: env.NEXT_PUBLIC_HOSTING_DOMAIN;
+					: env.VITE_HOSTING_DOMAIN;
 			const link = `${baseUrl}/share?token=${share.shareToken}`;
 			setShareLink(link);
 			setShareToken(share.shareToken);

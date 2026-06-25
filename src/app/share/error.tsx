@@ -1,22 +1,21 @@
-"use client"; // Error boundaries must be Client Components
-
+import Header from "@/app/components/header";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import Header from "../components/header";
-import { useRouter } from "next/navigation";
 
-export default function Error({
+export default function ShareError({
 	error,
-	// reset,
 }: {
 	error: Error & { digest?: string };
 	reset: () => void;
 }) {
-	const router = useRouter();
+	const navigate = useNavigate();
+
 	useEffect(() => {
 		setTimeout(() => {
-			router.push("/");
+			navigate({ to: "/" });
 		}, 800);
-	}, [error, router]);
+	}, [error, navigate]);
+
 	return (
 		<div className="flex min-h-screen flex-col bg-black p-4 font-sans text-white md:p-6">
 			<Header />

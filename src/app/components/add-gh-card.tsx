@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AddGhDialog } from "./add-gh-dialog";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function AddGHCard() {
-	const searchParams = useSearchParams();
-	const params = useMemo(
-		() => new URLSearchParams(searchParams),
-		[searchParams]
-	);
-	const pathname = usePathname();
-	const { replace } = useRouter();
-
+	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const [adding, setAdding] = useState(false);
 
@@ -35,8 +28,14 @@ export default function AddGHCard() {
 
 	const handleAddClick = () => {
 		setOpen(!open);
-		params.set("tagFilterIsStale", "true");
-		replace(`${pathname}?${params.toString()}`);
+		navigate({
+			to: "/ghcards",
+			search: (prev) => ({
+				...prev,
+				tagFilterIsStale: "true",
+			}),
+			replace: true,
+		});
 	};
 
 	return (
