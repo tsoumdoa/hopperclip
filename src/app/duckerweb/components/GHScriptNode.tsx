@@ -56,32 +56,44 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 
 	useEffect(() => {
 		let cancelled = false;
+		setHtml(null);
 
-		import("shiki/bundle/web").then(async ({ createHighlighter }) => {
-			const highlighter = await createHighlighter({
-				themes: ["catppuccin-mocha"],
-				langs: [],
-			});
-
-			let safeLang = "text";
-
+		void (async () => {
 			try {
-				const mod = await import(/* @vite-ignore */ `shiki/langs/${lang}.mjs`);
-				await highlighter.loadLanguage(mod.default);
-				safeLang = lang;
+				const { createHighlighter } = await import("shiki/bundle/web");
+				const highlighter = await createHighlighter({
+					themes: ["catppuccin-mocha"],
+					langs: [],
+				});
+
+				let safeLang = "text";
+
+				try {
+					const mod = await import(/* @vite-ignore */ `shiki/langs/${lang}.mjs`);
+					await highlighter.loadLanguage(mod.default);
+					safeLang = lang;
+				} catch {
+					// fallback to plain text if lang not available
+				}
+
+				const rendered = highlighter.codeToHtml(script.code, {
+					lang: safeLang,
+					theme: "catppuccin-mocha",
+				});
+
+				if (!cancelled) {
+					setHtml(rendered);
+				}
 			} catch {
-				// fallback to plain text if lang not available
+				if (!cancelled) {
+					const escaped = script.code
+						.replaceAll("&", "&amp;")
+						.replaceAll("<", "&lt;")
+						.replaceAll(">", "&gt;");
+					setHtml(`<pre>${escaped}</pre>`);
+				}
 			}
-
-			const rendered = highlighter.codeToHtml(script.code, {
-				lang: safeLang,
-				theme: "catppuccin-mocha",
-			});
-
-			if (!cancelled) {
-				setHtml(rendered);
-			}
-		});
+		})();
 
 		return () => {
 			cancelled = true;
