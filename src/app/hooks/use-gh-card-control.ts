@@ -96,6 +96,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 
 		if (xmlChanged && isValidXml) {
 			const newBucketUrl = nanoid();
+			let uploaded = false;
 			try {
 				const compressed = compress(newXmlData);
 				await uploadToBucket({
@@ -104,6 +105,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 						ghXmlZipped: Array.from(compressed),
 					},
 				});
+				uploaded = true;
 				await updatePost({
 					id: cardInfo["_id"],
 					name: ghInfo.name!,
@@ -111,13 +113,21 @@ export default function useGhCardControl(cardInfo: GhPost) {
 					tags: newTags.current,
 					uid: newBucketUrl,
 				});
-				await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			} catch (error) {
 				setXmlError("Failed to update XML: " + String(error));
 				setEditMode(true);
 				setUpdating(false);
+				if (uploaded) {
+					try {
+						await deleteFromBucket({ data: newBucketUrl });
+					} catch {}
+				}
 				return;
 			}
+			// post updated; removing the old blob is best-effort and must not fail the save
+			try {
+				await deleteFromBucket({ data: cardInfo.bucketUrl! });
+			} catch {}
 			setEditMode(false);
 			setNewXmlData(undefined);
 			setIsValidXml(false);

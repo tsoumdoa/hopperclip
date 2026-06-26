@@ -11,12 +11,12 @@ export function useValidateShareToken() {
 
 	useEffect(() => {
 		if (!token) {
-			navigate({ to: "/" });
+			navigate({ to: "/", replace: true });
 			return;
 		}
 		const isValid = ShareLinkUidSchema.safeParse(token);
 		if (!isValid.success) {
-			navigate({ to: "/" });
+			navigate({ to: "/", replace: true });
 		} else {
 			setIsValidToken(true);
 			setValidatedToken(token);
