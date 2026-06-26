@@ -3,7 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { isStaticPrerenderPath, STATIC_PRERENDER_PATHS } from "./src/lib/static-pages";
+
+const root = path.dirname(fileURLToPath(import.meta.url));
 
 const nextPublicToViteAliases: [string, string][] = [
 	["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "VITE_CLERK_PUBLISHABLE_KEY"],
@@ -67,11 +71,18 @@ export default defineConfig(({ mode }) => {
 			nitro(),
 		],
 		resolve: {
-			tsconfigPaths: true,
 			alias: [
 				{
 					find: "use-sync-external-store/shim/index.js",
 					replacement: "react",
+				},
+				{
+					find: /^@convex\/(.*)/,
+					replacement: `${path.resolve(root, "convex")}/$1`,
+				},
+				{
+					find: /^@\/(.*)/,
+					replacement: `${path.resolve(root, "src")}/$1`,
 				},
 			],
 		},

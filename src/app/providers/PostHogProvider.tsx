@@ -1,9 +1,8 @@
 "use client";
 
 import posthog from "posthog-js";
-import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
-import { useRouterState } from "@tanstack/react-router";
-import { Suspense, useEffect } from "react";
+import { PostHogProvider as PHProvider } from "posthog-js/react";
+import { useEffect } from "react";
 import { env } from "@/env";
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
@@ -18,36 +17,5 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 		});
 	}, []);
 
-	return (
-		<PHProvider client={posthog}>
-			<SuspendedPostHogPageView />
-			{children}
-		</PHProvider>
-	);
-}
-
-function PostHogPageView() {
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const searchStr = useRouterState({ select: (s) => s.location.searchStr });
-	const posthogClient = usePostHog();
-
-	useEffect(() => {
-		if (pathname && posthogClient) {
-			let url = window.origin + pathname;
-			if (searchStr) {
-				url += searchStr;
-			}
-			posthogClient.capture("$pageview", { $current_url: url });
-		}
-	}, [pathname, searchStr, posthogClient]);
-
-	return null;
-}
-
-function SuspendedPostHogPageView() {
-	return (
-		<Suspense fallback={null}>
-			<PostHogPageView />
-		</Suspense>
-	);
+	return <PHProvider client={posthog}>{children}</PHProvider>;
 }

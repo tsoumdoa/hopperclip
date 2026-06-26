@@ -79,28 +79,33 @@ export function AddGhDialog(props: {
 		if (isValidXml && isValid && xmlData) {
 			setAddError("");
 			props.setAdding(true);
-			const nanoId = nanoid();
-			await addGhCard({
-				name: name,
-				description: description,
-				tags: tags,
-				uid: nanoId,
-			});
+			try {
+				const nanoId = nanoid();
+				const ghXmlZipped = compress(xmlData);
 
-			const ghXmlZipped = compress(xmlData);
+				await uploadToBucket({
+					data: { nanoId, ghXmlZipped: Array.from(ghXmlZipped) },
+				});
 
-			uploadToBucket({
-				data: { nanoId, ghXmlZipped: Array.from(ghXmlZipped) },
-			});
+				await addGhCard({
+					name: name,
+					description: description,
+					tags: tags,
+					uid: nanoId,
+				});
 
-			props.setAdding(false);
-			props.setOpen(false);
+				props.setAdding(false);
+				props.setOpen(false);
 
-			setXmlData(undefined);
-			setTags([]);
-			setName("");
-			setDescription("");
-			autoFilledNameRef.current = null;
+				setXmlData(undefined);
+				setTags([]);
+				setName("");
+				setDescription("");
+				autoFilledNameRef.current = null;
+			} catch (error) {
+				setAddError("Failed to add card. Please try again.");
+				props.setAdding(false);
+			}
 		}
 	};
 

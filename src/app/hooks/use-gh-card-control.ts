@@ -97,40 +97,21 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		if (xmlChanged && isValidXml) {
 			const newBucketUrl = nanoid();
 			try {
-				const deleteRes = deleteFromBucket({ data: cardInfo.bucketUrl! });
 				const compressed = compress(newXmlData);
-				const uploadRes = await uploadToBucket({
+				await uploadToBucket({
 					data: {
 						nanoId: newBucketUrl,
 						ghXmlZipped: Array.from(compressed),
 					},
 				});
-				const updateRes = await updatePost({
+				await updatePost({
 					id: cardInfo["_id"],
 					name: ghInfo.name!,
 					description: ghInfo.description!,
 					tags: newTags.current,
 					uid: newBucketUrl,
 				});
-				const res = await Promise.allSettled([deleteRes, uploadRes, updateRes]);
-				if (res[0].status === "rejected") {
-					setXmlError("Failed to delete old XML: " + String(res[0].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
-				if (res[1].status === "rejected") {
-					setXmlError("Failed to upload new XML: " + String(res[1].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
-				if (res[2].status === "rejected") {
-					setXmlError("Failed to update post: " + String(res[2].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
+				await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			} catch (error) {
 				setXmlError("Failed to update XML: " + String(error));
 				setEditMode(true);

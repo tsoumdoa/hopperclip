@@ -11,9 +11,10 @@ export default function ShareError({
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		setTimeout(() => {
+		const timer = setTimeout(() => {
 			navigate({ to: "/" });
 		}, 800);
+		return () => clearTimeout(timer);
 	}, [error, navigate]);
 
 	return (

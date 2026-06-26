@@ -1,12 +1,12 @@
 import { ShareLinkUidSchema } from "@/types/types";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useValidateShareToken() {
 	const navigate = useNavigate();
 	const search = useSearch({ from: "/share" });
 	const token = search.token;
-	const tokenRef = useRef(token);
+	const [validatedToken, setValidatedToken] = useState<string | null>(null);
 	const [isValidToken, setIsValidToken] = useState(false);
 
 	useEffect(() => {
@@ -19,12 +19,12 @@ export function useValidateShareToken() {
 			navigate({ to: "/" });
 		} else {
 			setIsValidToken(true);
-			tokenRef.current = token;
+			setValidatedToken(token);
 		}
 	}, [token, navigate]);
 
 	return {
 		isValidToken,
-		tokenRef,
+		validatedToken,
 	};
 }

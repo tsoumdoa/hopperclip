@@ -26,8 +26,9 @@ export default function Footer() {
 					<a
 						href="https://github.com/tsoumdoa/better-gh-lib"
 						className="text-xs text-neutral-600"
+						aria-label="HopperClip on GitHub"
 					>
-						<SiRefinedgithub title="My title" color="#737373" size={16} />
+						<SiRefinedgithub color="#737373" size={16} aria-hidden />
 					</a>
 				</div>
 			</div>

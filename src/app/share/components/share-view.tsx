@@ -8,14 +8,14 @@ import { useState } from "react";
 import type { ViewMode } from "../../duckerweb/types/type";
 
 export default function ShareView() {
-	const { isValidToken, tokenRef } = useValidateShareToken();
+	const { isValidToken, validatedToken } = useValidateShareToken();
 	const [viewMode, setViewMode] = useState<ViewMode>("list");
 
 	const sharedPost = useQuery(api.ghCard.getSharedPost, {
-		shareToken: tokenRef.current!,
+		shareToken: validatedToken ?? "",
 	});
 
-	const flowState = useShareFlowState(tokenRef.current ?? "");
+	const flowState = useShareFlowState(validatedToken ?? "");
 
 	if (!isValidToken || !sharedPost) {
 		return <div>Loading...</div>;

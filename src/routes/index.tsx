@@ -1,6 +1,7 @@
-import { SignUpButton } from "@clerk/tanstack-react-start";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { SignUpButton, useAuth } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { useEffect } from "react";
 import Footer from "@/app/components/footer";
 import Header from "@/app/components/header";
 
@@ -8,15 +9,19 @@ export const Route = createFileRoute("/")({
 	head: () => ({
 		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
 	}),
-	beforeLoad: ({ context }) => {
-		if (context.userId) {
-			throw redirect({ to: "/ghcards" });
-		}
-	},
 	component: Home,
 });
 
 function Home() {
+	const { isSignedIn, isLoaded } = useAuth();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (isLoaded && isSignedIn) {
+			navigate({ to: "/ghcards", replace: true });
+		}
+	}, [isLoaded, isSignedIn, navigate]);
+
 	return (
 		<div className="min-h-screen bg-black font-sans text-white">
 			<div className="mx-auto flex min-h-screen max-w-400 flex-col p-4 md:px-6 md:pt-6 md:pb-2">

@@ -1,12 +1,15 @@
 import { SignIn } from "@clerk/tanstack-react-start";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/_authed")({
 	ssr: false,
-	beforeLoad: ({ context }) => {
-		if (!context.userId) {
+	beforeLoad: async () => {
+		const { userId } = await fetchClerkAuth();
+		if (!userId) {
 			throw new Error("Not authenticated");
 		}
+		return { userId };
 	},
 	errorComponent: ({ error }) => {
 		if (error.message === "Not authenticated") {

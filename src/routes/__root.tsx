@@ -14,20 +14,16 @@ import { ConvexReactClient } from "convex/react";
 import { PostHogProvider } from "@/app/providers/PostHogProvider";
 import appCss from "@/styles/app.css?url";
 import { env } from "@/env";
+import { useState } from "react";
 
-const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
-	const { userId } = await auth();
-	return { userId };
-});
-
-const queryClient = new QueryClient();
-const convex = new ConvexReactClient(env.VITE_CONVEX_URL);
+export const fetchClerkAuth = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { userId } = await auth();
+		return { userId };
+	}
+);
 
 export const Route = createRootRoute({
-	beforeLoad: async () => {
-		const { userId } = await fetchClerkAuth();
-		return { userId };
-	},
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -57,6 +53,9 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+	const [queryClient] = useState(() => new QueryClient());
+	const [convex] = useState(() => new ConvexReactClient(env.VITE_CONVEX_URL));
+
 	return (
 		<ClerkProvider>
 			<PostHogProvider>

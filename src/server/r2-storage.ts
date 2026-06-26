@@ -1,5 +1,6 @@
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { r2Client } from "./bucket";
 import { bucketUrl } from "@/utils/utils";
 
@@ -13,15 +14,31 @@ async function requireAuthenticatedUserId() {
 	return userId;
 }
 
+async function ensureOk(res: Response, action: string) {
+	if (!res.ok) {
+		throw new Error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
+	}
+}
+
 export const uploadToBucket = createServerFn({ method: "POST" })
 	.validator(
-		(input: { nanoId: string; ghXmlZipped: number[] }) => input
+		(input: unknown) => {
+			const parsed = z
+				.object({
+					nanoId: z
+						.string()
+						.regex(/^[A-Za-z0-9_-]{1,}$/),
+					ghXmlZipped: z.array(z.number().int().min(0).max(255)),
+				})
+				.parse(input);
+			return parsed;
+		}
 	)
 	.handler(async ({ data }) => {
 		const userId = await requireAuthenticatedUserId();
 		const ghXmlZipped = new Uint8Array(data.ghXmlZipped);
 
-		await r2Client.fetch(
+		const res = await r2Client.fetch(
 			new Request(bucketUrl(userId, data.nanoId), {
 				method: "PUT",
 				body: ghXmlZipped,
@@ -31,6 +48,7 @@ export const uploadToBucket = createServerFn({ method: "POST" })
 				},
 			})
 		);
+		await ensureOk(res, "upload");
 	});
 
 export const deleteFromBucket = createServerFn({ method: "POST" })
@@ -38,11 +56,12 @@ export const deleteFromBucket = createServerFn({ method: "POST" })
 	.handler(async ({ data: nanoId }) => {
 		const userId = await requireAuthenticatedUserId();
 
-		await r2Client.fetch(
+		const res = await r2Client.fetch(
 			new Request(bucketUrl(userId, nanoId), {
 				method: "DELETE",
 			})
 		);
+		await ensureOk(res, "delete");
 	});
 
 export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })

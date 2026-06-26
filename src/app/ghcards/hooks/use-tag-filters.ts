@@ -54,6 +54,7 @@ export default function useTagFilters() {
 					replace: true,
 				});
 			});
+			setTagFilters(newTagFilters);
 		}
 	};
 

@@ -23,14 +23,12 @@ export default function SortDropDown() {
 	const [isPending, startTransition] = useTransition();
 
 	useEffect(() => {
-		const sortOrder = search.sort;
-		if (sortOrder) {
-			const sortName = SORT_ORDERS.find(
-				(item) => item.value === sortOrder
-			)?.label;
-			setSortBy(sortName);
-			setPosition(sortOrder);
-		}
+		const sortOrder = search.sort ?? "ascLastEdited";
+		const sortName = SORT_ORDERS.find(
+			(item) => item.value === sortOrder
+		)?.label;
+		setSortBy(sortName);
+		setPosition(sortOrder);
 	}, [search.sort]);
 
 	return (
