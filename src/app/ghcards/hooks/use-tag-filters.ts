@@ -1,17 +1,22 @@
 import { useMemo, useState, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export default function useTagFilters() {
 	const searchParam = "tagFilter";
 	const [tagFilters, setTagFilters] = useState<string[]>([]);
 	const [isPending, startTransition] = useTransition();
-	const searchParams = useSearchParams();
-	const params = useMemo(
-		() => new URLSearchParams(searchParams),
-		[searchParams]
-	);
-	const pathname = usePathname();
-	const { replace } = useRouter();
+	const search = useSearch({ strict: false }) as Record<string, string | undefined>;
+	const navigate = useNavigate();
+
+	const params = useMemo(() => {
+		const urlParams = new URLSearchParams();
+		for (const [key, value] of Object.entries(search)) {
+			if (value !== undefined) {
+				urlParams.set(key, value);
+			}
+		}
+		return urlParams;
+	}, [search]);
 
 	const updateSearchParam = (t: string, add: boolean) => {
 		const currentFilters = params.get(searchParam);
@@ -22,29 +27,49 @@ export default function useTagFilters() {
 
 		if (add) {
 			const newTagFilters = [...unique, t];
-			params.set(searchParam, newTagFilters.join(","));
-			setTagFilters(newTagFilters);
 			startTransition(() => {
-				replace(`${pathname}?${params.toString()}`);
+				navigate({
+					to: "/ghcards",
+					search: (prev) => ({
+						...prev,
+						tagFilter: newTagFilters.join(","),
+					}),
+					replace: true,
+				});
 			});
+			setTagFilters(newTagFilters);
 		} else {
 			const newTagFilters = unique.filter((tf) => tf !== t);
 			if (newTagFilters.length === 0) {
 				removeSearchParam();
 				return;
 			}
-			const sortBy = newTagFilters.join(",");
-			params.set(searchParam, sortBy);
 			startTransition(() => {
-				replace(`${pathname}?${params.toString()}`);
+				navigate({
+					to: "/ghcards",
+					search: (prev) => ({
+						...prev,
+						tagFilter: newTagFilters.join(","),
+					}),
+					replace: true,
+				});
 			});
+			setTagFilters(newTagFilters);
 		}
 	};
+
 	const removeSearchParam = () => {
-		params.delete(searchParam);
 		setTagFilters([]);
 		startTransition(() => {
-			replace(`${pathname}?${params.toString()}`);
+			navigate({
+				to: "/ghcards",
+				search: (prev) => {
+					const next = { ...prev };
+					delete next.tagFilter;
+					return next;
+				},
+				replace: true,
+			});
 		});
 	};
 
@@ -54,8 +79,6 @@ export default function useTagFilters() {
 		updateSearchParam,
 		removeSearchParam,
 		params,
-		pathname,
-		replace,
 		startTransition,
 		isPending,
 	};

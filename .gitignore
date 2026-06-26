@@ -14,9 +14,11 @@ node_modules/
 # testing
 /coverage
 
-# next.js
+# next.js / tanstack start
 /.next/
+/.output/
 /out/
+/dist/
 
 # production
 /build

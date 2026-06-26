@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Code2, Copy } from "lucide-react";
 import type { GHNodeProps, Port, ScriptData } from "../types/type";
 import { HANDLE_SIZE } from "./constants";
@@ -54,29 +54,51 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 		? (langMap[script.language.toLowerCase()] ?? script.language.toLowerCase())
 		: "text";
 
-	import("shiki/bundle/web").then(async ({ createHighlighter }) => {
-		const highlighter = await createHighlighter({
-			themes: ["catppuccin-mocha"],
-			langs: [],
-		});
+	useEffect(() => {
+		let cancelled = false;
+		setHtml(null);
 
-		let safeLang = "text";
+		void (async () => {
+			try {
+				const { createHighlighter } = await import("shiki/bundle/web");
+				const highlighter = await createHighlighter({
+					themes: ["catppuccin-mocha"],
+					langs: [],
+				});
 
-		try {
-			const mod = await import(`shiki/langs/${lang}.mjs`);
-			await highlighter.loadLanguage(mod.default);
-			safeLang = lang;
-		} catch {
-			// fallback to plain text if lang not available
-		}
+				let safeLang = "text";
 
-		const rendered = highlighter.codeToHtml(script.code, {
-			lang: safeLang,
-			theme: "catppuccin-mocha",
-		});
+				try {
+					const mod = await import(/* @vite-ignore */ `shiki/langs/${lang}.mjs`);
+					await highlighter.loadLanguage(mod.default);
+					safeLang = lang;
+				} catch {
+					// fallback to plain text if lang not available
+				}
 
-		setHtml(rendered);
-	});
+				const rendered = highlighter.codeToHtml(script.code, {
+					lang: safeLang,
+					theme: "catppuccin-mocha",
+				});
+
+				if (!cancelled) {
+					setHtml(rendered);
+				}
+			} catch {
+				if (!cancelled) {
+					const escaped = script.code
+						.replaceAll("&", "&amp;")
+						.replaceAll("<", "&lt;")
+						.replaceAll(">", "&gt;");
+					setHtml(`<pre>${escaped}</pre>`);
+				}
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [lang, script.code]);
 
 	return (
 		<div className="max-h-[70vh] max-w-full overflow-auto rounded-lg border border-neutral-800 bg-[#1e1e2e] p-4">

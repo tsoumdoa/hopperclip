@@ -1,17 +1,26 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import Header from "./components/header";
-import Footer from "./components/footer";
+import { SignUpButton, useAuth } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { SignUpButton } from "@clerk/nextjs";
-import Link from "next/link";
+import { useEffect } from "react";
+import Footer from "@/app/components/footer";
+import Header from "@/app/components/header";
 
-export default async function Home() {
-	const { userId } = await auth();
+export const Route = createFileRoute("/")({
+	head: () => ({
+		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
+	}),
+	component: Home,
+});
 
-	if (userId) {
-		redirect("/ghcards");
-	}
+function Home() {
+	const { isSignedIn, isLoaded } = useAuth();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (isLoaded && isSignedIn) {
+			navigate({ to: "/ghcards", replace: true });
+		}
+	}, [isLoaded, isSignedIn, navigate]);
 
 	return (
 		<div className="min-h-screen bg-black font-sans text-white">
@@ -65,7 +74,7 @@ function LandingPageContent() {
 						Grasshopper plugins. Create reference documentation instantly.
 					</p>
 					<Link
-						href="/duckerweb"
+						to="/duckerweb"
 						className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
 					>
 						Try DuckerWeb

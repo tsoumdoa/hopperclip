@@ -19,7 +19,7 @@ import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { useMutation, useQuery } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
 import { nanoid } from "nanoid";
-import { uploadToBucket } from "@/server/r2-storage";
+import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
 import { compress } from "../utils/gzip";
 
 export function AddGhDialog(props: {
@@ -80,25 +80,39 @@ export function AddGhDialog(props: {
 			setAddError("");
 			props.setAdding(true);
 			const nanoId = nanoid();
-			await addGhCard({
-				name: name,
-				description: description,
-				tags: tags,
-				uid: nanoId,
-			});
+			let uploaded = false;
+			try {
+				const ghXmlZipped = compress(xmlData);
 
-			const ghXmlZipped = compress(xmlData);
+				await uploadToBucket({
+					data: { nanoId, ghXmlZipped: Array.from(ghXmlZipped) },
+				});
+				uploaded = true;
 
-			uploadToBucket(nanoId, ghXmlZipped);
+				await addGhCard({
+					name: name,
+					description: description,
+					tags: tags,
+					uid: nanoId,
+				});
 
-			props.setAdding(false);
-			props.setOpen(false);
+				props.setAdding(false);
+				props.setOpen(false);
 
-			setXmlData(undefined);
-			setTags([]);
-			setName("");
-			setDescription("");
-			autoFilledNameRef.current = null;
+				setXmlData(undefined);
+				setTags([]);
+				setName("");
+				setDescription("");
+				autoFilledNameRef.current = null;
+			} catch (error) {
+				setAddError("Failed to add card. Please try again.");
+				props.setAdding(false);
+				if (uploaded) {
+					try {
+						await deleteFromBucket({ data: nanoId });
+					} catch {}
+				}
+			}
 		}
 	};
 

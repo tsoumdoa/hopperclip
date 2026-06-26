@@ -1,47 +1,25 @@
 {
 	"compilerOptions": {
 		"target": "ES2023",
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"esnext"
-		],
+		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
 		"noEmit": true,
 		"esModuleInterop": true,
-		"module": "esnext",
+		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"jsx": "react-jsx",
 		"incremental": true,
-		"plugins": [
-			{
-				"name": "next"
-			}
-		],
+		"types": ["vite/client", "node"],
 		"baseUrl": ".",
 		"paths": {
-			"@convex/*": [
-				"convex/*"
-			],
-			"@/*": [
-				"src/*"
-			]
+			"@convex/*": ["convex/*"],
+			"@/*": ["src/*"]
 		}
 	},
-	"include": [
-		"next-env.d.ts",
-		"**/*.ts",
-		"**/*.tsx",
-		".next/types/**/*.ts",
-		".next/dev/types/**/*.ts",
-		"src",
-		"convex"
-	],
-	"exclude": [
-		"node_modules"
-	]
+	"include": ["**/*.ts", "**/*.tsx", "src", "convex"],
+	"exclude": ["node_modules", ".output", "dist"]
 }

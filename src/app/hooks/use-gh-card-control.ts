@@ -59,7 +59,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		// throw new Error("Test error");
 		try {
 			await deletePostConvex({ id: cardInfo["_id"] });
-			await deleteFromBucket(cardInfo.bucketUrl!);
+			await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			setTag("");
 			setEditMode(false);
 			setDeleted(true);
@@ -96,42 +96,38 @@ export default function useGhCardControl(cardInfo: GhPost) {
 
 		if (xmlChanged && isValidXml) {
 			const newBucketUrl = nanoid();
+			let uploaded = false;
 			try {
-				const deleteRes = deleteFromBucket(cardInfo.bucketUrl!);
 				const compressed = compress(newXmlData);
-				const uploadRes = await uploadToBucket(newBucketUrl, compressed);
-				const updateRes = await updatePost({
+				await uploadToBucket({
+					data: {
+						nanoId: newBucketUrl,
+						ghXmlZipped: Array.from(compressed),
+					},
+				});
+				uploaded = true;
+				await updatePost({
 					id: cardInfo["_id"],
 					name: ghInfo.name!,
 					description: ghInfo.description!,
 					tags: newTags.current,
 					uid: newBucketUrl,
 				});
-				const res = await Promise.allSettled([deleteRes, uploadRes, updateRes]);
-				if (res[0].status === "rejected") {
-					setXmlError("Failed to delete old XML: " + String(res[0].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
-				if (res[1].status === "rejected") {
-					setXmlError("Failed to upload new XML: " + String(res[1].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
-				if (res[2].status === "rejected") {
-					setXmlError("Failed to update post: " + String(res[2].reason));
-					setEditMode(true);
-					setUpdating(false);
-					return;
-				}
 			} catch (error) {
 				setXmlError("Failed to update XML: " + String(error));
 				setEditMode(true);
 				setUpdating(false);
+				if (uploaded) {
+					try {
+						await deleteFromBucket({ data: newBucketUrl });
+					} catch {}
+				}
 				return;
 			}
+			// post updated; removing the old blob is best-effort and must not fail the save
+			try {
+				await deleteFromBucket({ data: cardInfo.bucketUrl! });
+			} catch {}
 			setEditMode(false);
 			setNewXmlData(undefined);
 			setIsValidXml(false);
