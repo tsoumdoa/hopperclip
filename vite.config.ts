@@ -84,6 +84,10 @@ export default defineConfig(({ mode }) => {
 					find: /^@\/(.*)/,
 					replacement: `${path.resolve(root, "src")}/$1`,
 				},
+				{
+					find: /^parser\/(.*)/,
+					replacement: `${path.resolve(root, "parser")}/$1`,
+				},
 			],
 		},
 	};

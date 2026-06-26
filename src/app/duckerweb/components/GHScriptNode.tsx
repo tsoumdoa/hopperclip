@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Code2, Copy } from "lucide-react";
 import type { GHNodeProps, Port, ScriptData } from "../types/type";
 import { HANDLE_SIZE } from "./constants";
@@ -54,29 +54,39 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 		? (langMap[script.language.toLowerCase()] ?? script.language.toLowerCase())
 		: "text";
 
-	import("shiki/bundle/web").then(async ({ createHighlighter }) => {
-		const highlighter = await createHighlighter({
-			themes: ["catppuccin-mocha"],
-			langs: [],
+	useEffect(() => {
+		let cancelled = false;
+
+		import("shiki/bundle/web").then(async ({ createHighlighter }) => {
+			const highlighter = await createHighlighter({
+				themes: ["catppuccin-mocha"],
+				langs: [],
+			});
+
+			let safeLang = "text";
+
+			try {
+				const mod = await import(/* @vite-ignore */ `shiki/langs/${lang}.mjs`);
+				await highlighter.loadLanguage(mod.default);
+				safeLang = lang;
+			} catch {
+				// fallback to plain text if lang not available
+			}
+
+			const rendered = highlighter.codeToHtml(script.code, {
+				lang: safeLang,
+				theme: "catppuccin-mocha",
+			});
+
+			if (!cancelled) {
+				setHtml(rendered);
+			}
 		});
 
-		let safeLang = "text";
-
-		try {
-			const mod = await import(`shiki/langs/${lang}.mjs`);
-			await highlighter.loadLanguage(mod.default);
-			safeLang = lang;
-		} catch {
-			// fallback to plain text if lang not available
-		}
-
-		const rendered = highlighter.codeToHtml(script.code, {
-			lang: safeLang,
-			theme: "catppuccin-mocha",
-		});
-
-		setHtml(rendered);
-	});
+		return () => {
+			cancelled = true;
+		};
+	}, [lang, script.code]);
 
 	return (
 		<div className="max-h-[70vh] max-w-full overflow-auto rounded-lg border border-neutral-800 bg-[#1e1e2e] p-4">

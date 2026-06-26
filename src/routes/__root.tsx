@@ -50,6 +50,11 @@ export const Route = createRootRoute({
 		],
 	}),
 	component: RootComponent,
+	notFoundComponent: () => (
+		<div className="flex min-h-screen items-center justify-center text-neutral-500">
+			Not Found
+		</div>
+	),
 });
 
 function RootComponent() {
