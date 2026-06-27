@@ -41,13 +41,20 @@ function getPortTop(index: number, count: number) {
 	return `${((index + 1) / (count + 1)) * 100}%`;
 }
 
+const languageLoaders: Record<string, () => Promise<{ default: unknown }>> = {
+	csharp: () => import("shiki/dist/langs/csharp.mjs"),
+	python: () => import("shiki/dist/langs/python.mjs"),
+	vb: () => import("shiki/dist/langs/vb.mjs"),
+};
+
 function ScriptCodeViewer({ script }: { script: ScriptData }) {
 	const [html, setHtml] = useState<string | null>(null);
 
 	const langMap: Record<string, string> = {
 		csharp: "csharp",
 		python: "python",
-		vbnet: "vbnet",
+		vb: "vb",
+		vbnet: "vb",
 	};
 
 	const lang = script.language
@@ -68,12 +75,19 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 
 				let safeLang = "text";
 
-				try {
-					const mod = await import(/* @vite-ignore */ `shiki/langs/${lang}.mjs`);
-					await highlighter.loadLanguage(mod.default);
-					safeLang = lang;
-				} catch {
-					// fallback to plain text if lang not available
+				const loader = languageLoaders[lang];
+				if (loader) {
+					try {
+						const mod = await loader();
+						await highlighter.loadLanguage(
+							mod.default as Parameters<
+								typeof highlighter.loadLanguage
+							>[0]
+						);
+						safeLang = lang;
+					} catch {
+						// fallback to plain text if lang not available
+					}
 				}
 
 				const rendered = highlighter.codeToHtml(script.code, {

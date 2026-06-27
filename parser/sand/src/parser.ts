@@ -222,7 +222,12 @@ function parseParamChunk(
 
 function decodeBase64(encoded: string): string {
 	try {
-		return Buffer.from(encoded, "base64").toString("utf-8");
+		if (typeof Buffer !== "undefined") {
+			return Buffer.from(encoded, "base64").toString("utf-8");
+		}
+		const binary = atob(encoded);
+		const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+		return new TextDecoder("utf-8").decode(bytes);
 	} catch {
 		return encoded;
 	}
