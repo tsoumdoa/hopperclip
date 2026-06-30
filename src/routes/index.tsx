@@ -1,26 +1,31 @@
 import { SignUpButton, useAuth } from "@clerk/tanstack-react-start";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { useEffect } from "react";
+import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
 import Footer from "@/app/components/footer";
 import Header from "@/app/components/header";
+import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/")({
 	head: () => ({
 		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
 	}),
+	beforeLoad: async () => {
+		const { userId } = await fetchClerkAuth();
+		if (userId) {
+			throw redirect({ to: "/ghcards" });
+		}
+	},
+	pendingComponent: AuthLoadingScreen,
 	component: Home,
 });
 
 function Home() {
-	const { isSignedIn, isLoaded } = useAuth();
-	const navigate = useNavigate();
+	const { isLoaded } = useAuth();
 
-	useEffect(() => {
-		if (isLoaded && isSignedIn) {
-			navigate({ to: "/ghcards", replace: true });
-		}
-	}, [isLoaded, isSignedIn, navigate]);
+	if (!isLoaded) {
+		return <AuthLoadingScreen />;
+	}
 
 	return (
 		<div className="min-h-screen bg-black font-sans text-white">
