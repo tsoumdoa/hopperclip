@@ -186,7 +186,7 @@ export function AddGhDialog(props: {
 									autoComplete="off"
 								/>
 								<p className="text-right text-xs text-neutral-700">
-									{description.length || 0} / 300 characters
+									{description.length || 0} / 150 characters
 								</p>
 							</div>
 							<div className="flex flex-wrap items-center gap-2">

@@ -102,6 +102,7 @@ export function NameDescriptionAndTags(props: {
 					<div className="space-y-1">
 						<Textarea
 							placeholder="Type your message here."
+							maxLength={150}
 							defaultValue={props.ghInfo.description}
 							onChange={(e) =>
 								props.setGhInfo({
@@ -111,7 +112,7 @@ export function NameDescriptionAndTags(props: {
 							}
 						/>
 						<p className="text-right text-xs text-neutral-100">
-							{props.ghInfo.description?.length || 0} / 300 characters
+							{props.ghInfo.description?.length || 0} / 150 characters
 						</p>
 					</div>
 				) : (

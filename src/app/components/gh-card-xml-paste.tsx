@@ -51,14 +51,14 @@ export function GhCardXmlPaste(props: {
 					{props.isValidXml ? (
 						<div className="flex flex-row items-center gap-x-2">
 							<button
-								className={`flex flex-row items-center gap-x-1 text-sm hover:cursor-pointer ${props.isEditMode ? "text-red-20" : "text-red-500"}`}
+								className={`flex flex-row items-center gap-x-1 text-sm hover:cursor-pointer ${props.isEditMode ? "text-red-200" : "text-red-500"}`}
 								onClick={handleClear}
 							>
 								Delete pasted GhXml
 								<X size={16} />
 							</button>
 							<span
-								className={`text-sm ${props.isEditMode ? "text-green-20" : "text-green-600"} font-bold hover:cursor-default`}
+								className={`text-sm ${props.isEditMode ? "text-green-200" : "text-green-600"} font-bold hover:cursor-default`}
 							>
 								{props.isEditMode
 									? "✓ New GhXml validated"
@@ -90,7 +90,7 @@ export function GhCardXmlPaste(props: {
 			)}
 			{props.xmlError.length > 0 && (
 				<div
-					className={`${props.isEditMode ? "text-red-20" : "text-red-500"} mt-2 text-sm font-bold`}
+					className={`${props.isEditMode ? "text-red-200" : "text-red-500"} mt-2 text-sm font-bold`}
 				>
 					{props.xmlError}
 				</div>

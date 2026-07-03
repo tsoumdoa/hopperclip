@@ -16,7 +16,7 @@ export default function Footer() {
 						to="/terms-of-service"
 						className="text-xs text-neutral-600 hover:text-neutral-700"
 					>
-						Term of Service
+						Terms of Service
 					</Link>
 				</nav>
 				<div className="flex items-center gap-x-2">
