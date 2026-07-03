@@ -12,6 +12,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
 import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,7 @@ export function AddGhDialog(props: {
 				setName("");
 				setDescription("");
 				autoFilledNameRef.current = null;
+				toast.success(`"${name}" added to your library`);
 			} catch (error) {
 				setAddError("Failed to add card. Please try again.");
 				props.setAdding(false);

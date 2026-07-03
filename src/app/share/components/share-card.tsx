@@ -1,6 +1,5 @@
 "use client";
 
-import { CopiedDialog } from "@/app/components/gh-card-dialog";
 import { AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useState } from "react";
+import { toast } from "sonner";
 import { GetSharedPost } from "@/types/types";
 import { GHFlowCanvas } from "../../duckerweb/components/GHFlowCanvas";
 import { GitBranch, List } from "lucide-react";
@@ -33,8 +33,6 @@ export default function GhShareCard(props: {
 	viewMode: ViewMode;
 	onSetViewMode: (mode: ViewMode) => void;
 }) {
-	const [openCopyDialog, setOpenCopyDialog] = useState(false);
-	const [isCopied, setIsCopied] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleCopy = async () => {
@@ -43,11 +41,14 @@ export default function GhShareCard(props: {
 
 		try {
 			await navigator.clipboard.writeText(props.decodedXml);
-			setOpenCopyDialog(true);
-			setIsCopied(true);
+			toast.success("GhXml copied to clipboard");
 		} catch {
-			setOpenCopyDialog(true);
-			setIsCopied(false);
+			toast.error("Failed to copy GhXml", {
+				action: {
+					label: "Retry",
+					onClick: () => handleCopy(),
+				},
+			});
 		}
 
 		setIsLoading(false);
@@ -86,13 +87,6 @@ export default function GhShareCard(props: {
 
 	return (
 		<div className={`flex w-full ${props.viewMode === "flow" ? "max-w-6xl" : "max-w-xl"}`}>
-			<CopiedDialog
-				open={openCopyDialog}
-				setOpen={() => setOpenCopyDialog(false)}
-				setIsCopied={(b) => setIsCopied(b)}
-				isCopied={isCopied}
-				decoded={props.decodedXml}
-			/>
 			<Card className="w-full gap-2 border-neutral-800 bg-neutral-900 p-4">
 				<CardHeader className="px-0">
 					<CardTitle className="flex items-center justify-between">

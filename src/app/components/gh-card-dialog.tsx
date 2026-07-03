@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/env";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
@@ -33,48 +34,6 @@ export function InvalidValueDialog(props: {
 				<AlertDialogFooter>
 					<AlertDialogCancel>Cancel</AlertDialogCancel>
 					<AlertDialogAction>Continue</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
-	);
-}
-
-export function CopiedDialog(props: {
-	open: boolean;
-	setOpen: () => void;
-	setIsCopied: (b: boolean) => void;
-	isCopied: boolean;
-	decoded: string | undefined;
-}) {
-	function handleCopyClick() {
-		navigator.clipboard.writeText(props.decoded!);
-		props.setIsCopied(true);
-		alert("GhXml copied to clipboard!");
-	}
-
-	return (
-		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>
-						{props.isCopied ? "Copied!" : "Failed to copy"}
-					</AlertDialogTitle>
-					<AlertDialogDescription>
-						{props.isCopied
-							? "copied to your clipboard!"
-							: "Something went wrong, try copy button below"}
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					{!props.isCopied && (
-						<Button
-							className="bg-neutral-800 hover:bg-neutral-700"
-							onClick={handleCopyClick}
-						>
-							Copy
-						</Button>
-					)}
-					<AlertDialogCancel>Close</AlertDialogCancel>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
@@ -119,6 +78,7 @@ export function ShareDialog(props: {
 				})
 				.catch((err) => {
 					console.error("Failed to create share:", err);
+					toast.error("Failed to create share link. Please try again.");
 					setShareLink(null);
 					setIsGenerating(false);
 				});
@@ -151,6 +111,7 @@ export function ShareDialog(props: {
 		if (shareLink) {
 			navigator.clipboard.writeText(shareLink);
 			setCopied(true);
+			toast.success("Share link copied to clipboard");
 			setTimeout(() => setCopied(false), 2000);
 		}
 	};
@@ -162,8 +123,10 @@ export function ShareDialog(props: {
 			await revokeShare({ shareToken });
 			setIsRevoked(true);
 			setShareLink(null);
+			toast.success("Share link revoked");
 		} catch (err) {
 			console.error("Failed to revoke share:", err);
+			toast.error("Failed to revoke share link. Please try again.");
 		} finally {
 			setRevoking(false);
 		}

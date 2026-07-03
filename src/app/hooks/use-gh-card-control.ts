@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { toast } from "sonner";
 import { useMutation } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
 import { GhPost } from "@/types/types";
@@ -17,7 +18,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 	const [updating, setUpdating] = useState(false);
 	const [deleted, setDeleted] = useState(false);
 	const [deleting, setDeleting] = useState(false);
-	const [deleteError, setDeleteError] = useState<string | null>(null);
 	const [ghInfo, setGhInfo] = useState({
 		name: cardInfo.name,
 		description: cardInfo.description ?? "",
@@ -52,20 +52,16 @@ export default function useGhCardControl(cardInfo: GhPost) {
 
 	const deletePost = async () => {
 		setDeleting(true);
-		setDeleteError(null);
-		//TEMP for testing delete error
-		// setDeleteError("Failed to delete. Please try again.");
-		// setDeleting(false);
-		// throw new Error("Test error");
 		try {
 			await deletePostConvex({ id: cardInfo["_id"] });
 			await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			setTag("");
 			setEditMode(false);
 			setDeleted(true);
+			toast.success(`"${cardInfo.name}" deleted`);
 		} catch (error) {
 			console.error("Failed to delete post:", error);
-			setDeleteError("Failed to delete. Please try again.");
+			toast.error("Failed to delete. Please try again.");
 		} finally {
 			setDeleting(false);
 		}
@@ -132,6 +128,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 			setNewXmlData(undefined);
 			setIsValidXml(false);
 			setUpdating(false);
+			toast.success("Card updated");
 			return;
 		}
 
@@ -143,8 +140,10 @@ export default function useGhCardControl(cardInfo: GhPost) {
 					description: ghInfo.description!,
 					tags: newTags.current,
 				});
+				toast.success("Card updated");
 			} catch (error) {
 				setXmlError("Failed to save: " + String(error));
+				toast.error("Failed to save changes. Please try again.");
 				setEditMode(true);
 				setUpdating(false);
 				return;
@@ -190,8 +189,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		setDeleted,
 		deleting,
 		setDeleting,
-		deleteError,
-		setDeleteError,
 		removeTag,
 		addTag,
 		prevTags,

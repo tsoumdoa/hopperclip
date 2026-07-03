@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useFetchGhXml } from "../hooks/use-fetch-gh-xml";
-import { CopiedDialog, ShareDialog } from "./gh-card-dialog";
+import { ShareDialog } from "./gh-card-dialog";
 import { Id } from "../../../convex/_generated/dataModel";
 
 export function NormalButtons(props: {
@@ -15,35 +16,29 @@ export function NormalButtons(props: {
 	setOpenSharedDialog: (b: boolean) => void;
 	handleShare: () => void;
 }) {
-	const [openCopyDialog, setOpenCopyDialog] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	const [isCopied, setIsCopied] = useState(false);
-	const { downloadData, decodedRef } = useFetchGhXml();
+	const { downloadData } = useFetchGhXml();
 
 	const handleCopy = async () => {
 		setIsLoading(true);
-		const decoded = await downloadData(props.bucketId);
 		try {
+			const decoded = await downloadData(props.bucketId);
 			await navigator.clipboard.writeText(decoded);
-			setOpenCopyDialog(true);
-			setIsLoading(false);
-			setIsCopied(true);
+			toast.success("GhXml copied to clipboard");
 		} catch {
-			setOpenCopyDialog(true);
+			toast.error("Failed to copy GhXml", {
+				action: {
+					label: "Retry",
+					onClick: () => handleCopy(),
+				},
+			});
+		} finally {
 			setIsLoading(false);
-			setIsCopied(false);
 		}
 	};
 
 	return (
 		<div className="flex items-center justify-end text-neutral-400 transition-all">
-			<CopiedDialog
-				open={openCopyDialog}
-				setOpen={() => setOpenCopyDialog(!openCopyDialog)}
-				setIsCopied={(b) => setIsCopied(b)}
-				isCopied={isCopied}
-				decoded={decodedRef.current}
-			/>
 			<ShareDialog
 				open={props.openSharedDialog}
 				setOpen={() => props.setOpenSharedDialog(!props.openSharedDialog)}

@@ -12,6 +12,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
 import { PostHogProvider } from "@/app/providers/PostHogProvider";
+import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/styles/app.css?url";
 import { env } from "@/env";
 import { useState } from "react";
@@ -84,6 +85,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="font-sans antialiased">
 				{children}
+				<Toaster />
 				<Scripts />
 			</body>
 		</html>
