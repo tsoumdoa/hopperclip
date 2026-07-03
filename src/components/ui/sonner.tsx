@@ -5,10 +5,15 @@ import { Toaster as Sonner, type ToasterProps } from "sonner";
 export function Toaster(props: ToasterProps) {
 	return (
 		<Sonner
-			theme="dark"
+			theme="system"
 			position="bottom-center"
-			richColors
 			closeButton
+			toastOptions={{
+				classNames: {
+					toast: "!bg-background !text-foreground !border-border",
+					description: "!text-muted-foreground",
+				},
+			}}
 			{...props}
 		/>
 	);
