@@ -14,8 +14,13 @@ export function LoadingSpinner({
 	variant,
 }: React.ComponentProps<"p"> & VariantProps<typeof loadingSpinnerVariants>) {
 	return (
-		<p className={cn(loadingSpinnerVariants({ variant }))}>
+		<p
+			className={cn(loadingSpinnerVariants({ variant }))}
+			role="status"
+			aria-label="Loading"
+		>
 			<svg
+				aria-hidden
 				className="my-auto size-5 animate-spin text-white"
 				xmlns="http://www.w3.org/2000/svg"
 				fill="none"

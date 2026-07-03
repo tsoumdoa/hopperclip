@@ -89,8 +89,18 @@ export default function GHCard(props: {
 	return (
 		<>
 			<div
-				className={`relative flex cursor-pointer flex-col justify-between rounded-md p-3 ring-1 ring-neutral-500 transition-all ${editMode || updating ? "bg-neutral-500" : "bg-neutral-900 hover:bg-neutral-800"}`}
+				className={`relative flex cursor-pointer flex-col justify-between rounded-md p-3 ring-1 ring-neutral-500 transition-all focus-visible:ring-2 focus-visible:ring-neutral-100 focus-visible:outline-none ${editMode || updating ? "bg-neutral-500" : "bg-neutral-900 hover:bg-neutral-800"}`}
+				role="button"
+				tabIndex={editMode ? -1 : 0}
+				aria-label={`View metrics for ${ghInfo.name}`}
 				onClick={handleCardClick}
+				onKeyDown={(e) => {
+					if (e.target !== e.currentTarget) return;
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						handleCardClick();
+					}
+				}}
 			>
 				{hasActiveShare && (
 					<button
@@ -174,6 +184,7 @@ export default function GHCard(props: {
 				nodes={nodes}
 				edges={edges}
 				loading={loadingMetrics}
+				error={metricsError}
 			/>
 		</>
 	);

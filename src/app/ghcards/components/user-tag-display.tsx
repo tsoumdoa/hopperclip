@@ -22,7 +22,7 @@ export default function FilterTagDisplay(props: {
 	}, [props.tagFilters, props.userTag.tag]);
 	return (
 		<Toggle
-			aria-label="Toggle italic"
+			aria-label={`Filter by tag ${props.userTag.tag}`}
 			className={`h-6 rounded-md ${props.tagFilters.length > 0 ? "bg-neutral-500 text-neutral-300 ring-0 ring-neutral-300" : "bg-neutral-800 text-neutral-100 ring-1 ring-neutral-200"} px-2 text-sm font-semibold hover:cursor-pointer hover:bg-neutral-800/80`}
 			pressed={isChecked}
 			onPressedChange={(bool) => {
