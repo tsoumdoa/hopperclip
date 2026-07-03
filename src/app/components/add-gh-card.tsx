@@ -4,6 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AddGhDialog } from "./add-gh-dialog";
 
+// Lets other components (e.g. the empty-library CTA) open the add dialog.
+export const OPEN_ADD_DIALOG_EVENT = "hopperclip:open-add-dialog";
+
 export default function AddGHCard() {
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
@@ -20,9 +23,12 @@ export default function AddGHCard() {
 				setOpen((prev) => !prev);
 			}
 		};
+		const handleOpenRequest = () => setOpen(true);
 		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener(OPEN_ADD_DIALOG_EVENT, handleOpenRequest);
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener(OPEN_ADD_DIALOG_EVENT, handleOpenRequest);
 		};
 	}, []);
 
