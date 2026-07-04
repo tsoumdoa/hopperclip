@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  nf3: 0.3.19
+
 importers:
 
   .:
@@ -2783,8 +2786,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nf3@0.3.18:
-    resolution: {integrity: sha512-lFvZrVZXN4FQYoV1iGiZ5RAzfzjbjQvm0MBdLvQKqvnOfkh09btu1tzI/RdIKrdIoRKL12XYlwdbcB0QwM3m6Q==}
+  nf3@0.3.19:
+    resolution: {integrity: sha512-tfOXX/ivQBL+4km/fzxQ0HWMmp1Ewx/YpFLbya080gXVfm26bZy0n4a5K5PPnqTLyuAHu0FobVpXXUadIiIwIQ==}
 
   nitro@3.0.260311-beta:
     resolution: {integrity: sha512-0o0fJ9LUh4WKUqJNX012jyieUOtMCnadkNDWr0mHzdraoHpJP/1CGNefjRyZyMXSpoJfwoWdNEZu2iGf35TUvQ==}
@@ -6061,7 +6064,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nf3@0.3.18: {}
+  nf3@0.3.19: {}
 
   nitro@3.0.260311-beta(@libsql/client@0.15.15)(@vercel/functions@2.2.13)(aws4fetch@1.0.20)(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(rollup@4.62.2)(vite@8.1.3(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)):
     dependencies:
@@ -6071,7 +6074,7 @@ snapshots:
       env-runner: 0.1.15
       h3: 2.0.1-rc.22(crossws@0.4.8(srvx@0.11.20))
       hookable: 6.1.1
-      nf3: 0.3.18
+      nf3: 0.3.19
       ocache: 0.1.5
       ofetch: 2.0.0-alpha.3
       ohash: 2.0.11

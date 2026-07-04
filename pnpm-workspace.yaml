@@ -6,6 +6,8 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unrs-resolver: true
+overrides:
+  nf3: 0.3.19
 onlyBuiltDependencies:
   - '@clerk/shared'
   - '@tailwindcss/oxide'
