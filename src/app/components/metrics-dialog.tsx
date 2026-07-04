@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -20,20 +19,25 @@ export function MetricsDialog(props: {
 	nodes: GHNode[];
 	edges: Edge[];
 	loading: boolean;
+	error?: string | null;
 }) {
-	const [expanded, setExpanded] = useState(true);
-
 	return (
 		<Dialog open={props.open} onOpenChange={props.setOpen}>
 			<DialogContent
-				className={`flex flex-col gap-0 p-0 ${expanded ? "max-h-[90vh] w-[90vw] max-w-[90vw]" : "max-w-2xl"}`}
+				className="flex max-h-[90vh] w-[90vw] max-w-[90vw] flex-col gap-0 p-0"
 				onPointerDownOutside={(e) => e.preventDefault()}
 			>
 				<DialogHeader className="flex flex-row items-center justify-between border-neutral-700 px-6 py-4">
 					<DialogTitle>Script Metrics</DialogTitle>
 				</DialogHeader>
 
-				<Tabs defaultValue="" className="flex-1 overflow-hidden">
+				{props.error && (
+					<div className="mx-6 mb-2 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-800">
+						{props.error}
+					</div>
+				)}
+
+				<Tabs defaultValue="metrics" className="flex-1 overflow-hidden">
 					<div className="border-neutral-700 pl-4">
 						<TabsList>
 							<TabsTrigger value="flow">Flow View</TabsTrigger>
@@ -118,10 +122,7 @@ export function MetricsDialog(props: {
 						)}
 					</TabsContent>
 
-					<TabsContent
-						value="flow"
-						className={`mt-0 ${expanded ? "h-[70vh] p-4" : "h-[400px] p-4"}`}
-					>
+					<TabsContent value="flow" className="mt-0 h-[70vh] p-4">
 						{props.loading ? (
 							<div className="flex h-full items-center justify-center">
 								<span className="text-neutral-400">Loading flow...</span>

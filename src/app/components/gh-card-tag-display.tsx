@@ -13,38 +13,40 @@ export default function TagDisplay(props: {
 		setToBeRemoved(!toBeRemoved);
 		props.removeTag(props.tag, toBeRemoved);
 	};
-	if (props.isHighlighted) {
-		return (
-			<p
-				key={`tag-${props.tag}`}
-				className={`flex flex-row items-center gap-x-2 rounded-sm px-2 text-sm font-semibold text-neutral-800 ${toBeRemoved ? "bg-neutral-100/30" : "bg-neutral-100"} transition-all hover:cursor-pointer`}
-				onClick={() =>
-					props.editMode ? handleClick() : props.updatePath(props.tag, false)
-				}
-			>
-				{props.tag}
-				{props.editMode && <ControlIcon toBeRemoved={toBeRemoved} />}
-			</p>
-		);
-	}
+
+	const colorClasses = props.isHighlighted
+		? `text-neutral-800 ${toBeRemoved ? "bg-neutral-100/30" : "bg-neutral-100"}`
+		: `text-neutral-100 ${toBeRemoved ? "bg-neutral-600/30" : "bg-neutral-600"}`;
+
 	return (
-		<p
+		<button
+			type="button"
 			key={`tag-${props.tag}`}
-			className={`flex flex-row items-center gap-x-2 rounded-sm px-2 text-sm font-semibold text-neutral-100 ${toBeRemoved ? "bg-neutral-600/30" : "bg-neutral-600"} transition-all hover:cursor-pointer`}
-			onClick={() =>
-				props.editMode ? handleClick() : props.updatePath(props.tag, true)
+			aria-label={
+				props.editMode
+					? `${toBeRemoved ? "Keep" : "Remove"} tag ${props.tag}`
+					: `Filter by tag ${props.tag}`
 			}
+			className={`flex flex-row items-center gap-x-2 rounded-sm px-2 text-sm font-semibold ${colorClasses} transition-all hover:cursor-pointer`}
+			onClick={(e) => {
+				e.stopPropagation();
+				if (props.editMode) {
+					handleClick();
+				} else {
+					props.updatePath(props.tag, !props.isHighlighted);
+				}
+			}}
 		>
 			{props.tag}
 			{props.editMode && <ControlIcon toBeRemoved={toBeRemoved} />}
-		</p>
+		</button>
 	);
 }
 
-function ControlIcon(porps: { toBeRemoved: boolean }) {
-	if (porps.toBeRemoved) {
-		return <Plus className="h-3 w-3 hover:cursor-pointer" />;
+function ControlIcon(props: { toBeRemoved: boolean }) {
+	if (props.toBeRemoved) {
+		return <Plus className="h-3 w-3" aria-hidden />;
 	} else {
-		return <X className="h-3 w-3 hover:cursor-pointer" />;
+		return <X className="h-3 w-3" aria-hidden />;
 	}
 }

@@ -7,7 +7,7 @@ import useGhCardControl from "../hooks/use-gh-card-control";
 import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { GhPost } from "@/types/types";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -25,8 +25,6 @@ export default function GHCard(props: {
 		setInvalidInput,
 		updating,
 		deleting,
-		deleteError,
-		setDeleteError,
 		deleted,
 		setEditMode,
 		removeTag,
@@ -47,14 +45,14 @@ export default function GHCard(props: {
 
 	const [openSharedDialog, setOpenSharedDialog] = useState(false);
 	const [openMetricsDialog, setOpenMetricsDialog] = useState(false);
-	const { metrics, nodes, edges, loading: loadingMetrics, loadMetrics } = useScriptMetrics();
-
-	useEffect(() => {
-		if (deleteError) {
-			const timer = setTimeout(() => setDeleteError(null), 1200);
-			return () => clearTimeout(timer);
-		}
-	}, [deleteError, setDeleteError]);
+	const {
+		metrics,
+		nodes,
+		edges,
+		loading: loadingMetrics,
+		error: metricsError,
+		loadMetrics,
+	} = useScriptMetrics();
 
 	// Query for active shares to show "Shared" badge
 	const activeShares = useQuery(api.ghCard.getActiveSharesForPost, {
@@ -74,103 +72,35 @@ export default function GHCard(props: {
 
 	if (deleting) {
 		return (
-			<div className="relative flex h-full w-full rounded-md bg-neutral-800 p-3 ring-1 ring-neutral-500">
-				<NameDescriptionAndTags
-					editMode={editMode}
-					setEditMode={() => setEditMode(!editMode)}
-					setGhInfo={setGhInfo}
-					ghInfo={{ name: "deleting...", description: "deleting...", tags: [] }}
-					isShared={false}
-					expiryDate={""}
-					bucketId={""}
-					lastEdited={""}
-					created={""}
-					addTag={addTag}
-					tag={inputTag}
-					setTag={setInputTag}
-					reset={reset}
-					setReset={setReset}
-					newXmlData={newXmlData}
-					setNewXmlData={setNewXmlData}
-					isValidXml={isValidXml}
-					xmlError={xmlError}
-					setXmlError={setXmlError}
-					handlePasteFromClipboard={handlePasteFromClipboard}
-				/>
+			<div
+				className="flex h-full w-full items-center justify-center rounded-md bg-neutral-800 p-3 ring-1 ring-neutral-500"
+				role="status"
+			>
+				<p className="py-8 text-sm text-neutral-400">Deleting...</p>
 			</div>
 		);
 	}
 
-	if (deleteError) {
-		return (
-			<div className="relative flex h-full w-full rounded-md bg-neutral-800 p-3 ring-1 ring-neutral-500">
-				<NameDescriptionAndTags
-					editMode={editMode}
-					setEditMode={() => setEditMode(!editMode)}
-					setGhInfo={setGhInfo}
-					ghInfo={{ name: "deleted", description: "deleted", tags: [] }}
-					isShared={false}
-					expiryDate={""}
-					bucketId={""}
-					lastEdited={""}
-					created={""}
-					addTag={addTag}
-					tag={inputTag}
-					setTag={setInputTag}
-					reset={reset}
-					setReset={setReset}
-					newXmlData={newXmlData}
-					setNewXmlData={setNewXmlData}
-					isValidXml={isValidXml}
-					xmlError={xmlError}
-					setXmlError={setXmlError}
-					handlePasteFromClipboard={handlePasteFromClipboard}
-				/>
-				{deleteError && (
-					<div className="absolute inset-0 flex items-center justify-center rounded-md bg-neutral-900/80">
-						<p className="text-base font-semibold text-amber-500">
-							{deleteError}
-						</p>
-					</div>
-				)}
-			</div>
-		);
-	}
-
+	// Removed from the grid immediately; the Convex query refetch confirms it.
 	if (deleted) {
-		return (
-			<div className="relative flex h-full w-full rounded-md bg-neutral-800 p-3 ring-1 ring-neutral-500">
-				<NameDescriptionAndTags
-					editMode={editMode}
-					setEditMode={() => setEditMode(!editMode)}
-					setGhInfo={setGhInfo}
-					ghInfo={{ name: "deleted", description: "deleted", tags: [] }}
-					isShared={false}
-					expiryDate={""}
-					bucketId={""}
-					lastEdited={""}
-					created={""}
-					addTag={addTag}
-					tag={inputTag}
-					setTag={setInputTag}
-					reset={reset}
-					setReset={setReset}
-					newXmlData={newXmlData}
-					setNewXmlData={setNewXmlData}
-					isValidXml={isValidXml}
-					xmlError={xmlError}
-					setXmlError={setXmlError}
-					handlePasteFromClipboard={handlePasteFromClipboard}
-				/>
-			</div>
-		);
+		return null;
 	}
 
 	return (
 		<>
 			<div
-				className={`relative flex cursor-pointer flex-col justify-between rounded-md p-3 ring-1 ring-neutral-500 transition-all ${editMode || updating ? "bg-neutral-500" : "bg-neutral-900 hover:bg-neutral-800"}`}
+				className={`relative flex cursor-pointer flex-col justify-between rounded-md p-3 ring-1 ring-neutral-500 transition-all focus-visible:ring-2 focus-visible:ring-neutral-100 focus-visible:outline-none ${editMode || updating ? "bg-neutral-500" : "bg-neutral-900 hover:bg-neutral-800"}`}
+				role="button"
+				tabIndex={editMode ? -1 : 0}
+				aria-label={`View metrics for ${ghInfo.name}`}
 				onClick={handleCardClick}
+				onKeyDown={(e) => {
+					if (e.target !== e.currentTarget) return;
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						handleCardClick();
+					}
+				}}
 			>
 				{hasActiveShare && (
 					<button
@@ -254,6 +184,7 @@ export default function GHCard(props: {
 				nodes={nodes}
 				edges={edges}
 				loading={loadingMetrics}
+				error={metricsError}
 			/>
 		</>
 	);

@@ -26,7 +26,8 @@ function ShareContent({ token }: { token: string }) {
 
 	const flowState = useShareFlowState(token);
 
-	if (!sharedPost) {
+	// undefined = still loading; null = expired or invalid token
+	if (sharedPost === undefined) {
 		return <div>Loading...</div>;
 	}
 
