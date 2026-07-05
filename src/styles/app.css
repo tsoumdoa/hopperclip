@@ -146,4 +146,12 @@
 	.react-flow__nodes {
 		position: relative;
 	}
+
+	.gh-json-viewer pre {
+		margin: 0;
+	}
+
+	.gh-json-viewer pre.shiki {
+		background-color: transparent !important;
+	}
 }

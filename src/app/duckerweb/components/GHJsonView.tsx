@@ -35,10 +35,10 @@ export function GHJsonView({ data }: GHJsonViewProps) {
 	}, [data]);
 
 	return (
-		<div className="mb-6 overflow-auto rounded-lg border border-neutral-800 bg-[#0d1117] p-4">
+		<div className="gh-json-viewer mb-6 overflow-auto rounded-lg border border-neutral-800 bg-[#1e1e2e] p-4">
 			{html ? (
 				<div
-					className="shiki text-xs leading-relaxed"
+					className="text-xs leading-relaxed"
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
 			) : (

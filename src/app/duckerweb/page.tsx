@@ -27,7 +27,7 @@ export default function DuckerWebPage() {
 	const { handleCopyAll, isCopied } = useMarkdownExport(parsedData);
 
 	return (
-		<div className="min-h-screen bg-black p-4 font-sans text-white md:p-6">
+		<div className="min-h-screen overflow-x-hidden bg-black p-4 font-sans text-white md:p-6">
 			<div className="mx-auto max-w-4xl">
 				<DuckerwebHeader />
 
