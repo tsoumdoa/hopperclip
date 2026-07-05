@@ -23,7 +23,6 @@ export const env = createEnv({
 		VITE_POSTHOG_KEY: z.string(),
 		VITE_POSTHOG_HOST: z.url(),
 		VITE_HOSTING_DOMAIN: z.url(),
-		VITE_CF_WORKER: z.url(),
 	},
 	clientPrefix: "VITE_",
 	runtimeEnv: {
@@ -57,11 +56,6 @@ export const env = createEnv({
 			clientEnv?.NEXT_PUBLIC_HOSTING_DOMAIN ??
 			processEnv.VITE_HOSTING_DOMAIN ??
 			processEnv.NEXT_PUBLIC_HOSTING_DOMAIN,
-		VITE_CF_WORKER:
-			clientEnv?.VITE_CF_WORKER ??
-			clientEnv?.NEXT_PUBLIC_CF_WORKER ??
-			processEnv.VITE_CF_WORKER ??
-			processEnv.NEXT_PUBLIC_CF_WORKER,
 	},
 	skipValidation: !!processEnv.SKIP_ENV_VALIDATION,
 	emptyStringAsUndefined: true,
