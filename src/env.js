@@ -1,12 +1,11 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
-const clientEnv = typeof import.meta !== "undefined" ? import.meta.env : undefined;
+const clientEnv =
+	typeof import.meta !== "undefined" ? import.meta.env : undefined;
 
 const processEnv =
-	typeof process !== "undefined" && process.env
-		? process.env
-		: {};
+	typeof process !== "undefined" && process.env ? process.env : {};
 
 export const env = createEnv({
 	server: {
@@ -17,10 +16,6 @@ export const env = createEnv({
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
 			.default("development"),
-		JWT_PUBLIC_KEY: z.string(),
-		JWT_PRIVATE_KEY: z.string(),
-		JWT_ISSUER: z.string(),
-		JWT_AUDIENCE: z.string(),
 	},
 	client: {
 		VITE_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -37,10 +32,6 @@ export const env = createEnv({
 		R2_SECRET_ACCESS_KEY: processEnv.R2_SECRET_ACCESS_KEY,
 		R2_URL: processEnv.R2_URL,
 		NODE_ENV: processEnv.NODE_ENV,
-		JWT_PUBLIC_KEY: processEnv.JWT_PUBLIC_KEY,
-		JWT_PRIVATE_KEY: processEnv.JWT_PRIVATE_KEY,
-		JWT_ISSUER: processEnv.JWT_ISSUER,
-		JWT_AUDIENCE: processEnv.JWT_AUDIENCE,
 		VITE_CLERK_PUBLISHABLE_KEY:
 			clientEnv?.VITE_CLERK_PUBLISHABLE_KEY ??
 			clientEnv?.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ??
