@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import posthog from "posthog-js";
-import { buildGhJson } from "parser/sand/src/parser";
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import { buildGhJson } from "parser/src/parser";
+import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../utils/gh-xml";
 
 export function sanitizeGhCardName(raw: string): string {

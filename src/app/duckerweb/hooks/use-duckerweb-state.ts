@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
-import { buildGhJson } from "parser/sand/src/parser";
+import { buildGhJson } from "parser/src/parser";
 import { validateGhXml } from "../../utils/gh-xml";
 import { generateFlowData } from "../gh-flow-generator";
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 import type { GHNode, ViewMode } from "../types/type";
 import type { Edge } from "@xyflow/react";
 

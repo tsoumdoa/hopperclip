@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
-import { parseGrasshopper, type ParsedXml } from "./parser.js";
-import type { ParseOptions } from "./types.js";
+import { parseGrasshopper, type ParsedXml } from "../../src/parser.js";
+import type { ParseOptions } from "../../src/types.js";
 
 async function main() {
 	const args = process.argv.slice(2);

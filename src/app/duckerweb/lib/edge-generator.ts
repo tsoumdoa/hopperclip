@@ -1,5 +1,5 @@
 import type { Edge } from "@xyflow/react";
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 
 export function generateEdges(
 	wires: ParsedGrasshopper["wires"],

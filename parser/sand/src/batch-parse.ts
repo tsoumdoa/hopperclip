@@ -1,8 +1,8 @@
 import { XMLParser } from "fast-xml-parser";
-import { parseGrasshopper, type ParsedXml } from "./parser.js";
+import { parseGrasshopper, type ParsedXml } from "../../src/parser.js";
 import { glob } from "glob";
 import * as path from "path";
-import type { ParseOptions } from "./types.js";
+import type { ParseOptions } from "../../src/types.js";
 
 async function processFile(
 	inputPath: string,

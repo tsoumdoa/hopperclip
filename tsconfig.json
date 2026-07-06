@@ -17,9 +17,15 @@
 		"baseUrl": ".",
 		"paths": {
 			"@convex/*": ["convex/*"],
-			"@/*": ["src/*"]
+			"@/*": ["src/*"],
+			"parser/*": ["parser/*"]
 		}
 	},
-	"include": ["**/*.ts", "**/*.tsx", "src", "convex"],
-	"exclude": ["node_modules", ".output", "dist"]
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"convex/**/*.ts",
+		"parser/src/**/*.ts"
+	],
+	"exclude": ["node_modules", ".output", "dist", "parser/sand"]
 }
