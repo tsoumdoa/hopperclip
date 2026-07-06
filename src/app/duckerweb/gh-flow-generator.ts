@@ -13,12 +13,3 @@ export function generateFlowData(parsed: ParsedGrasshopper): {
 
 	return { nodes, edges };
 }
-
-export function getComponentCount(parsed: ParsedGrasshopper): number {
-	return Object.keys(parsed.components).length;
-}
-
-export function getUniqueLibraryCount(parsed: ParsedGrasshopper): number {
-	const libraries = parsed.metadata?.libraries ?? [];
-	return new Set(libraries.map((l) => l.name)).size;
-}
