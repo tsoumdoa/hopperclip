@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import fs from "node:fs";
-import { buildGhJson } from "parser/sand/src/parser";
+import { buildGhJson } from "parser/src/parser";
 import {
 	getSingleScriptNickName,
 	sanitizeGhCardName,

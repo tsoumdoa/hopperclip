@@ -1,4 +1,4 @@
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 import type { ParsedComponent } from "../types/type";
 import { ComponentCard } from "./ComponentCard";
 

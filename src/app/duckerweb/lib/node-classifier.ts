@@ -1,4 +1,4 @@
-import type { Component } from "parser/sand/src/types";
+import type { Component } from "parser/src/types";
 import type { GHNodeType } from "../types/type";
 
 export function getComponentNodeType(component: Component): GHNodeType {

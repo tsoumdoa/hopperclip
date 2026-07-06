@@ -1,4 +1,4 @@
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 import { generateNodes } from "./lib/node-generator";
 import { generateEdges } from "./lib/edge-generator";
 import type { GHNode } from "./types/type";

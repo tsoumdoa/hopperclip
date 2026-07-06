@@ -1,4 +1,4 @@
-import type { Component } from "parser/sand/src/types";
+import type { Component } from "parser/src/types";
 
 export function extractValue(component: Component): string | undefined {
 	const v = component.value;

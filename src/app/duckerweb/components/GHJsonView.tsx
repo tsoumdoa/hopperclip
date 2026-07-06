@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 
 interface GHJsonViewProps {
 	data: ParsedGrasshopper;

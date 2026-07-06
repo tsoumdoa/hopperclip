@@ -1,4 +1,4 @@
-import type { Component } from "parser/sand/src/types";
+import type { Component } from "parser/src/types";
 import type { GHNode } from "../types/type";
 import { getComponentNodeType } from "./node-classifier";
 import { buildNodePositions } from "./node-positions";

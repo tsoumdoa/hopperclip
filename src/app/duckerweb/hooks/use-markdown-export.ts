@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import type { ParsedGrasshopper } from "parser/sand/src/types";
+import type { ParsedGrasshopper } from "parser/src/types";
 
 function formatComponentsAsMarkdown(parsedData: ParsedGrasshopper): string {
 	const components = Object.values(parsedData.components);

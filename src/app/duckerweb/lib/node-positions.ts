@@ -1,4 +1,4 @@
-import type { Component } from "parser/sand/src/types";
+import type { Component } from "parser/src/types";
 import { POSITION_SCALE_X } from "../components/constants";
 
 export type NodePosition = {
