@@ -40,7 +40,7 @@ export function handleGroup(
 	} as GHNode;
 }
 
-export function computeGroupBounds(
+function computeGroupBounds(
 	members: string[],
 	nodePositions: Map<string, NodePosition>
 ): { x: number; y: number; width: number; height: number } {

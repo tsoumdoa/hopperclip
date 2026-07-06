@@ -1,11 +1,9 @@
 import { z } from "zod";
-import { ListBucketResultSchema, XmlSchema } from "./s3-bucket-list-schema";
 import type { FunctionReturnType } from "convex/server";
 import { Doc } from "@convex/_generated/dataModel";
 import { api } from "@convex/_generated/api";
 
 export type GhPost = Doc<"post">; // includes _id, _creationTime, fields
-export type GhShares = Doc<"shares">; // includes _id, _creationTime, fields
 export type GetSharedPost = FunctionReturnType<typeof api.ghCard.getSharedPost>;
 
 export const GhCardSchema = z.object({
@@ -13,12 +11,8 @@ export const GhCardSchema = z.object({
 	description: z.string().max(150),
 	tags: z.array(z.string()).max(20),
 });
-export const GhXmlGhCardSchema = GhCardSchema.extend({
-	xml: z.string(),
-});
 
 export type GhCard = z.infer<typeof GhCardSchema>;
-export type GhXmlType = z.infer<typeof GhXml>;
 
 export const GhXml = z.object({
 	Archive: z.object({
@@ -28,29 +22,12 @@ export const GhXml = z.object({
 	}),
 });
 
-export const S3BucketListSchema = z.object({
-	"?xml": XmlSchema.optional(), // The `?xml` key might not always be present
-	ListBucketResult: ListBucketResultSchema,
-});
-
-export type S3BucketListType = z.infer<typeof S3BucketListSchema>;
-
 const ShareLinkUidRegex = /^[a-z0-9]{10}$/;
 export const ShareLinkUidSchema = z.string().regex(ShareLinkUidRegex, {
 	message: "Invalid Nano ID format. Must be 10 characters using 0-9 and a-z.",
 });
 
 export type ShareLinkUid = z.infer<typeof ShareLinkUidSchema>;
-
-export type ParamNameAndDescription = {
-	name: string;
-	description: string;
-};
-
-export type ExtractedParamInfo = {
-	input: ParamNameAndDescription[];
-	output: ParamNameAndDescription[];
-};
 
 //this is not good idea...duplicating typing with zod
 export const SORT_ORDERS = [

@@ -30,7 +30,7 @@ Or hey, just do whatever you want with your fork! No pressure, just good vibes.
 
 ## Technologies Used
 
-- **Frontend & Backend:** Next.js (App Router)
+- **Frontend & Backend:** Vite, TanStack Start, and TanStack Router
 - **Backend & Database:** Convex (simplifies hosting with built-in database, storage, and serverless functions)
 - **Styling:** Tailwind CSS & Shadcn UI
 - **Authentication & User Management:** Clerk
@@ -38,7 +38,7 @@ Or hey, just do whatever you want with your fork! No pressure, just good vibes.
 
 **Deployment:**
 
-- **Application:** Vercel (or any Next.js hosting)
+- **Application:** Any TanStack Start-compatible Node hosting
 - **Backend:** Convex
 
 ## Getting Started
