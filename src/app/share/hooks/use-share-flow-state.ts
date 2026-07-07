@@ -6,6 +6,7 @@ import { buildGhJson } from "parser/src/parser";
 import { generateFlowData } from "../../duckerweb/gh-flow-generator";
 import type { GHNode } from "../../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
+import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 
 export function useShareFlowState(shareToken: string) {
 	const getPresignedUrl = useAction(api.ghPublicAction.generateShareableLink);
@@ -38,6 +39,9 @@ export function useShareFlowState(shareToken: string) {
 			}
 
 			const blob = await res.blob();
+			if (blob.size > MAX_COMPRESSED_GH_XML_BYTES) {
+				throw new Error("GhXml download is too large");
+			}
 			const uncompressed = await decompress(await blob.arrayBuffer());
 			const decoded = new TextDecoder().decode(uncompressed);
 			setDecodedXml(decoded);
@@ -47,9 +51,7 @@ export function useShareFlowState(shareToken: string) {
 			setNodes(flowData.nodes as GHNode[]);
 			setEdges(flowData.edges);
 		} catch (e) {
-			setError(
-				e instanceof Error ? e.message : "Failed to load flow data"
-			);
+			setError(e instanceof Error ? e.message : "Failed to load flow data");
 		} finally {
 			setLoading(false);
 		}

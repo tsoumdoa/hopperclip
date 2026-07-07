@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { r2Client } from "./bucket";
 import { bucketUrl } from "@/utils/utils";
+import { MAX_COMPRESSED_GH_XML_BYTES, StorageKeySchema } from "@/types/types";
 
 async function requireAuthenticatedUserId() {
 	const { isAuthenticated, userId } = await auth();
@@ -21,19 +22,17 @@ async function ensureOk(res: Response, action: string) {
 }
 
 export const uploadToBucket = createServerFn({ method: "POST" })
-	.validator(
-		(input: unknown) => {
-			const parsed = z
-				.object({
-					nanoId: z
-						.string()
-						.regex(/^[A-Za-z0-9_-]{1,}$/),
-					ghXmlZipped: z.array(z.number().int().min(0).max(255)),
-				})
-				.parse(input);
-			return parsed;
-		}
-	)
+	.validator((input: unknown) => {
+		const parsed = z
+			.object({
+				nanoId: StorageKeySchema,
+				ghXmlZipped: z
+					.array(z.number().int().min(0).max(255))
+					.max(MAX_COMPRESSED_GH_XML_BYTES),
+			})
+			.parse(input);
+		return parsed;
+	})
 	.handler(async ({ data }) => {
 		const userId = await requireAuthenticatedUserId();
 		const ghXmlZipped = new Uint8Array(data.ghXmlZipped);
@@ -52,7 +51,7 @@ export const uploadToBucket = createServerFn({ method: "POST" })
 	});
 
 export const deleteFromBucket = createServerFn({ method: "POST" })
-	.validator((nanoId: string) => nanoId)
+	.validator((nanoId: string) => StorageKeySchema.parse(nanoId))
 	.handler(async ({ data: nanoId }) => {
 		const userId = await requireAuthenticatedUserId();
 
@@ -65,7 +64,7 @@ export const deleteFromBucket = createServerFn({ method: "POST" })
 	});
 
 export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })
-	.validator((nanoId: string) => nanoId)
+	.validator((nanoId: string) => StorageKeySchema.parse(nanoId))
 	.handler(async ({ data: nanoId }) => {
 		const userId = await requireAuthenticatedUserId();
 		const presigned = await r2Client.sign(
@@ -91,9 +90,7 @@ export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })
 export const fetchGhcardsUser = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const { userId } = await auth();
-		const user = userId
-			? await clerkClient().users.getUser(userId)
-			: null;
+		const user = userId ? await clerkClient().users.getUser(userId) : null;
 
 		return {
 			userId,

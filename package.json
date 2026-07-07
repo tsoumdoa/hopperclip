@@ -19,7 +19,7 @@
 		"convex:generate": "pnpm dlx convex dev"
 	},
 	"dependencies": {
-		"@clerk/tanstack-react-start": "^0.27.17",
+		"@clerk/tanstack-react-start": "^0.29.13",
 		"@icons-pack/react-simple-icons": "^13.13.0",
 		"@radix-ui/react-alert-dialog": "^1.1.18",
 		"@radix-ui/react-dialog": "^1.1.18",
