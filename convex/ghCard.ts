@@ -1,7 +1,32 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { UserTag, SortOrder } from "../src/types/types";
+import {
+	GhCardSchema,
+	ShareLinkUidSchema,
+	StorageKeySchema,
+	UserTag,
+	SortOrder,
+} from "../src/types/types";
 import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
+
+const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
+const MAX_SHARE_EXPIRY_HOURS = 24 * 30;
+
+function validateStorageKey(uid: string) {
+	const parsed = StorageKeySchema.safeParse(uid);
+	if (!parsed.success) {
+		throw new Error("Invalid storage key");
+	}
+	return parsed.data;
+}
+
+function validateShareToken(shareToken: string) {
+	const parsed = ShareLinkUidSchema.safeParse(shareToken);
+	if (!parsed.success) {
+		throw new Error("Invalid share token");
+	}
+	return parsed.data;
+}
 
 export const addPost = mutation({
 	args: {
@@ -15,12 +40,18 @@ export const addPost = mutation({
 		if (identity === null) {
 			throw new Error("Not authenticated");
 		}
+		GhCardSchema.parse({
+			name: args.name,
+			description: args.description,
+			tags: args.tags,
+		});
+		const bucketUrl = validateStorageKey(args.uid);
 		await ctx.db.insert("post", {
 			name: args.name,
 			description: args.description,
 			tags: args.tags,
 			clerkUserId: identity.id as string,
-			bucketUrl: args.uid,
+			bucketUrl,
 			dateCreated: new Date().toISOString(),
 			dateUpdated: new Date().toISOString(),
 		});
@@ -35,6 +66,13 @@ export const deletePost = mutation({
 		const identity = await ctx.auth.getUserIdentity();
 		if (identity === null) {
 			throw new Error("Not authenticated");
+		}
+		const post = await ctx.db.get(args.id);
+		if (!post) {
+			throw new Error("Post not found");
+		}
+		if (post.clerkUserId !== identity.id) {
+			throw new Error("Not authorized to delete this post");
 		}
 		await ctx.db.delete("post", args.id);
 
@@ -62,13 +100,26 @@ export const updatePost = mutation({
 		if (identity === null) {
 			throw new Error("Not authenticated");
 		}
+		const post = await ctx.db.get(args.id);
+		if (!post) {
+			throw new Error("Post not found");
+		}
+		if (post.clerkUserId !== identity.id) {
+			throw new Error("Not authorized to update this post");
+		}
+		GhCardSchema.partial().parse({
+			name: args.name,
+			description: args.description,
+			tags: args.tags,
+		});
 		if (args.uid !== undefined && args.uid !== null) {
+			const bucketUrl = validateStorageKey(args.uid);
 			await ctx.db.patch("post", args.id, {
 				name: args.name,
 				description: args.description,
 				tags: args.tags,
 				dateUpdated: new Date().toISOString(),
-				bucketUrl: args.uid,
+				bucketUrl,
 			});
 		} else {
 			await ctx.db.patch("post", args.id, {
@@ -274,7 +325,11 @@ export const createShare = mutation({
 
 		const shareToken = generateSharableLinkUid();
 
-		const expiresInMs = (args.expiresInHours ?? 24 * 7) * 60 * 60 * 1000;
+		const expiresInHours = args.expiresInHours ?? DEFAULT_SHARE_EXPIRY_HOURS;
+		if (expiresInHours < 1 || expiresInHours > MAX_SHARE_EXPIRY_HOURS) {
+			throw new Error("Share expiry must be between 1 hour and 30 days");
+		}
+		const expiresInMs = expiresInHours * 60 * 60 * 1000;
 		const expiryDate = new Date(now.getTime() + expiresInMs);
 
 		// Create the share record
@@ -304,10 +359,11 @@ export const revokeShare = mutation({
 		if (identity === null) {
 			throw new Error("Not authenticated");
 		}
+		const shareToken = validateShareToken(args.shareToken);
 
 		const share = await ctx.db
 			.query("shares")
-			.withIndex("by_shareToken", (q) => q.eq("shareToken", args.shareToken))
+			.withIndex("by_shareToken", (q) => q.eq("shareToken", shareToken))
 			.first();
 
 		if (!share) {
@@ -333,6 +389,13 @@ export const getActiveSharesForPost = query({
 		if (identity === null) {
 			throw new Error("Not authenticated");
 		}
+		const post = await ctx.db.get(args.postId);
+		if (!post) {
+			throw new Error("Post not found");
+		}
+		if (post.clerkUserId !== identity.id) {
+			throw new Error("Not authorized to view shares for this post");
+		}
 
 		const shares = await ctx.db
 			.query("shares")
@@ -356,9 +419,10 @@ export const getSharedPost = query({
 		shareToken: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const shareToken = validateShareToken(args.shareToken);
 		const share = await ctx.db
 			.query("shares")
-			.withIndex("by_shareToken", (q) => q.eq("shareToken", args.shareToken))
+			.withIndex("by_shareToken", (q) => q.eq("shareToken", shareToken))
 			.first();
 
 		if (!share) {

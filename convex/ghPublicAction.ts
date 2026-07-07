@@ -2,6 +2,7 @@ import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { AwsClient } from "aws4fetch";
+import { ShareLinkUidSchema } from "../src/types/types";
 
 const r2Client = new AwsClient({
 	accessKeyId: process.env.R2_ACCESS_KEY_ID!,
@@ -14,8 +15,9 @@ export const generateShareableLink = action({
 		shareToken: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const shareToken = ShareLinkUidSchema.parse(args.shareToken);
 		const url = await ctx.runQuery(internal.ghInternalQuery.getShareableLink, {
-			shareToken: args.shareToken,
+			shareToken,
 		});
 
 		if (!url) {

@@ -14,6 +14,16 @@ export const GhCardSchema = z.object({
 
 export type GhCard = z.infer<typeof GhCardSchema>;
 
+export const MAX_COMPRESSED_GH_XML_BYTES = 25 * 1024 * 1024;
+export const MAX_DECOMPRESSED_GH_XML_BYTES = 100 * 1024 * 1024;
+
+const StorageKeyRegex = /^[A-Za-z0-9_-]{1,64}$/;
+export const StorageKeySchema = z.string().regex(StorageKeyRegex, {
+	message: "Invalid storage key format.",
+});
+
+export type StorageKey = z.infer<typeof StorageKeySchema>;
+
 export const GhXml = z.object({
 	Archive: z.object({
 		comments: z
