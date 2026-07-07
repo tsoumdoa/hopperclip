@@ -74,7 +74,7 @@ export const deletePost = mutation({
 		if (post.clerkUserId !== identity.id) {
 			throw new Error("Not authorized to delete this post");
 		}
-		await ctx.db.delete("post", args.id);
+		await ctx.db.delete(args.id);
 
 		const sharedPost = await ctx.db
 			.query("shares")
