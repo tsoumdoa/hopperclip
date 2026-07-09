@@ -42,6 +42,11 @@ function nativeGhArchiveBytes() {
 		new DataView(buffer).setFloat32(0, value, true);
 		bytes.push(...new Uint8Array(buffer));
 	};
+	const writeFloat64 = (value: number) => {
+		const buffer = new ArrayBuffer(8);
+		new DataView(buffer).setFloat64(0, value, true);
+		bytes.push(...new Uint8Array(buffer));
+	};
 	const write7BitEncodedInt = (value: number) => {
 		let current = value;
 		while (current >= 0x80) {
@@ -76,7 +81,31 @@ function nativeGhArchiveBytes() {
 		| { kind: "version"; major: number; minor: number; revision: number }
 		| { kind: "guid"; value: string }
 		| { kind: "pointf"; x: number; y: number }
-		| { kind: "rectanglef"; x: number; y: number; w: number; h: number };
+		| { kind: "point3d"; x: number; y: number; z: number }
+		| { kind: "rectanglef"; x: number; y: number; w: number; h: number }
+		| { kind: "interval1d"; a: number; b: number }
+		| { kind: "interval2d"; au: number; bu: number; av: number; bv: number }
+		| {
+				kind: "line";
+				ax: number;
+				ay: number;
+				az: number;
+				bx: number;
+				by: number;
+				bz: number;
+		  }
+		| {
+				kind: "plane";
+				ox: number;
+				oy: number;
+				oz: number;
+				xx: number;
+				xy: number;
+				xz: number;
+				yx: number;
+				yy: number;
+				yz: number;
+		  };
 	type NativeItem = {
 		name: string;
 		index?: number;
@@ -125,6 +154,84 @@ function nativeGhArchiveBytes() {
 				writeFloat32(value.y);
 				writeFloat32(value.w);
 				writeFloat32(value.h);
+				break;
+			}
+			case 51: {
+				const value = item.value as {
+					kind: "point3d";
+					x: number;
+					y: number;
+					z: number;
+				};
+				writeFloat64(value.x);
+				writeFloat64(value.y);
+				writeFloat64(value.z);
+				break;
+			}
+			case 60: {
+				const value = item.value as {
+					kind: "interval1d";
+					a: number;
+					b: number;
+				};
+				writeFloat64(value.a);
+				writeFloat64(value.b);
+				break;
+			}
+			case 61: {
+				const value = item.value as {
+					kind: "interval2d";
+					au: number;
+					bu: number;
+					av: number;
+					bv: number;
+				};
+				writeFloat64(value.au);
+				writeFloat64(value.bu);
+				writeFloat64(value.av);
+				writeFloat64(value.bv);
+				break;
+			}
+			case 70: {
+				const value = item.value as {
+					kind: "line";
+					ax: number;
+					ay: number;
+					az: number;
+					bx: number;
+					by: number;
+					bz: number;
+				};
+				writeFloat64(value.ax);
+				writeFloat64(value.ay);
+				writeFloat64(value.az);
+				writeFloat64(value.bx);
+				writeFloat64(value.by);
+				writeFloat64(value.bz);
+				break;
+			}
+			case 72: {
+				const value = item.value as {
+					kind: "plane";
+					ox: number;
+					oy: number;
+					oz: number;
+					xx: number;
+					xy: number;
+					xz: number;
+					yx: number;
+					yy: number;
+					yz: number;
+				};
+				writeFloat64(value.ox);
+				writeFloat64(value.oy);
+				writeFloat64(value.oz);
+				writeFloat64(value.xx);
+				writeFloat64(value.xy);
+				writeFloat64(value.xz);
+				writeFloat64(value.yx);
+				writeFloat64(value.yy);
+				writeFloat64(value.yz);
 				break;
 			}
 			case 80: {
@@ -212,6 +319,56 @@ function nativeGhArchiveBytes() {
 											},
 											{ name: "Name", typeCode: 10, value: "Native Component" },
 											{ name: "NickName", typeCode: 10, value: "NATIVE" },
+											{
+												name: "Plane",
+												typeCode: 72,
+												value: {
+													kind: "plane",
+													ox: 0,
+													oy: 0,
+													oz: 0,
+													xx: 1,
+													xy: 0,
+													xz: 0,
+													yx: 0,
+													yy: 1,
+													yz: 0,
+												},
+											},
+											{
+												name: "Coordinate",
+												typeCode: 51,
+												value: { kind: "point3d", x: 1, y: 2, z: 3 },
+											},
+											{
+												name: "Domain",
+												typeCode: 60,
+												value: { kind: "interval1d", a: 0, b: 10 },
+											},
+											{
+												name: "Size",
+												typeCode: 61,
+												value: {
+													kind: "interval2d",
+													au: 0,
+													bu: 20,
+													av: 0,
+													bv: 5,
+												},
+											},
+											{
+												name: "Line",
+												typeCode: 70,
+												value: {
+													kind: "line",
+													ax: 0,
+													ay: 0,
+													az: 0,
+													bx: 10,
+													by: 10,
+													bz: 0,
+												},
+											},
 										],
 										chunks: [
 											{
@@ -302,6 +459,12 @@ describe("ghFileToGhXml", () => {
 
 		expect(xml).toContain('<chunk name="Definition">');
 		expect(xml).toContain("Native Component");
+		expect(xml).toContain(
+			'<item name="Plane" type_name="gh_plane" type_code="72">'
+		);
+		expect(xml).toContain("<X>1</X>");
+		expect(xml).toContain("<Au>0</Au>");
+		expect(xml).toContain("<Bx>10</Bx>");
 		expect(validateGhXml(xml).isValid).toBe(true);
 
 		const parsed = buildGhJson(xml, { includeVisuals: true });

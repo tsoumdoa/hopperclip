@@ -10,6 +10,7 @@ type GhValue =
 	| { kind: "version"; major: number; minor: number; revision: number }
 	| { kind: "point"; x: number; y: number }
 	| { kind: "pointf"; x: number; y: number }
+	| { kind: "point3d"; x: number; y: number; z: number }
 	| { kind: "rectangle"; x: number; y: number; width: number; height: number }
 	| {
 			kind: "rectanglef";
@@ -18,7 +19,30 @@ type GhValue =
 			width: number;
 			height: number;
 	  }
-	| { kind: "color"; alpha: number; red: number; green: number; blue: number };
+	| { kind: "color"; alpha: number; red: number; green: number; blue: number }
+	| { kind: "interval1d"; a: number; b: number }
+	| { kind: "interval2d"; au: number; bu: number; av: number; bv: number }
+	| {
+			kind: "line";
+			ax: number;
+			ay: number;
+			az: number;
+			bx: number;
+			by: number;
+			bz: number;
+	  }
+	| {
+			kind: "plane";
+			ox: number;
+			oy: number;
+			oz: number;
+			xx: number;
+			xy: number;
+			xz: number;
+			yx: number;
+			yy: number;
+			yz: number;
+	  };
 
 interface GhItem {
 	name: string;
@@ -52,6 +76,11 @@ const TYPE_NAMES: Record<number, string> = {
 	35: "gh_drawing_rectanglef",
 	36: "gh_drawing_color",
 	37: "gh_bitmap",
+	51: "gh_point3d",
+	60: "gh_interval1d",
+	61: "gh_interval2d",
+	70: "gh_line",
+	72: "gh_plane",
 	80: "gh_version",
 };
 
@@ -155,6 +184,50 @@ class GhBinaryReader {
 				const alpha = this.readByte();
 				return { kind: "color", alpha, red, green, blue };
 			}
+			case 51:
+				return {
+					kind: "point3d",
+					x: this.readFloat64(),
+					y: this.readFloat64(),
+					z: this.readFloat64(),
+				};
+			case 60:
+				return {
+					kind: "interval1d",
+					a: this.readFloat64(),
+					b: this.readFloat64(),
+				};
+			case 61:
+				return {
+					kind: "interval2d",
+					au: this.readFloat64(),
+					bu: this.readFloat64(),
+					av: this.readFloat64(),
+					bv: this.readFloat64(),
+				};
+			case 70:
+				return {
+					kind: "line",
+					ax: this.readFloat64(),
+					ay: this.readFloat64(),
+					az: this.readFloat64(),
+					bx: this.readFloat64(),
+					by: this.readFloat64(),
+					bz: this.readFloat64(),
+				};
+			case 72:
+				return {
+					kind: "plane",
+					ox: this.readFloat64(),
+					oy: this.readFloat64(),
+					oz: this.readFloat64(),
+					xx: this.readFloat64(),
+					xy: this.readFloat64(),
+					xz: this.readFloat64(),
+					yx: this.readFloat64(),
+					yy: this.readFloat64(),
+					yz: this.readFloat64(),
+				};
 			case 80:
 				return {
 					kind: "version",
@@ -349,11 +422,21 @@ function itemValueToXml(item: GhItem, indent: string) {
 		case "point":
 		case "pointf":
 			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}`;
+		case "point3d":
+			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}  <Z>${formatNumber(value.z)}</Z>\n${indent}`;
 		case "rectangle":
 		case "rectanglef":
 			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}  <W>${formatNumber(value.width)}</W>\n${indent}  <H>${formatNumber(value.height)}</H>\n${indent}`;
 		case "color":
 			return `\n${indent}  <ARGB>${value.alpha};${value.red};${value.green};${value.blue}</ARGB>\n${indent}`;
+		case "interval1d":
+			return `\n${indent}  <A>${formatNumber(value.a)}</A>\n${indent}  <B>${formatNumber(value.b)}</B>\n${indent}`;
+		case "interval2d":
+			return `\n${indent}  <Au>${formatNumber(value.au)}</Au>\n${indent}  <Bu>${formatNumber(value.bu)}</Bu>\n${indent}  <Av>${formatNumber(value.av)}</Av>\n${indent}  <Bv>${formatNumber(value.bv)}</Bv>\n${indent}`;
+		case "line":
+			return `\n${indent}  <Ax>${formatNumber(value.ax)}</Ax>\n${indent}  <Ay>${formatNumber(value.ay)}</Ay>\n${indent}  <Az>${formatNumber(value.az)}</Az>\n${indent}  <Bx>${formatNumber(value.bx)}</Bx>\n${indent}  <By>${formatNumber(value.by)}</By>\n${indent}  <Bz>${formatNumber(value.bz)}</Bz>\n${indent}`;
+		case "plane":
+			return `\n${indent}  <Ox>${formatNumber(value.ox)}</Ox>\n${indent}  <Oy>${formatNumber(value.oy)}</Oy>\n${indent}  <Oz>${formatNumber(value.oz)}</Oz>\n${indent}  <Xx>${formatNumber(value.xx)}</Xx>\n${indent}  <Xy>${formatNumber(value.xy)}</Xy>\n${indent}  <Xz>${formatNumber(value.xz)}</Xz>\n${indent}  <Yx>${formatNumber(value.yx)}</Yx>\n${indent}  <Yy>${formatNumber(value.yy)}</Yy>\n${indent}  <Yz>${formatNumber(value.yz)}</Yz>\n${indent}`;
 	}
 }
 
