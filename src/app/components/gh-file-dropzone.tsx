@@ -91,7 +91,7 @@ export function GhFileDropzone({
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
-				className={`animate flex cursor-pointer items-center justify-center gap-2 rounded-md border bg-neutral-100 p-2 font-medium shadow-xs transition-all ${
+				className={`animate flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border bg-neutral-100 p-2 font-medium shadow-xs transition-all ${
 					isDragging
 						? "border-blue-500 text-blue-600"
 						: "border-input text-neutral-500 hover:text-neutral-700"

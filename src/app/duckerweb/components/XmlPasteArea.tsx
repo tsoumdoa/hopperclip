@@ -49,15 +49,23 @@ export function XmlPasteArea({
 					)}
 				</div>
 			) : (
-				<div className="flex flex-col gap-2 sm:flex-row">
-					<button
-						type="button"
-						onClick={onPaste}
-						className="animate border-input flex-1 rounded-md border bg-neutral-100 p-2 font-medium text-neutral-500 shadow-xs transition-all hover:text-neutral-700"
-					>
-						<PasteButton />
-					</button>
-					<GhFileDropzone className="flex-1" onFileSelected={onFileSelected} />
+				<div>
+					<p className="mb-2 text-sm text-neutral-400">
+						Import a Grasshopper definition to inspect its components. Paste
+						GhXml from your clipboard, or drop a{" "}
+						<span className="font-mono">.gh</span>/
+						<span className="font-mono">.ghx</span> file.
+					</p>
+					<div className="flex flex-col gap-2 sm:flex-row">
+						<button
+							type="button"
+							onClick={onPaste}
+							className="animate border-input flex-1 rounded-md border bg-neutral-100 p-2 font-medium text-neutral-500 shadow-xs transition-all hover:text-neutral-700"
+						>
+							<PasteButton />
+						</button>
+						<GhFileDropzone className="flex-1" onFileSelected={onFileSelected} />
+					</div>
 				</div>
 			)}
 			{xmlError.length > 0 && (
