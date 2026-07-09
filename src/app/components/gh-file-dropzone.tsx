@@ -16,10 +16,9 @@ interface GhFileDropzoneProps {
 }
 
 /**
- * Drag-and-drop + file-picker component for accepting Grasshopper
- * `.gh` (gzipped) or `.ghx` (plain XML) files. Visual style intentionally
- * matches the existing "Paste GhXml from Clipboard" button so the two
- * input methods feel like peers.
+ * Drag-and-drop + file-picker component for accepting Grasshopper `.gh` or
+ * `.ghx` files. Visual style intentionally matches the existing "Paste GhXml
+ * from Clipboard" button so the two input methods feel like peers.
  *
  * Limitations:
  *   - Drag/drop requires the page to have focus. We deliberately don't

@@ -1,5 +1,6 @@
 import pako from "pako";
 import { decompress } from "./gzip";
+import { grasshopperBinaryToXml, inflateGrasshopperBinary } from "./gh-binary";
 
 export type GhFileKind = "gh" | "ghx" | "unknown";
 
@@ -14,9 +15,7 @@ export class GhFileError extends Error {
 }
 
 /**
- * Detect whether a file is a Grasshopper `.gh` (gzipped XML) or `.ghx` (plain XML).
- * Falls back to inspecting the gzipped magic bytes (`1f 8b`) for `.gh` files that
- * happen to be missing an extension.
+ * Detect whether a file is a Grasshopper `.gh` or `.ghx` archive.
  */
 export function detectGhFileKind(
 	file: File | { name: string; arrayBuffer(): Promise<ArrayBuffer> }
@@ -27,11 +26,30 @@ export function detectGhFileKind(
 	return "unknown";
 }
 
+function looksLikeXml(text: string) {
+	const trimmed = text.trimStart();
+	return trimmed.startsWith("<?xml") || trimmed.startsWith("<Archive");
+}
+
+function decodeUtf8(bytes: Uint8Array, filename: string, kind: GhFileKind) {
+	try {
+		return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+	} catch (err) {
+		throw new GhFileError(
+			`Failed to decode "${filename}" as UTF-8: ${
+				err instanceof Error ? err.message : String(err)
+			}`,
+			kind
+		);
+	}
+}
+
 /**
- * Convert a `.gh` (gzipped) or `.ghx` (plain XML) Grasshopper file to its GhXml
- * string form. The `.gh` format is just GZip-compressed XML, so `decompress()`
- * (which already detects the gzipped magic bytes and enforces the
- * `MAX_DECOMPRESSED_GH_XML_BYTES` cap) is the entire `.gh` path.
+ * Convert a `.gh` or `.ghx` Grasshopper file to its GhXml string form.
+ *
+ * Native `.gh` files are raw-DEFLATE compressed GH_IO binary archives. Some
+ * legacy app flows also produced gzip-compressed XML with a `.gh` extension, so
+ * this keeps that path for backwards compatibility.
  *
  * Returns the XML as a string. Throws `GhFileError` on:
  *   - empty file
@@ -59,6 +77,46 @@ export async function ghFileToGhXml(
 		throw new GhFileError(`File "${file.name}" is empty.`, "empty");
 	}
 
+	if (kind === "gh") {
+		const view = new Uint8Array(buffer);
+		const isGzipped = view[0] === 0x1f && view[1] === 0x8b;
+
+		if (!isGzipped) {
+			const plainText = new TextDecoder("utf-8").decode(view);
+			if (looksLikeXml(plainText)) {
+				return plainText;
+			}
+
+			let inflated: Uint8Array;
+			try {
+				inflated = inflateGrasshopperBinary(buffer);
+			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
+				if (msg.includes("too large")) {
+					throw new GhFileError(msg, "too-large");
+				}
+
+				return plainText;
+			}
+
+			const inflatedText = new TextDecoder("utf-8").decode(inflated);
+			if (looksLikeXml(inflatedText)) {
+				return inflatedText;
+			}
+
+			try {
+				return grasshopperBinaryToXml(inflated);
+			} catch (err) {
+				throw new GhFileError(
+					`Failed to decode "${file.name}" as a native Grasshopper .gh archive: ${
+						err instanceof Error ? err.message : String(err)
+					}`,
+					kind
+				);
+			}
+		}
+	}
+
 	let xmlBytes: Uint8Array;
 	try {
 		xmlBytes = await decompress(buffer);
@@ -70,23 +128,13 @@ export async function ghFileToGhXml(
 		throw new GhFileError(`Failed to decode "${file.name}": ${msg}`, kind);
 	}
 
-	const decoder = new TextDecoder("utf-8");
-	try {
-		return decoder.decode(xmlBytes);
-	} catch (err) {
-		throw new GhFileError(
-			`Failed to decode "${file.name}" as UTF-8: ${
-				err instanceof Error ? err.message : String(err)
-			}`,
-			kind
-		);
-	}
+	return decodeUtf8(xmlBytes, file.name, kind);
 }
 
 /**
- * Convenience: build a Grasshopper `.gh` (gzipped XML) `File`-like object from
- * a raw GhXml string. Useful for tests and for download flows that want to
- * round-trip back to the user's filesystem.
+ * Convenience: build the app's legacy gzip-compressed XML `.gh` blob from raw
+ * GhXml. Native Grasshopper `.gh` files use a different binary archive format;
+ * this helper is kept for existing tests and app-generated download flows.
  */
 export function ghXmlToGhFile(xml: string, filename = "definition.gh"): Blob {
 	const gzipped = pako.gzip(xml);
