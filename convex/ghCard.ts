@@ -74,16 +74,17 @@ export const deletePost = mutation({
 		if (post.clerkUserId !== identity.id) {
 			throw new Error("Not authorized to delete this post");
 		}
-		await ctx.db.delete(args.id);
 
-		const sharedPost = await ctx.db
+		const shares = await ctx.db
 			.query("shares")
 			.withIndex("by_postId", (q) => q.eq("postId", args.id))
 			.collect();
 
-		for (const share of sharedPost) {
+		for (const share of shares) {
 			await ctx.db.delete(share._id);
 		}
+
+		await ctx.db.delete(args.id);
 	},
 });
 
@@ -391,7 +392,7 @@ export const getActiveSharesForPost = query({
 		}
 		const post = await ctx.db.get(args.postId);
 		if (!post) {
-			throw new Error("Post not found");
+			return [];
 		}
 		if (post.clerkUserId !== identity.id) {
 			throw new Error("Not authorized to view shares for this post");
