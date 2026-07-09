@@ -54,10 +54,11 @@ export default function GHCard(props: {
 		loadMetrics,
 	} = useScriptMetrics();
 
-	// Query for active shares to show "Shared" badge
-	const activeShares = useQuery(api.ghCard.getActiveSharesForPost, {
-		postId: props.cardInfo._id,
-	});
+	// Skip while deleting so Convex refetches don't race with deletePost.
+	const activeShares = useQuery(
+		api.ghCard.getActiveSharesForPost,
+		deleting || deleted ? "skip" : { postId: props.cardInfo._id }
+	);
 	const hasActiveShare = activeShares && activeShares.length > 0;
 
 	const handleShare = () => {

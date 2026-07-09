@@ -54,11 +54,15 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		setDeleting(true);
 		try {
 			await deletePostConvex({ id: cardInfo["_id"] });
-			await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			setTag("");
 			setEditMode(false);
 			setDeleted(true);
 			toast.success(`"${cardInfo.name}" deleted`);
+			try {
+				await deleteFromBucket({ data: cardInfo.bucketUrl! });
+			} catch (error) {
+				console.error("Failed to delete storage blob (post already removed):", error);
+			}
 		} catch (error) {
 			console.error("Failed to delete post:", error);
 			toast.error("Failed to delete. Please try again.");

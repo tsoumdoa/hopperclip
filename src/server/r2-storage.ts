@@ -21,6 +21,14 @@ async function ensureOk(res: Response, action: string) {
 	}
 }
 
+async function ensureDeleted(res: Response) {
+	// R2/S3 may return 404 when the object is already gone; treat that as success.
+	if (res.ok || res.status === 404) {
+		return;
+	}
+	throw new Error(`R2 delete failed: ${res.status} ${res.statusText}`);
+}
+
 export const uploadToBucket = createServerFn({ method: "POST" })
 	.validator((input: unknown) => {
 		const parsed = z
@@ -60,7 +68,7 @@ export const deleteFromBucket = createServerFn({ method: "POST" })
 				method: "DELETE",
 			})
 		);
-		await ensureOk(res, "delete");
+		await ensureDeleted(res);
 	});
 
 export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })
