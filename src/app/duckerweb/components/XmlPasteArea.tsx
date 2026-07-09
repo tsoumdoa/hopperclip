@@ -1,11 +1,13 @@
 import { X } from "lucide-react";
 import { PasteButton } from "./PasteButton";
+import { GhFileDropzone } from "@/app/components/gh-file-dropzone";
 
 interface XmlPasteAreaProps {
 	xmlData: string | undefined;
 	isValidXml: boolean;
 	xmlError: string;
 	onPaste: () => void;
+	onFileSelected: (file: File) => void;
 	onClear: () => void;
 }
 
@@ -14,6 +16,7 @@ export function XmlPasteArea({
 	isValidXml,
 	xmlError,
 	onPaste,
+	onFileSelected,
 	onClear,
 }: XmlPasteAreaProps) {
 	return (
@@ -46,18 +49,19 @@ export function XmlPasteArea({
 					)}
 				</div>
 			) : (
-				<button
-					type="button"
-					onClick={onPaste}
-					className="animate border-input rounded-md border bg-neutral-100 p-2 font-medium text-neutral-500 shadow-xs transition-all hover:text-neutral-700"
-				>
-					<PasteButton />
-				</button>
+				<div className="flex flex-col gap-2 sm:flex-row">
+					<button
+						type="button"
+						onClick={onPaste}
+						className="animate border-input flex-1 rounded-md border bg-neutral-100 p-2 font-medium text-neutral-500 shadow-xs transition-all hover:text-neutral-700"
+					>
+						<PasteButton />
+					</button>
+					<GhFileDropzone className="flex-1" onFileSelected={onFileSelected} />
+				</div>
 			)}
 			{xmlError.length > 0 && (
-				<div className="mt-2 text-sm font-bold text-red-500">
-					{xmlError}
-				</div>
+				<div className="mt-2 text-sm font-bold text-red-500">{xmlError}</div>
 			)}
 		</div>
 	);

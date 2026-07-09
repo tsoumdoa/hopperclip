@@ -51,7 +51,7 @@ export function AddGhDialog(props: {
 		availableTags,
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
 
-	const { handlePasteFromClipboard } = useXmlPasteHandler(
+	const { handlePasteFromClipboard, handleFileSelected } = useXmlPasteHandler(
 		setXmlData,
 		setIsValidXml,
 		setAddError,
@@ -158,6 +158,7 @@ export function AddGhDialog(props: {
 								xmlError={addError}
 								setXmlError={setAddError}
 								handlePasteFromClipboard={handlePasteFromClipboard}
+								handleFileSelected={handleFileSelected}
 								onClearPastedXml={handleClearPastedXml}
 							/>
 							<div className="flex flex-col gap-y-1.5">

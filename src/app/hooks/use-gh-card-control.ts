@@ -30,7 +30,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 	const [isValidXml, setIsValidXml] = useState(false);
 	const [xmlError, setXmlError] = useState("");
 
-	const { handlePasteFromClipboard } = useXmlPasteHandler(
+	const { handlePasteFromClipboard, handleFileSelected } = useXmlPasteHandler(
 		setNewXmlData,
 		setIsValidXml,
 		setXmlError
@@ -203,5 +203,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		xmlError,
 		setXmlError,
 		handlePasteFromClipboard,
+		handleFileSelected,
 	};
 }

@@ -41,6 +41,7 @@ export default function GHCard(props: {
 		xmlError,
 		setXmlError,
 		handlePasteFromClipboard,
+		handleFileSelected,
 	} = useGhCardControl(props.cardInfo);
 
 	const [openSharedDialog, setOpenSharedDialog] = useState(false);
@@ -147,6 +148,7 @@ export default function GHCard(props: {
 					xmlError={xmlError}
 					setXmlError={setXmlError}
 					handlePasteFromClipboard={handlePasteFromClipboard}
+					handleFileSelected={handleFileSelected}
 				/>
 				<div onClick={(e) => e.stopPropagation()}>
 					{editMode ? (
