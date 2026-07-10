@@ -613,6 +613,32 @@ describe("grasshopperBinaryToXml", () => {
 			/Invalid Grasshopper binary string length/
 		);
 	});
+
+	test("accepts terminal 7-bit payload 0x07 at the fifth byte", () => {
+		const writer = createNativeArchiveWriter();
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x07);
+		expect(() => grasshopperBinaryToXml(writer.finish())).not.toThrow(
+			/Invalid Grasshopper binary string length/
+		);
+	});
+
+	test("rejects terminal 7-bit payloads exceeding 0x07 at the fifth byte", () => {
+		for (const terminalPayload of [0x08, 0x10]) {
+			const writer = createNativeArchiveWriter();
+			writer.writeByte(0x80);
+			writer.writeByte(0x80);
+			writer.writeByte(0x80);
+			writer.writeByte(0x80);
+			writer.writeByte(terminalPayload);
+			expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
+				/Invalid Grasshopper binary string length/
+			);
+		}
+	});
 });
 
 describe("inflateGrasshopperBinary", () => {

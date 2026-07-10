@@ -375,7 +375,11 @@ class GhBinaryReader {
 
 		for (;;) {
 			const byte = this.readByte();
-			count = (count | ((byte & 0x7f) << shift)) >>> 0;
+			const payload = byte & 0x7f;
+			if (shift === 28 && payload > 0x07) {
+				throw new Error("Invalid Grasshopper binary string length");
+			}
+			count = (count | (payload << shift)) >>> 0;
 			if ((byte & 0x80) === 0) return count;
 			shift += 7;
 			if (shift > 28) {
