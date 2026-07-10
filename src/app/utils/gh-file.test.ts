@@ -8,6 +8,11 @@ import {
 	ghXmlToGhFile,
 } from "./gh-file";
 import { validateGhXml } from "./gh-xml";
+import {
+	GhSizeError,
+	grasshopperBinaryToXml,
+	inflateGrasshopperBinary,
+} from "./gh-binary";
 import { buildGhJson } from "parser/src/parser";
 
 const FIXTURE_XML = fs.readFileSync(
@@ -470,6 +475,7 @@ describe("ghFileToGhXml", () => {
 		const parsed = buildGhJson(xml, { includeVisuals: true });
 		expect(parsed.components.NATIVE?.type).toBe("Native Component");
 		expect(parsed.components.NATIVE?.visuals?.pivot).toEqual({ x: 60, y: 42 });
+		expect(parsed.metadata?.pluginVersion).toBe("1.0.8");
 	});
 
 	test("rejects unknown extensions", async () => {
@@ -518,5 +524,114 @@ describe("GhFileError", () => {
 		expect(err.name).toBe("GhFileError");
 		expect(err.kind).toBe("too-large");
 		expect(err.message).toBe("boom");
+	});
+});
+
+function createNativeArchiveWriter() {
+	const bytes: number[] = [];
+	const encoder = new TextEncoder();
+
+	const writeByte = (value: number) => bytes.push(value & 0xff);
+	const writeInt32 = (value: number) => {
+		const buffer = new ArrayBuffer(4);
+		new DataView(buffer).setInt32(0, value, true);
+		bytes.push(...new Uint8Array(buffer));
+	};
+	const write7BitEncodedInt = (value: number) => {
+		let current = value;
+		while (current >= 0x80) {
+			writeByte((current & 0x7f) | 0x80);
+			current >>= 7;
+		}
+		writeByte(current);
+	};
+	const writeString = (value: string) => {
+		const encoded = encoder.encode(value);
+		write7BitEncodedInt(encoded.byteLength);
+		bytes.push(...encoded);
+	};
+	const writeChunk = (
+		name: string,
+		index: number,
+		itemCount: number,
+		chunkCount: number
+	) => {
+		writeString(name);
+		writeInt32(index);
+		writeInt32(itemCount);
+		writeInt32(chunkCount);
+	};
+
+	return {
+		bytes,
+		writeByte,
+		writeInt32,
+		writeString,
+		writeChunk,
+		finish: () => new Uint8Array(bytes),
+	};
+}
+
+describe("grasshopperBinaryToXml", () => {
+	test("rejects truncated native archives", () => {
+		expect(() => grasshopperBinaryToXml(new Uint8Array([0x01, 0x02, 0x03]))).toThrow(
+			/Unexpected end|Invalid Grasshopper binary/
+		);
+	});
+
+	test("rejects deeply nested chunk trees", () => {
+		const writer = createNativeArchiveWriter();
+		writer.writeChunk("Root", -1, 0, 1);
+		for (let depth = 0; depth < 129; depth += 1) {
+			writer.writeChunk(`Depth${depth}`, -1, 0, depth === 128 ? 0 : 1);
+		}
+		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
+			/Maximum chunk nesting depth exceeded/
+		);
+	});
+
+	test("rejects unsupported item type codes", () => {
+		const writer = createNativeArchiveWriter();
+		writer.writeChunk("Root", -1, 1, 0);
+		writer.writeString("BadItem");
+		writer.writeInt32(-1);
+		writer.writeInt32(999);
+		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
+			/Unsupported Grasshopper binary item type 999/
+		);
+	});
+
+	test("rejects oversized 7-bit encoded string lengths", () => {
+		const writer = createNativeArchiveWriter();
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x80);
+		writer.writeByte(0x01);
+		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
+			/Invalid Grasshopper binary string length/
+		);
+	});
+});
+
+describe("inflateGrasshopperBinary", () => {
+	test("throws GhSizeError when decompressed output exceeds the cap", () => {
+		const inflated = nativeGhArchiveBytes();
+		const compressed = pako.deflateRaw(inflated);
+		expect(() => inflateGrasshopperBinary(compressed.buffer, 16)).toThrow(
+			GhSizeError
+		);
+	});
+});
+
+describe("ghFileToGhXml size guards", () => {
+	test("rejects oversized native .gh archives before inflation", async () => {
+		const oversized = new Uint8Array(26 * 1024 * 1024);
+		oversized[0] = 0x78;
+		const file = fileFromBytes(oversized, "huge.gh");
+		await expect(ghFileToGhXml(file)).rejects.toMatchObject({
+			kind: "too-large",
+		});
 	});
 });

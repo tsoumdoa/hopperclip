@@ -814,9 +814,10 @@ export function parseGrasshopper(
 	// Extract metadata
 	const metadata: ParsedGrasshopper["metadata"] = {};
 
-	const pluginVersionItem = clipboardChunks
-		.flatMap((c) => normalizeArray(c.items?.item))
-		.find((i) => i.name === "plugin_version");
+	const pluginVersionItem = [
+		...normalizeArray(clipboardChunk.items?.item),
+		...clipboardChunks.flatMap((c) => normalizeArray(c.items?.item)),
+	].find((i) => i.name === "plugin_version");
 
 	if (pluginVersionItem) {
 		metadata.pluginVersion = `${pluginVersionItem.Major}.${pluginVersionItem.Minor}.${pluginVersionItem.Revision}`;

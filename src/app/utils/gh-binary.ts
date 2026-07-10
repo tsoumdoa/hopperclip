@@ -1,6 +1,15 @@
 import pako from "pako";
 import { MAX_DECOMPRESSED_GH_XML_BYTES } from "@/types/types";
 
+export class GhSizeError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "GhSizeError";
+	}
+}
+
+const MAX_CHUNK_NESTING_DEPTH = 128;
+
 type GhValue =
 	| string
 	| number
@@ -94,6 +103,16 @@ class GhBinaryReader {
 	}
 
 	readChunk(): GhChunk {
+		return this.readChunkWithDepth(MAX_CHUNK_NESTING_DEPTH);
+	}
+
+	private readChunkWithDepth(maxDepth: number): GhChunk {
+		if (maxDepth <= 0) {
+			throw new Error(
+				"Maximum chunk nesting depth exceeded in Grasshopper binary archive"
+			);
+		}
+
 		const name = this.readString();
 		const index = this.readInt32();
 		const itemCount = this.readInt32();
@@ -106,7 +125,7 @@ class GhBinaryReader {
 
 		const chunks: GhChunk[] = [];
 		for (let i = 0; i < chunkCount; i += 1) {
-			chunks.push(this.readChunk());
+			chunks.push(this.readChunkWithDepth(maxDepth - 1));
 		}
 
 		return { name, index, items, chunks };
@@ -339,6 +358,9 @@ class GhBinaryReader {
 
 	private readString() {
 		const length = this.read7BitEncodedInt();
+		if (length < 0) {
+			throw new Error("Invalid Grasshopper binary string length");
+		}
 		this.ensure(length);
 		const value = new TextDecoder("utf-8", { fatal: true }).decode(
 			this.bytes.slice(this.offset, this.offset + length)
@@ -353,7 +375,7 @@ class GhBinaryReader {
 
 		for (;;) {
 			const byte = this.readByte();
-			count |= (byte & 0x7f) << shift;
+			count = (count | ((byte & 0x7f) << shift)) >>> 0;
 			if ((byte & 0x80) === 0) return count;
 			shift += 7;
 			if (shift > 28) {
@@ -505,10 +527,26 @@ export function inflateGrasshopperBinary(
 	data: ArrayBuffer,
 	maxBytes = MAX_DECOMPRESSED_GH_XML_BYTES
 ) {
-	let inflated: Uint8Array;
+	const chunks: Uint8Array[] = [];
+	let total = 0;
+	const inflator = new pako.Inflate({ raw: true, chunkSize: 64 * 1024 });
+
+	inflator.onData = (chunk: Uint8Array) => {
+		total += chunk.length;
+		if (total > maxBytes) {
+			throw new GhSizeError("GhXml is too large");
+		}
+		chunks.push(chunk);
+	};
+
 	try {
-		inflated = pako.inflateRaw(new Uint8Array(data));
+		if (!inflator.push(new Uint8Array(data), true)) {
+			throw new Error(inflator.msg || "Failed to inflate native .gh archive");
+		}
 	} catch (err) {
+		if (err instanceof GhSizeError) {
+			throw err;
+		}
 		throw new Error(
 			`Failed to inflate native .gh archive: ${
 				err instanceof Error ? err.message : String(err)
@@ -516,11 +554,18 @@ export function inflateGrasshopperBinary(
 		);
 	}
 
-	if (inflated.byteLength > maxBytes) {
-		throw new Error("GhXml is too large");
+	if (chunks.length === 0) {
+		throw new Error("Failed to inflate native .gh archive: empty output");
 	}
 
-	return inflated;
+	const result = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		result.set(chunk, offset);
+		offset += chunk.length;
+	}
+
+	return result;
 }
 
 export function grasshopperBinaryToXml(bytes: Uint8Array) {

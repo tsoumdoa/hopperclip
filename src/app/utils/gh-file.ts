@@ -1,6 +1,11 @@
 import pako from "pako";
+import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 import { decompress } from "./gzip";
-import { grasshopperBinaryToXml, inflateGrasshopperBinary } from "./gh-binary";
+import {
+	GhSizeError,
+	grasshopperBinaryToXml,
+	inflateGrasshopperBinary,
+} from "./gh-binary";
 
 export type GhFileKind = "gh" | "ghx" | "unknown";
 
@@ -77,6 +82,10 @@ export async function ghFileToGhXml(
 		throw new GhFileError(`File "${file.name}" is empty.`, "empty");
 	}
 
+	if (buffer.byteLength > MAX_COMPRESSED_GH_XML_BYTES) {
+		throw new GhFileError(`File "${file.name}" is too large.`, "too-large");
+	}
+
 	if (kind === "gh") {
 		const view = new Uint8Array(buffer);
 		const isGzipped = view[0] === 0x1f && view[1] === 0x8b;
@@ -91,9 +100,8 @@ export async function ghFileToGhXml(
 			try {
 				inflated = inflateGrasshopperBinary(buffer);
 			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err);
-				if (msg.includes("too large")) {
-					throw new GhFileError(msg, "too-large");
+				if (err instanceof GhSizeError) {
+					throw new GhFileError(err.message, "too-large");
 				}
 
 				return plainText;
@@ -121,6 +129,9 @@ export async function ghFileToGhXml(
 	try {
 		xmlBytes = await decompress(buffer);
 	} catch (err) {
+		if (err instanceof GhSizeError) {
+			throw new GhFileError(err.message, "too-large");
+		}
 		const msg = err instanceof Error ? err.message : String(err);
 		if (msg.includes("too large")) {
 			throw new GhFileError(msg, "too-large");
