@@ -102,7 +102,7 @@ export function GhFileDropzone({
 				<span className="text-sm">
 					{isDragging
 						? "Drop .gh or .ghx here"
-						: "Drop .gh file or click to browse"}
+						: "Drop .gh or .ghx file, or click to browse"}
 				</span>
 			</div>
 			<input

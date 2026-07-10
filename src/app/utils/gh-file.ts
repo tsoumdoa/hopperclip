@@ -93,7 +93,7 @@ export async function ghFileToGhXml(
 		if (!isGzipped) {
 			const plainText = new TextDecoder("utf-8").decode(view);
 			if (looksLikeXml(plainText)) {
-				return plainText;
+				return decodeUtf8(view, file.name, kind);
 			}
 
 			let inflated: Uint8Array;
@@ -109,12 +109,15 @@ export async function ghFileToGhXml(
 
 			const inflatedText = new TextDecoder("utf-8").decode(inflated);
 			if (looksLikeXml(inflatedText)) {
-				return inflatedText;
+				return decodeUtf8(inflated, file.name, kind);
 			}
 
 			try {
 				return grasshopperBinaryToXml(inflated);
 			} catch (err) {
+				if (err instanceof GhSizeError) {
+					throw new GhFileError(err.message, "too-large");
+				}
 				throw new GhFileError(
 					`Failed to decode "${file.name}" as a native Grasshopper .gh archive: ${
 						err instanceof Error ? err.message : String(err)

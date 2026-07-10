@@ -192,9 +192,12 @@ export function useXmlPasteHandler(
 	};
 
 	const handleFileSelected = async (file: File) => {
+		setXmlError("");
 		posthog.capture("user_pasted", {
 			source: "file",
-			ext: file.name.split(".").pop(),
+			ext: file.name.includes(".")
+				? file.name.split(".").pop()
+				: "unknown",
 		});
 
 		try {

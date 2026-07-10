@@ -639,6 +639,19 @@ describe("grasshopperBinaryToXml", () => {
 			);
 		}
 	});
+
+	test("rejects negative chunk counts", () => {
+		const writer = createNativeArchiveWriter();
+		writer.writeChunk("Root", -1, -1, 0);
+		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
+			/Invalid Grasshopper binary chunk counts/
+		);
+	});
+
+	test("throws GhSizeError when XML output exceeds the cap", () => {
+		const bytes = nativeGhArchiveBytes();
+		expect(() => grasshopperBinaryToXml(bytes, 16)).toThrow(GhSizeError);
+	});
 });
 
 describe("inflateGrasshopperBinary", () => {
