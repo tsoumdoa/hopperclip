@@ -16,10 +16,14 @@ type GhValue =
 	| boolean
 	| bigint
 	| Uint8Array
+	| { kind: "doublearray"; values: number[] }
 	| { kind: "version"; major: number; minor: number; revision: number }
 	| { kind: "point"; x: number; y: number }
 	| { kind: "pointf"; x: number; y: number }
 	| { kind: "point3d"; x: number; y: number; z: number }
+	| { kind: "point4d"; x: number; y: number; z: number; w: number }
+	| { kind: "size"; width: number; height: number }
+	| { kind: "sizef"; width: number; height: number }
 	| { kind: "rectangle"; x: number; y: number; width: number; height: number }
 	| {
 			kind: "rectanglef";
@@ -51,6 +55,15 @@ type GhValue =
 			yx: number;
 			yy: number;
 			yz: number;
+	  }
+	| {
+			kind: "boundingbox";
+			minX: number;
+			minY: number;
+			minZ: number;
+			maxX: number;
+			maxY: number;
+			maxZ: number;
 	  };
 
 interface GhItem {
@@ -79,16 +92,22 @@ const TYPE_NAMES: Record<number, string> = {
 	9: "gh_guid",
 	10: "gh_string",
 	20: "gh_bytearray",
+	21: "gh_doublearray",
 	30: "gh_drawing_point",
 	31: "gh_drawing_pointf",
+	32: "gh_drawing_size",
+	33: "gh_drawing_sizef",
 	34: "gh_drawing_rectangle",
 	35: "gh_drawing_rectanglef",
 	36: "gh_drawing_color",
 	37: "gh_bitmap",
+	50: "gh_point2d",
 	51: "gh_point3d",
+	52: "gh_point4d",
 	60: "gh_interval1d",
 	61: "gh_interval2d",
 	70: "gh_line",
+	71: "gh_boundingbox",
 	72: "gh_plane",
 	80: "gh_version",
 };
@@ -172,6 +191,8 @@ class GhBinaryReader {
 			case 20:
 			case 37:
 				return this.readByteArray();
+			case 21:
+				return { kind: "doublearray", values: this.readDoubleArray() };
 			case 30:
 				return {
 					kind: "point",
@@ -183,6 +204,18 @@ class GhBinaryReader {
 					kind: "pointf",
 					x: this.readFloat32(),
 					y: this.readFloat32(),
+				};
+			case 32:
+				return {
+					kind: "size",
+					width: this.readInt32(),
+					height: this.readInt32(),
+				};
+			case 33:
+				return {
+					kind: "sizef",
+					width: this.readFloat32(),
+					height: this.readFloat32(),
 				};
 			case 34:
 				return {
@@ -207,12 +240,26 @@ class GhBinaryReader {
 				const alpha = this.readByte();
 				return { kind: "color", alpha, red, green, blue };
 			}
+			case 50:
+				return {
+					kind: "point",
+					x: this.readFloat64(),
+					y: this.readFloat64(),
+				};
 			case 51:
 				return {
 					kind: "point3d",
 					x: this.readFloat64(),
 					y: this.readFloat64(),
 					z: this.readFloat64(),
+				};
+			case 52:
+				return {
+					kind: "point4d",
+					x: this.readFloat64(),
+					y: this.readFloat64(),
+					z: this.readFloat64(),
+					w: this.readFloat64(),
 				};
 			case 60:
 				return {
@@ -237,6 +284,16 @@ class GhBinaryReader {
 					bx: this.readFloat64(),
 					by: this.readFloat64(),
 					bz: this.readFloat64(),
+				};
+			case 71:
+				return {
+					kind: "boundingbox",
+					minX: this.readFloat64(),
+					minY: this.readFloat64(),
+					minZ: this.readFloat64(),
+					maxX: this.readFloat64(),
+					maxY: this.readFloat64(),
+					maxZ: this.readFloat64(),
 				};
 			case 72:
 				return {
@@ -360,6 +417,22 @@ class GhBinaryReader {
 		return value;
 	}
 
+	private readDoubleArray() {
+		const length = this.readInt32();
+		if (length < 0) {
+			throw new Error("Invalid Grasshopper binary double array length");
+		}
+		if (length > Math.floor((this.bytes.byteLength - this.offset) / 8)) {
+			throw new Error("Unexpected end of Grasshopper binary archive");
+		}
+
+		const values: number[] = [];
+		for (let i = 0; i < length; i += 1) {
+			values.push(this.readFloat64());
+		}
+		return values;
+	}
+
 	private readString() {
 		const length = this.read7BitEncodedInt();
 		if (length < 0) {
@@ -425,6 +498,15 @@ function bytesToBase64(bytes: Uint8Array) {
 	return btoa(binary);
 }
 
+function doublesToBytes(values: number[]) {
+	const bytes = new Uint8Array(values.length * 8);
+	const view = new DataView(bytes.buffer);
+	for (let i = 0; i < values.length; i += 1) {
+		view.setFloat64(i * 8, values[i], true);
+	}
+	return bytes;
+}
+
 class SizeBoundedWriter {
 	private readonly lines: string[] = [];
 	private length = 0;
@@ -468,6 +550,10 @@ function itemValueToXml(item: GhItem, indent: string) {
 	}
 
 	switch (value.kind) {
+		case "doublearray":
+			return `\n${indent}  <stream length="${value.values.length}">${bytesToBase64(
+				doublesToBytes(value.values)
+			)}</stream>\n${indent}`;
 		case "version":
 			return `\n${indent}  <Major>${value.major}</Major>\n${indent}  <Minor>${value.minor}</Minor>\n${indent}  <Revision>${value.revision}</Revision>\n${indent}`;
 		case "point":
@@ -475,6 +561,11 @@ function itemValueToXml(item: GhItem, indent: string) {
 			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}`;
 		case "point3d":
 			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}  <Z>${formatNumber(value.z)}</Z>\n${indent}`;
+		case "point4d":
+			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}  <Z>${formatNumber(value.z)}</Z>\n${indent}  <W>${formatNumber(value.w)}</W>\n${indent}`;
+		case "size":
+		case "sizef":
+			return `\n${indent}  <W>${formatNumber(value.width)}</W>\n${indent}  <H>${formatNumber(value.height)}</H>\n${indent}`;
 		case "rectangle":
 		case "rectanglef":
 			return `\n${indent}  <X>${formatNumber(value.x)}</X>\n${indent}  <Y>${formatNumber(value.y)}</Y>\n${indent}  <W>${formatNumber(value.width)}</W>\n${indent}  <H>${formatNumber(value.height)}</H>\n${indent}`;
@@ -486,6 +577,8 @@ function itemValueToXml(item: GhItem, indent: string) {
 			return `\n${indent}  <Au>${formatNumber(value.au)}</Au>\n${indent}  <Bu>${formatNumber(value.bu)}</Bu>\n${indent}  <Av>${formatNumber(value.av)}</Av>\n${indent}  <Bv>${formatNumber(value.bv)}</Bv>\n${indent}`;
 		case "line":
 			return `\n${indent}  <Ax>${formatNumber(value.ax)}</Ax>\n${indent}  <Ay>${formatNumber(value.ay)}</Ay>\n${indent}  <Az>${formatNumber(value.az)}</Az>\n${indent}  <Bx>${formatNumber(value.bx)}</Bx>\n${indent}  <By>${formatNumber(value.by)}</By>\n${indent}  <Bz>${formatNumber(value.bz)}</Bz>\n${indent}`;
+		case "boundingbox":
+			return `\n${indent}  <MinX>${formatNumber(value.minX)}</MinX>\n${indent}  <MinY>${formatNumber(value.minY)}</MinY>\n${indent}  <MinZ>${formatNumber(value.minZ)}</MinZ>\n${indent}  <MaxX>${formatNumber(value.maxX)}</MaxX>\n${indent}  <MaxY>${formatNumber(value.maxY)}</MaxY>\n${indent}  <MaxZ>${formatNumber(value.maxZ)}</MaxZ>\n${indent}`;
 		case "plane":
 			return `\n${indent}  <Ox>${formatNumber(value.ox)}</Ox>\n${indent}  <Oy>${formatNumber(value.oy)}</Oy>\n${indent}  <Oz>${formatNumber(value.oz)}</Oz>\n${indent}  <Xx>${formatNumber(value.xx)}</Xx>\n${indent}  <Xy>${formatNumber(value.xy)}</Xy>\n${indent}  <Xz>${formatNumber(value.xz)}</Xz>\n${indent}  <Yx>${formatNumber(value.yx)}</Yx>\n${indent}  <Yy>${formatNumber(value.yy)}</Yy>\n${indent}  <Yz>${formatNumber(value.yz)}</Yz>\n${indent}`;
 	}

@@ -83,10 +83,15 @@ function nativeGhArchiveBytes() {
 		| string
 		| number
 		| boolean
+		| { kind: "doublearray"; values: number[] }
 		| { kind: "version"; major: number; minor: number; revision: number }
 		| { kind: "guid"; value: string }
 		| { kind: "pointf"; x: number; y: number }
+		| { kind: "size"; w: number; h: number }
+		| { kind: "sizef"; w: number; h: number }
+		| { kind: "point2d"; x: number; y: number }
 		| { kind: "point3d"; x: number; y: number; z: number }
+		| { kind: "point4d"; x: number; y: number; z: number; w: number }
 		| { kind: "rectanglef"; x: number; y: number; w: number; h: number }
 		| { kind: "interval1d"; a: number; b: number }
 		| { kind: "interval2d"; au: number; bu: number; av: number; bv: number }
@@ -110,6 +115,15 @@ function nativeGhArchiveBytes() {
 				yx: number;
 				yy: number;
 				yz: number;
+		  }
+		| {
+				kind: "boundingbox";
+				minX: number;
+				minY: number;
+				minZ: number;
+				maxX: number;
+				maxY: number;
+				maxZ: number;
 		  };
 	type NativeItem = {
 		name: string;
@@ -141,10 +155,28 @@ function nativeGhArchiveBytes() {
 			case 10:
 				writeString(item.value as string);
 				break;
+			case 21: {
+				const value = item.value as { kind: "doublearray"; values: number[] };
+				writeInt32(value.values.length);
+				value.values.forEach(writeFloat64);
+				break;
+			}
 			case 31: {
 				const value = item.value as { kind: "pointf"; x: number; y: number };
 				writeFloat32(value.x);
 				writeFloat32(value.y);
+				break;
+			}
+			case 32: {
+				const value = item.value as { kind: "size"; w: number; h: number };
+				writeInt32(value.w);
+				writeInt32(value.h);
+				break;
+			}
+			case 33: {
+				const value = item.value as { kind: "sizef"; w: number; h: number };
+				writeFloat32(value.w);
+				writeFloat32(value.h);
 				break;
 			}
 			case 35: {
@@ -171,6 +203,26 @@ function nativeGhArchiveBytes() {
 				writeFloat64(value.x);
 				writeFloat64(value.y);
 				writeFloat64(value.z);
+				break;
+			}
+			case 50: {
+				const value = item.value as { kind: "point2d"; x: number; y: number };
+				writeFloat64(value.x);
+				writeFloat64(value.y);
+				break;
+			}
+			case 52: {
+				const value = item.value as {
+					kind: "point4d";
+					x: number;
+					y: number;
+					z: number;
+					w: number;
+				};
+				writeFloat64(value.x);
+				writeFloat64(value.y);
+				writeFloat64(value.z);
+				writeFloat64(value.w);
 				break;
 			}
 			case 60: {
@@ -213,6 +265,24 @@ function nativeGhArchiveBytes() {
 				writeFloat64(value.bx);
 				writeFloat64(value.by);
 				writeFloat64(value.bz);
+				break;
+			}
+			case 71: {
+				const value = item.value as {
+					kind: "boundingbox";
+					minX: number;
+					minY: number;
+					minZ: number;
+					maxX: number;
+					maxY: number;
+					maxZ: number;
+				};
+				writeFloat64(value.minX);
+				writeFloat64(value.minY);
+				writeFloat64(value.minZ);
+				writeFloat64(value.maxX);
+				writeFloat64(value.maxY);
+				writeFloat64(value.maxZ);
 				break;
 			}
 			case 72: {
@@ -274,6 +344,44 @@ function nativeGhArchiveBytes() {
 				name: "ArchiveVersion",
 				typeCode: 80,
 				value: { kind: "version", major: 0, minor: 2, revision: 2 },
+			},
+			{
+				name: "Doubles",
+				typeCode: 21,
+				value: { kind: "doublearray", values: [1.25, -2.5] },
+			},
+			{
+				name: "IntegerSize",
+				typeCode: 32,
+				value: { kind: "size", w: 640, h: 480 },
+			},
+			{
+				name: "FloatSize",
+				typeCode: 33,
+				value: { kind: "sizef", w: 12.5, h: 7.25 },
+			},
+			{
+				name: "Point2D",
+				typeCode: 50,
+				value: { kind: "point2d", x: 1.5, y: -2.5 },
+			},
+			{
+				name: "Point4D",
+				typeCode: 52,
+				value: { kind: "point4d", x: 1, y: 2, z: 3, w: 4 },
+			},
+			{
+				name: "Bounds",
+				typeCode: 71,
+				value: {
+					kind: "boundingbox",
+					minX: -1,
+					minY: -2,
+					minZ: -3,
+					maxX: 4,
+					maxY: 5,
+					maxZ: 6,
+				},
 			},
 		],
 		chunks: [
@@ -467,6 +575,32 @@ describe("ghFileToGhXml", () => {
 		expect(xml).toContain(
 			'<item name="Plane" type_name="gh_plane" type_code="72">'
 		);
+		expect(xml).toContain(
+			'<item name="Doubles" type_name="gh_doublearray" type_code="21">'
+		);
+		expect(xml).toContain('<stream length="2">AAAAAAAA9D8AAAAAAAAEwA==</stream>');
+		expect(xml).toContain(
+			'<item name="IntegerSize" type_name="gh_drawing_size" type_code="32">'
+		);
+		expect(xml).toContain("<W>640</W>");
+		expect(xml).toContain("<H>480</H>");
+		expect(xml).toContain(
+			'<item name="FloatSize" type_name="gh_drawing_sizef" type_code="33">'
+		);
+		expect(xml).toContain("<W>12.5</W>");
+		expect(xml).toContain(
+			'<item name="Point2D" type_name="gh_point2d" type_code="50">'
+		);
+		expect(xml).toContain("<Y>-2.5</Y>");
+		expect(xml).toContain(
+			'<item name="Point4D" type_name="gh_point4d" type_code="52">'
+		);
+		expect(xml).toContain("<W>4</W>");
+		expect(xml).toContain(
+			'<item name="Bounds" type_name="gh_boundingbox" type_code="71">'
+		);
+		expect(xml).toContain("<MinX>-1</MinX>");
+		expect(xml).toContain("<MaxZ>6</MaxZ>");
 		expect(xml).toContain("<X>1</X>");
 		expect(xml).toContain("<Au>0</Au>");
 		expect(xml).toContain("<Bx>10</Bx>");

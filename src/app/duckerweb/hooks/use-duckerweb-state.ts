@@ -85,10 +85,11 @@ export function useDuckerwebState(): DuckerwebState & {
 	);
 
 	const handlePasteFromClipboard = useCallback(async () => {
+		resetFlowState();
+
 		try {
 			const text = await navigator.clipboard.readText();
 			if (text.length === 0) {
-				resetFlowState();
 				setXmlError("Clipboard is empty");
 				return;
 			}
