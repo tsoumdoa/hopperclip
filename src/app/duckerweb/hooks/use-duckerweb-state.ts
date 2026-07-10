@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { buildGhJson } from "parser/src/parser";
 import { validateGhXml } from "../../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../../utils/gh-file";
@@ -32,6 +32,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [nodes, setNodes] = useState<GHNode[]>([]);
 	const [edges, setEdges] = useState<Edge[]>([]);
 	const [error, setError] = useState("");
+	const activeRequest = useRef(0);
 
 	const resetFlowState = useCallback(() => {
 		setXmlData(undefined);
@@ -85,27 +86,33 @@ export function useDuckerwebState(): DuckerwebState & {
 	);
 
 	const handlePasteFromClipboard = useCallback(async () => {
+		const requestId = ++activeRequest.current;
 		resetFlowState();
 
 		try {
 			const text = await navigator.clipboard.readText();
+			if (requestId !== activeRequest.current) return;
 			if (text.length === 0) {
 				setXmlError("Clipboard is empty");
 				return;
 			}
 			ingestXml(text, "clipboard");
 		} catch (err) {
+			if (requestId !== activeRequest.current) return;
 			setXmlError("Failed to read clipboard contents: \n" + String(err));
 		}
 	}, [ingestXml, resetFlowState]);
 
 	const handleFileSelected = useCallback(
 		async (file: File) => {
+			const requestId = ++activeRequest.current;
+			resetFlowState();
 			try {
 				const xml = await ghFileToGhXml(file);
+				if (requestId !== activeRequest.current) return;
 				ingestXml(xml, "file");
 			} catch (err) {
-				resetFlowState();
+				if (requestId !== activeRequest.current) return;
 				if (err instanceof GhFileError) {
 					setXmlError(err.message);
 				} else {
@@ -121,6 +128,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	);
 
 	const handleClear = useCallback(() => {
+		activeRequest.current += 1;
 		resetFlowState();
 	}, [resetFlowState]);
 

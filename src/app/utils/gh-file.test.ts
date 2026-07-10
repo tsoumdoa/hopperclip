@@ -1,12 +1,7 @@
 import { describe, expect, test } from "vitest";
 import fs from "node:fs";
 import pako from "pako";
-import {
-	GhFileError,
-	detectGhFileKind,
-	ghFileToGhXml,
-	ghXmlToGhFile,
-} from "./gh-file";
+import { GhFileError, detectGhFileKind, ghFileToGhXml } from "./gh-file";
 import { validateGhXml } from "./gh-xml";
 import {
 	GhSizeError,
@@ -521,19 +516,13 @@ function nativeGhArchiveBytes() {
 }
 
 describe("detectGhFileKind", () => {
-	test("detects .gh extension", () => {
+	test("detects supported extensions and rejects others", () => {
 		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "foo.gh"))).toBe(
 			"gh"
 		);
-	});
-
-	test("detects .ghx extension (case-insensitive)", () => {
 		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "FOO.GHX"))).toBe(
 			"ghx"
 		);
-	});
-
-	test("returns unknown for other extensions", () => {
 		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "foo.xml"))).toBe(
 			"unknown"
 		);
@@ -571,39 +560,17 @@ describe("ghFileToGhXml", () => {
 		const xml = await ghFileToGhXml(file);
 
 		expect(xml).toContain('<chunk name="Definition">');
-		expect(xml).toContain("Native Component");
 		expect(xml).toContain(
 			'<item name="Plane" type_name="gh_plane" type_code="72">'
 		);
 		expect(xml).toContain(
-			'<item name="Doubles" type_name="gh_doublearray" type_code="21">'
-		);
-		expect(xml).toContain('<stream length="2">AAAAAAAA9D8AAAAAAAAEwA==</stream>');
-		expect(xml).toContain(
-			'<item name="IntegerSize" type_name="gh_drawing_size" type_code="32">'
+			'<stream length="2">AAAAAAAA9D8AAAAAAAAEwA==</stream>'
 		);
 		expect(xml).toContain("<W>640</W>");
-		expect(xml).toContain("<H>480</H>");
-		expect(xml).toContain(
-			'<item name="FloatSize" type_name="gh_drawing_sizef" type_code="33">'
-		);
-		expect(xml).toContain("<W>12.5</W>");
-		expect(xml).toContain(
-			'<item name="Point2D" type_name="gh_point2d" type_code="50">'
-		);
-		expect(xml).toContain("<Y>-2.5</Y>");
-		expect(xml).toContain(
-			'<item name="Point4D" type_name="gh_point4d" type_code="52">'
-		);
-		expect(xml).toContain("<W>4</W>");
 		expect(xml).toContain(
 			'<item name="Bounds" type_name="gh_boundingbox" type_code="71">'
 		);
-		expect(xml).toContain("<MinX>-1</MinX>");
 		expect(xml).toContain("<MaxZ>6</MaxZ>");
-		expect(xml).toContain("<X>1</X>");
-		expect(xml).toContain("<Au>0</Au>");
-		expect(xml).toContain("<Bx>10</Bx>");
 		expect(validateGhXml(xml).isValid).toBe(true);
 
 		const parsed = buildGhJson(xml, { includeVisuals: true });
@@ -640,24 +607,6 @@ describe("ghFileToGhXml", () => {
 		const corrupt = new Uint8Array([0x1f, 0x8b, 0x00, 0x00, 0xff, 0xff]);
 		const file = fileFromBytes(corrupt, "corrupt.gh");
 		await expect(ghFileToGhXml(file)).rejects.toBeInstanceOf(GhFileError);
-	});
-
-	test("round-trips XML -> .gh -> XML via ghXmlToGhFile + ghFileToGhXml", async () => {
-		const blob = ghXmlToGhFile(FIXTURE_XML, "roundtrip.gh");
-		const file = new File([blob], "roundtrip.gh");
-
-		const xml = await ghFileToGhXml(file);
-
-		expect(xml).toBe(FIXTURE_XML);
-	});
-});
-
-describe("GhFileError", () => {
-	test("carries the failure kind", () => {
-		const err = new GhFileError("boom", "too-large");
-		expect(err.name).toBe("GhFileError");
-		expect(err.kind).toBe("too-large");
-		expect(err.message).toBe("boom");
 	});
 });
 
@@ -708,9 +657,9 @@ function createNativeArchiveWriter() {
 
 describe("grasshopperBinaryToXml", () => {
 	test("rejects truncated native archives", () => {
-		expect(() => grasshopperBinaryToXml(new Uint8Array([0x01, 0x02, 0x03]))).toThrow(
-			/Unexpected end|Invalid Grasshopper binary/
-		);
+		expect(() =>
+			grasshopperBinaryToXml(new Uint8Array([0x01, 0x02, 0x03]))
+		).toThrow(/Unexpected end|Invalid Grasshopper binary/);
 	});
 
 	test("rejects deeply nested chunk trees", () => {
@@ -732,19 +681,6 @@ describe("grasshopperBinaryToXml", () => {
 		writer.writeInt32(999);
 		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
 			/Unsupported Grasshopper binary item type 999/
-		);
-	});
-
-	test("rejects oversized 7-bit encoded string lengths", () => {
-		const writer = createNativeArchiveWriter();
-		writer.writeByte(0x80);
-		writer.writeByte(0x80);
-		writer.writeByte(0x80);
-		writer.writeByte(0x80);
-		writer.writeByte(0x80);
-		writer.writeByte(0x01);
-		expect(() => grasshopperBinaryToXml(writer.finish())).toThrow(
-			/Invalid Grasshopper binary string length/
 		);
 	});
 

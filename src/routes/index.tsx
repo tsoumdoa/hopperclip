@@ -59,11 +59,11 @@ function LandingPageContent() {
 				<div className="grid w-full grid-cols-1 gap-6 pt-8 md:grid-cols-3">
 					<FeatureCard
 						title="Drop or paste"
-						description="Drag a .gh file onto the page, or paste the GhXml directly. Either way, you get a clean shareable link."
+						description="Import a .gh or .ghx file when adding a definition, or paste the GhXml directly. Either way, you get a clean shareable link."
 					/>
 					<FeatureCard
 						title="Share with a link"
-						description="Send a short URL. Recipients open it in their browser or pull the .gh file straight into Grasshopper."
+						description="Send a short URL. Recipients can inspect the definition in their browser and copy its GhXml."
 					/>
 					<FeatureCard
 						title="Stay organized"

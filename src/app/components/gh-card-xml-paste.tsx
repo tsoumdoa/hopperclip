@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
@@ -166,7 +166,10 @@ export function useXmlPasteHandler(
 	setXmlError: (error: string) => void,
 	options?: UseXmlPasteHandlerOptions
 ) {
+	const activeRequest = useRef(0);
+
 	const handlePasteFromClipboard = async () => {
+		const requestId = ++activeRequest.current;
 		setXmlError("");
 		setXmlData("");
 		setIsValidXml(false);
@@ -175,6 +178,7 @@ export function useXmlPasteHandler(
 
 		try {
 			const text = await navigator.clipboard.readText();
+			if (requestId !== activeRequest.current) return;
 			if (text.length === 0) {
 				setXmlError("Clipboard is empty");
 				return;
@@ -187,24 +191,25 @@ export function useXmlPasteHandler(
 				setXmlError(result.errorMsg ?? "Pasted GhXml is not valid");
 			}
 		} catch (err) {
+			if (requestId !== activeRequest.current) return;
 			setXmlError("Failed to read clipboard contents: \n" + String(err));
 		}
 	};
 
 	const handleFileSelected = async (file: File) => {
+		const requestId = ++activeRequest.current;
 		setXmlError("");
 		setXmlData("");
 		setIsValidXml(false);
 
 		posthog.capture("user_pasted", {
 			source: "file",
-			ext: file.name.includes(".")
-				? file.name.split(".").pop()
-				: "unknown",
+			ext: file.name.includes(".") ? file.name.split(".").pop() : "unknown",
 		});
 
 		try {
 			const xml = await ghFileToGhXml(file);
+			if (requestId !== activeRequest.current) return;
 			const result = ingestGhXml(xml, "file", options);
 			if (result.isValid) {
 				setIsValidXml(true);
@@ -214,6 +219,7 @@ export function useXmlPasteHandler(
 				setXmlError(result.errorMsg ?? "Selected GhXml is not valid");
 			}
 		} catch (err) {
+			if (requestId !== activeRequest.current) return;
 			setIsValidXml(false);
 			if (err instanceof GhFileError) {
 				setXmlError(err.message);
