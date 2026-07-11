@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
@@ -167,6 +167,9 @@ export function useXmlPasteHandler(
 	options?: UseXmlPasteHandlerOptions
 ) {
 	const activeRequest = useRef(0);
+	const invalidatePendingImport = useCallback(() => {
+		activeRequest.current += 1;
+	}, []);
 
 	const handlePasteFromClipboard = async () => {
 		const requestId = ++activeRequest.current;
@@ -233,5 +236,9 @@ export function useXmlPasteHandler(
 		}
 	};
 
-	return { handlePasteFromClipboard, handleFileSelected };
+	return {
+		handlePasteFromClipboard,
+		handleFileSelected,
+		invalidatePendingImport,
+	};
 }

@@ -49,6 +49,68 @@ function decodeUtf8(bytes: Uint8Array, filename: string, kind: GhFileKind) {
 	}
 }
 
+function assertValidFileBuffer(buffer: ArrayBuffer, filename: string) {
+	if (buffer.byteLength === 0) {
+		throw new GhFileError(`File "${filename}" is empty.`, "empty");
+	}
+
+	if (buffer.byteLength > MAX_COMPRESSED_GH_XML_BYTES) {
+		throw new GhFileError(`File "${filename}" is too large.`, "too-large");
+	}
+}
+
+async function decompressGhBytes(buffer: ArrayBuffer, filename: string) {
+	try {
+		return await decompress(buffer);
+	} catch (err) {
+		if (err instanceof GhSizeError) {
+			throw new GhFileError(err.message, "too-large");
+		}
+		const message = err instanceof Error ? err.message : String(err);
+		if (message.includes("too large")) {
+			throw new GhFileError(message, "too-large");
+		}
+		throw new GhFileError(`Failed to decode "${filename}": ${message}`, "gh");
+	}
+}
+
+async function decodeGhFile(buffer: ArrayBuffer, filename: string) {
+	const bytes = await decompressGhBytes(buffer, filename);
+	const plainText = new TextDecoder("utf-8").decode(bytes);
+	if (looksLikeXml(plainText)) {
+		return decodeUtf8(bytes, filename, "gh");
+	}
+
+	let inflated: Uint8Array;
+	try {
+		inflated = inflateGrasshopperBinary(bytes.buffer as ArrayBuffer);
+	} catch (err) {
+		if (err instanceof GhSizeError) {
+			throw new GhFileError(err.message, "too-large");
+		}
+		return plainText;
+	}
+
+	const inflatedText = new TextDecoder("utf-8").decode(inflated);
+	if (looksLikeXml(inflatedText)) {
+		return decodeUtf8(inflated, filename, "gh");
+	}
+
+	try {
+		return grasshopperBinaryToXml(inflated);
+	} catch (err) {
+		if (err instanceof GhSizeError) {
+			throw new GhFileError(err.message, "too-large");
+		}
+		throw new GhFileError(
+			`Failed to decode "${filename}" as a native Grasshopper .gh archive: ${
+				err instanceof Error ? err.message : String(err)
+			}`,
+			"gh"
+		);
+	}
+}
+
 /**
  * Convert a `.gh` or `.ghx` Grasshopper file to its GhXml string form.
  *
@@ -78,71 +140,14 @@ export async function ghFileToGhXml(
 	}
 
 	const buffer = await file.arrayBuffer();
-	if (buffer.byteLength === 0) {
-		throw new GhFileError(`File "${file.name}" is empty.`, "empty");
+	assertValidFileBuffer(buffer, file.name);
+
+	const view = new Uint8Array(buffer);
+	if (kind === "ghx") {
+		return decodeUtf8(view, file.name, kind);
 	}
 
-	if (buffer.byteLength > MAX_COMPRESSED_GH_XML_BYTES) {
-		throw new GhFileError(`File "${file.name}" is too large.`, "too-large");
-	}
-
-	if (kind === "gh") {
-		const view = new Uint8Array(buffer);
-		const isGzipped = view[0] === 0x1f && view[1] === 0x8b;
-
-		if (!isGzipped) {
-			const plainText = new TextDecoder("utf-8").decode(view);
-			if (looksLikeXml(plainText)) {
-				return decodeUtf8(view, file.name, kind);
-			}
-
-			let inflated: Uint8Array;
-			try {
-				inflated = inflateGrasshopperBinary(buffer);
-			} catch (err) {
-				if (err instanceof GhSizeError) {
-					throw new GhFileError(err.message, "too-large");
-				}
-
-				return plainText;
-			}
-
-			const inflatedText = new TextDecoder("utf-8").decode(inflated);
-			if (looksLikeXml(inflatedText)) {
-				return decodeUtf8(inflated, file.name, kind);
-			}
-
-			try {
-				return grasshopperBinaryToXml(inflated);
-			} catch (err) {
-				if (err instanceof GhSizeError) {
-					throw new GhFileError(err.message, "too-large");
-				}
-				throw new GhFileError(
-					`Failed to decode "${file.name}" as a native Grasshopper .gh archive: ${
-						err instanceof Error ? err.message : String(err)
-					}`,
-					kind
-				);
-			}
-		}
-	}
-
-	let xmlBytes: Uint8Array;
-	try {
-		xmlBytes = await decompress(buffer);
-	} catch (err) {
-		if (err instanceof GhSizeError) {
-			throw new GhFileError(err.message, "too-large");
-		}
-		const msg = err instanceof Error ? err.message : String(err);
-		if (msg.includes("too large")) {
-			throw new GhFileError(msg, "too-large");
-		}
-		throw new GhFileError(`Failed to decode "${file.name}": ${msg}`, kind);
-	}
-
-	return decodeUtf8(xmlBytes, file.name, kind);
+	return decodeGhFile(buffer, file.name);
 }
 
 /**
