@@ -20,9 +20,10 @@ describe("XmlPasteArea", () => {
 		);
 
 		expect(html).toContain("Import a Grasshopper definition");
-		expect(html).toContain("Paste GhXml from Clipboard");
-		expect(html).toContain("Drop .gh or .ghx file, or click to browse");
-		expect(html).not.toContain("Paste new GhXml from Clipboard");
+		expect(html).toContain("Paste GhXml from clipboard");
+		expect(html).toContain("Browse .gh or .ghx file");
+		expect(html).toContain("drag and drop anywhere in this view");
+		expect(html).not.toContain("Paste new GhXml");
 	});
 
 	test("keeps replacement controls visible after a definition is loaded", () => {
@@ -35,10 +36,10 @@ describe("XmlPasteArea", () => {
 			/>
 		);
 
-		expect(html).toContain("Clear current definition");
-		expect(html).toContain("✓ GhXml validated");
-		expect(html).toContain("Paste new GhXml from Clipboard");
-		expect(html).toContain("Drop a new .gh or .ghx file, or click to browse");
+		expect(html).toContain("Clear definition");
+		expect(html).toContain("GhXml validated");
+		expect(html).toContain("Paste new GhXml");
+		expect(html).toContain("Browse for new file");
 		expect(html).toContain("Replacement failed");
 	});
 });
