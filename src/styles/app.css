@@ -126,8 +126,7 @@
 
 @layer components {
 	.gh-canvas-container {
-		@apply w-full;
-		height: 600px;
+		@apply h-full w-full;
 	}
 
 	.react-flow__node.group,
