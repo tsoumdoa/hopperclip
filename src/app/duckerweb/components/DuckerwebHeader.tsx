@@ -34,7 +34,7 @@ export function DuckerwebHeader() {
 					rel="noopener noreferrer"
 					className="rounded-full border border-white px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-800"
 				>
-					GitHub Repo
+					GitHub
 				</a>
 			</div>
 		</header>
