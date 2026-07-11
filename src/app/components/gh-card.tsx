@@ -3,14 +3,19 @@ import { InvalidValueDialog } from "./gh-card-dialog";
 import { NormalButtons } from "./gh-card-normal-buttons";
 import { EditButtons } from "./gh-card-edit-buttons";
 import { NameDescriptionAndTags } from "./gh-card-body";
+import { DropOverlay } from "./drop-overlay";
 import useGhCardControl from "../hooks/use-gh-card-control";
+import { useDropZone } from "../hooks/use-drop-zone";
 import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { CardEditModeStateEventDetail } from "@/types/gh-card";
 import { GhPost } from "@/types/types";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+
+export const CARD_EDIT_MODE_STATE_EVENT = "hopperclip:card-edit-mode-state";
 
 export default function GHCard(props: {
 	cardInfo: GhPost;
@@ -43,6 +48,20 @@ export default function GHCard(props: {
 		handlePasteFromClipboard,
 		handleFileSelected,
 	} = useGhCardControl(props.cardInfo);
+
+	const { isDragging, dragHandlers } = useDropZone(
+		handleFileSelected,
+		editMode,
+	);
+
+	useEffect(() => {
+		window.dispatchEvent(
+			new CustomEvent<CardEditModeStateEventDetail>(
+				CARD_EDIT_MODE_STATE_EVENT,
+				{ detail: { editMode } },
+			),
+		);
+	}, [editMode]);
 
 	const [openSharedDialog, setOpenSharedDialog] = useState(false);
 	const [openMetricsDialog, setOpenMetricsDialog] = useState(false);
@@ -103,7 +122,9 @@ export default function GHCard(props: {
 						handleCardClick();
 					}
 				}}
+				{...dragHandlers}
 			>
+				{isDragging && <DropOverlay className="rounded-md" />}
 				{hasActiveShare && (
 					<button
 						className={`absolute top-3 right-3 h-fit w-fit rounded-md bg-green-300 px-2 text-sm font-bold text-neutral-800 hover:cursor-pointer`}

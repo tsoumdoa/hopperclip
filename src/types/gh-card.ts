@@ -8,6 +8,10 @@ export type AddDialogStateEventDetail = {
 	open: boolean;
 };
 
+export type CardEditModeStateEventDetail = {
+	editMode: boolean;
+};
+
 export type AddGhDialogProps = {
 	open: boolean;
 	setOpen: (open: boolean) => void;
@@ -21,18 +25,6 @@ export type GhPageFileDropLayerProps = {
 	enabled: boolean;
 	onGhFileDrop: (file: File) => void;
 	children: ReactNode;
-};
-
-export type GhFileDropzoneProps = {
-	/**
-	 * Called with the dropped/picked File. The parent is responsible for
-	 * actually decoding it (via ghFileToGhXml) and feeding the resulting
-	 * GhXml into the same validation path as clipboard paste.
-	 */
-	onFileSelected: (file: File) => void;
-	disabled?: boolean;
-	className?: string;
-	idleLabel?: string;
 };
 
 export type GhCardXmlPasteProps = {

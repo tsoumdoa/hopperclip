@@ -7,7 +7,11 @@ import AddGHCard, {
 	ADD_DIALOG_STATE_EVENT,
 	openAddGhDialog,
 } from "@/app/components/add-gh-card";
-import type { AddDialogStateEventDetail } from "@/types/gh-card";
+import { CARD_EDIT_MODE_STATE_EVENT } from "@/app/components/gh-card";
+import type {
+	AddDialogStateEventDetail,
+	CardEditModeStateEventDetail,
+} from "@/types/gh-card";
 import { GhPageFileDropLayer } from "@/app/components/gh-page-file-drop-layer";
 import Header from "@/app/components/header";
 import GhCardDisplay from "@/app/ghcards/components/gh-card-display";
@@ -44,21 +48,31 @@ function GhcardsPage() {
 			? search.tagFilter.split(",").filter(Boolean)
 			: [];
 	const [addDialogOpen, setAddDialogOpen] = useState(false);
+	const [cardInEditMode, setCardInEditMode] = useState(false);
 
 	useEffect(() => {
 		const handleDialogState = (e: Event) => {
 			const detail = (e as CustomEvent<AddDialogStateEventDetail>).detail;
 			setAddDialogOpen(detail.open);
 		};
+		const handleEditModeState = (e: Event) => {
+			const detail = (e as CustomEvent<CardEditModeStateEventDetail>).detail;
+			setCardInEditMode(detail.editMode);
+		};
 		window.addEventListener(ADD_DIALOG_STATE_EVENT, handleDialogState);
+		window.addEventListener(CARD_EDIT_MODE_STATE_EVENT, handleEditModeState);
 		return () => {
 			window.removeEventListener(ADD_DIALOG_STATE_EVENT, handleDialogState);
+			window.removeEventListener(
+				CARD_EDIT_MODE_STATE_EVENT,
+				handleEditModeState,
+			);
 		};
 	}, []);
 
 	return (
 		<GhPageFileDropLayer
-			enabled={!addDialogOpen}
+			enabled={!addDialogOpen && !cardInEditMode}
 			onGhFileDrop={(file) => openAddGhDialog({ file })}
 		>
 			<div className="min-h-screen bg-black p-4 font-sans text-white md:p-6">

@@ -14,6 +14,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
+import { useDropZone } from "../hooks/use-drop-zone";
+import { DropOverlay } from "./drop-overlay";
 import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
@@ -59,6 +61,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 			}
 		},
 	});
+
+	const { isDragging, dragHandlers } = useDropZone(
+		handleFileSelected,
+		props.open,
+	);
 
 	const consumedInitialFileRef = useRef<File | null>(null);
 
@@ -160,7 +167,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 
 	return (
 		<AlertDialog open={props.open}>
-			<AlertDialogContent onEscapeKeyDown={handleEscapeKeyDown}>
+			<AlertDialogContent
+				onEscapeKeyDown={handleEscapeKeyDown}
+				{...dragHandlers}
+			>
+				{isDragging && <DropOverlay className="rounded-lg" />}
 				<AlertDialogHeader>
 					<AlertDialogTitle className="text-lg">
 						{props.adding && addError.length === 0
