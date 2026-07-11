@@ -18,6 +18,46 @@ interface DuckerwebState {
 	error: string;
 }
 
+type DuckerwebImportResult =
+	| {
+			ok: true;
+			parsedData: ParsedGrasshopper;
+			nodes: GHNode[];
+			edges: Edge[];
+	  }
+	| { ok: false; error: string };
+
+export function prepareDuckerwebImport(
+	xml: string,
+	source: "clipboard" | "file"
+): DuckerwebImportResult {
+	const { isValid, errorMsg } = validateGhXml(xml);
+
+	if (!isValid) {
+		return {
+			ok: false,
+			error: `${source === "file" ? "Selected" : "Pasted"} GhXml is not valid: \n${errorMsg}`,
+		};
+	}
+
+	try {
+		const parsedData = buildGhJson(xml, { includeVisuals: true });
+		const flowData = generateFlowData(parsedData);
+
+		return {
+			ok: true,
+			parsedData,
+			nodes: flowData.nodes as GHNode[],
+			edges: flowData.edges,
+		};
+	} catch (err) {
+		return {
+			ok: false,
+			error: `Failed to parse XML: ${err instanceof Error ? err.message : "Unknown error"}`,
+		};
+	}
+}
+
 export function useDuckerwebState(): DuckerwebState & {
 	handlePasteFromClipboard: () => Promise<void>;
 	handleFileSelected: (file: File) => Promise<void>;
@@ -45,49 +85,31 @@ export function useDuckerwebState(): DuckerwebState & {
 		setError("");
 	}, []);
 
-	const parseXml = useCallback((xmlContent: string) => {
-		setError("");
-
-		try {
-			const result = buildGhJson(xmlContent, { includeVisuals: true });
-			setParsedData(result);
-
-			const flowData = generateFlowData(result);
-			setNodes(flowData.nodes as GHNode[]);
-			setEdges(flowData.edges);
-		} catch (e) {
-			setError(
-				`Failed to parse XML: ${e instanceof Error ? e.message : "Unknown error"}`
-			);
-		}
-	}, []);
-
 	/**
 	 * Shared validation+state-update path used by both clipboard paste and
 	 * file drop, so the UX is identical regardless of input source.
 	 */
-	const ingestXml = useCallback(
-		(xml: string, source: "clipboard" | "file") => {
-			resetFlowState();
+	const ingestXml = useCallback((xml: string, source: "clipboard" | "file") => {
+		const result = prepareDuckerwebImport(xml, source);
 
-			const { isValid, errorMsg } = validateGhXml(xml);
+		if (!result.ok) {
+			setXmlError(result.error);
+			return;
+		}
 
-			if (isValid) {
-				setIsValidXml(true);
-				setXmlData(xml);
-				parseXml(xml);
-			} else {
-				setXmlError(
-					`${source === "file" ? "Selected" : "Pasted"} GhXml is not valid: \n${errorMsg}`
-				);
-			}
-		},
-		[parseXml, resetFlowState]
-	);
+		setXmlData(xml);
+		setIsValidXml(true);
+		setParsedData(result.parsedData);
+		setNodes(result.nodes);
+		setEdges(result.edges);
+		setXmlError("");
+		setError("");
+	}, []);
 
 	const handlePasteFromClipboard = useCallback(async () => {
 		const requestId = ++activeRequest.current;
-		resetFlowState();
+		setXmlError("");
+		setError("");
 
 		try {
 			const text = await navigator.clipboard.readText();
@@ -101,12 +123,13 @@ export function useDuckerwebState(): DuckerwebState & {
 			if (requestId !== activeRequest.current) return;
 			setXmlError("Failed to read clipboard contents: \n" + String(err));
 		}
-	}, [ingestXml, resetFlowState]);
+	}, [ingestXml]);
 
 	const handleFileSelected = useCallback(
 		async (file: File) => {
 			const requestId = ++activeRequest.current;
-			resetFlowState();
+			setXmlError("");
+			setError("");
 			try {
 				const xml = await ghFileToGhXml(file);
 				if (requestId !== activeRequest.current) return;
@@ -124,7 +147,7 @@ export function useDuckerwebState(): DuckerwebState & {
 				}
 			}
 		},
-		[ingestXml, resetFlowState]
+		[ingestXml]
 	);
 
 	const handleClear = useCallback(() => {

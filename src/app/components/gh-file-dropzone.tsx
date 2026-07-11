@@ -13,6 +13,7 @@ interface GhFileDropzoneProps {
 	onFileSelected: (file: File) => void;
 	disabled?: boolean;
 	className?: string;
+	idleLabel?: string;
 }
 
 /**
@@ -32,6 +33,7 @@ export function GhFileDropzone({
 	onFileSelected,
 	disabled,
 	className,
+	idleLabel = "Drop .gh or .ghx file, or click to browse",
 }: GhFileDropzoneProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
@@ -100,9 +102,7 @@ export function GhFileDropzone({
 			>
 				<FileUp className="h-4 w-4" />
 				<span className="text-sm">
-					{isDragging
-						? "Drop .gh or .ghx here"
-						: "Drop .gh or .ghx file, or click to browse"}
+					{isDragging ? "Drop .gh or .ghx here" : idleLabel}
 				</span>
 			</div>
 			<input
