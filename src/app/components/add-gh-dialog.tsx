@@ -11,7 +11,7 @@ import {
 	AlertDialogContent,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
 import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
@@ -28,6 +28,8 @@ export function AddGhDialog(props: {
 	setOpen: (b: boolean) => void;
 	adding: boolean;
 	setAdding: (b: boolean) => void;
+	initialFile?: File | null;
+	onInitialFileConsumed?: () => void;
 }) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const addGhCard = useMutation(convex.ghCard.addPost);
@@ -56,13 +58,35 @@ export function AddGhDialog(props: {
 		handleFileSelected,
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
-			onSingleScriptComponent: (nickName) => {
-				if (name.length === 0 && nickName.length > 0) {
-					setName(nickName);
-					autoFilledNameRef.current = nickName;
-				}
-			},
-		});
+		onSingleScriptComponent: (nickName) => {
+			if (name.length === 0 && nickName.length > 0) {
+				setName(nickName);
+				autoFilledNameRef.current = nickName;
+			}
+		},
+	});
+
+	const consumedInitialFileRef = useRef<File | null>(null);
+
+	useEffect(() => {
+		if (!props.open) {
+			consumedInitialFileRef.current = null;
+		}
+	}, [props.open]);
+
+	useEffect(() => {
+		if (!props.open || !props.initialFile) return;
+		if (consumedInitialFileRef.current === props.initialFile) return;
+
+		consumedInitialFileRef.current = props.initialFile;
+		void handleFileSelected(props.initialFile);
+		props.onInitialFileConsumed?.();
+	}, [
+		props.open,
+		props.initialFile,
+		props.onInitialFileConsumed,
+		handleFileSelected,
+	]);
 
 	const handleClearPastedXml = () => {
 		if (
