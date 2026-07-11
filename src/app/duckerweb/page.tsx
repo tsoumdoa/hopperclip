@@ -29,58 +29,65 @@ export default function DuckerWebPage() {
 	const { handleCopyAll, isCopied } = useMarkdownExport(parsedData);
 
 	return (
-		<div className="min-h-screen overflow-x-hidden bg-black p-4 font-sans text-white md:p-6">
-			<div className="mx-auto max-w-4xl">
-				<DuckerwebMainZone onFileSelected={handleFileSelected}>
-					<Header />
-					<div className="flex items-center justify-between pb-4">
-						<h1 className="text-lg font-medium">DuckerWeb</h1>
-						<a
-							href="https://github.com/mcneel/ducker"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
-						>
-							GitHub
-						</a>
-					</div>
+		<DuckerwebMainZone
+			onFileSelected={handleFileSelected}
+			className="flex h-dvh flex-col overflow-hidden bg-black font-sans text-white"
+		>
+			<div className="mx-auto w-full max-w-4xl shrink-0 px-4 pt-4 md:px-6 md:pt-6">
+				<Header />
+				<div className="flex items-center justify-between pb-4">
+					<h1 className="text-lg font-medium">DuckerWeb</h1>
+					<a
+						href="https://github.com/mcneel/ducker"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+					>
+						GitHub
+					</a>
+				</div>
 
-					<XmlPasteArea
-						xmlData={xmlData}
-						isValidXml={isValidXml}
-						xmlError={xmlError}
-						onPaste={handlePasteFromClipboard}
-						onFileSelected={handleFileSelected}
-						onClear={handleClear}
+				<XmlPasteArea
+					xmlData={xmlData}
+					isValidXml={isValidXml}
+					xmlError={xmlError}
+					onPaste={handlePasteFromClipboard}
+					onFileSelected={handleFileSelected}
+					onClear={handleClear}
+				/>
+
+				{parsedData && (
+					<ViewControls
+						viewMode={viewMode}
+						isCopied={isCopied}
+						onCopyAll={handleCopyAll}
+						onSetViewMode={setViewMode}
 					/>
+				)}
 
-					{parsedData && (
-						<ViewControls
-							viewMode={viewMode}
-							isCopied={isCopied}
-							onCopyAll={handleCopyAll}
-							onSetViewMode={setViewMode}
-						/>
-					)}
-
-					<div className="py-2" />
-					{error && <p className="mb-4 text-red-400">{error}</p>}
-
-					{parsedData && viewMode === "flow" && (
-						<div className="mb-6">
-							<GHFlowCanvas nodes={nodes} edges={edges} />
-						</div>
-					)}
-
-					{parsedData && viewMode === "list" && (
-						<ComponentList parsedData={parsedData} />
-					)}
-
-					{parsedData && viewMode === "json" && (
-						<GHJsonView data={parsedData} />
-					)}
-				</DuckerwebMainZone>
+				<div className="py-2" />
+				{error && <p className="mb-4 text-red-400">{error}</p>}
 			</div>
-		</div>
+
+			{parsedData && viewMode === "flow" && (
+				<div className="min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6">
+					<div className="mx-auto h-full w-full max-w-4xl">
+						<GHFlowCanvas nodes={nodes} edges={edges} />
+					</div>
+				</div>
+			)}
+
+			{parsedData && viewMode !== "flow" && (
+				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
+					<div className="mx-auto w-full max-w-4xl">
+						{viewMode === "list" && (
+							<ComponentList parsedData={parsedData} />
+						)}
+
+						{viewMode === "json" && <GHJsonView data={parsedData} />}
+					</div>
+				</div>
+			)}
+		</DuckerwebMainZone>
 	);
 }

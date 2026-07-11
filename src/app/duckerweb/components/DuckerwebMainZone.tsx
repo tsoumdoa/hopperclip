@@ -76,19 +76,21 @@ export function DuckerwebMainZone({
 
 			{isDragging && (
 				<div
-					className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-blue-400 bg-blue-950/80 backdrop-blur-sm"
+					className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/85 p-4 backdrop-blur-md md:p-6"
 					aria-hidden
 					data-testid="duckerweb-drop-overlay"
 				>
-					<div className="flex h-14 w-14 items-center justify-center rounded-full border border-blue-400/60 bg-blue-500/20">
-						<FileUp className="h-7 w-7 text-blue-300" />
+					<div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-emerald-500/40">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+							<FileUp className="h-7 w-7 text-emerald-300" />
+						</div>
+						<p className="text-lg font-semibold text-neutral-100">
+							Drop .gh or .ghx file to import
+						</p>
+						<p className="text-sm text-neutral-400">
+							Release anywhere in this view
+						</p>
 					</div>
-					<p className="text-lg font-semibold text-blue-100">
-						Drop .gh or .ghx file to import
-					</p>
-					<p className="text-sm text-blue-200/70">
-						Release anywhere in this view
-					</p>
 				</div>
 			)}
 		</div>
