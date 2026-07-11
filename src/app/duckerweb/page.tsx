@@ -1,8 +1,8 @@
 "use client";
 
+import Header from "@/app/components/header";
 import { useDuckerwebState } from "./hooks/use-duckerweb-state";
 import { useMarkdownExport } from "./hooks/use-markdown-export";
-import { DuckerwebHeader } from "./components/DuckerwebHeader";
 import { DuckerwebMainZone } from "./components/DuckerwebMainZone";
 import { XmlPasteArea } from "./components/XmlPasteArea";
 import { ViewControls } from "./components/ViewControls";
@@ -32,7 +32,18 @@ export default function DuckerWebPage() {
 		<div className="min-h-screen overflow-x-hidden bg-black p-4 font-sans text-white md:p-6">
 			<div className="mx-auto max-w-4xl">
 				<DuckerwebMainZone onFileSelected={handleFileSelected}>
-					<DuckerwebHeader />
+					<Header />
+					<div className="flex items-center justify-between pb-4">
+						<h1 className="text-lg font-medium">DuckerWeb</h1>
+						<a
+							href="https://github.com/mcneel/ducker"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+						>
+							GitHub
+						</a>
+					</div>
 
 					<XmlPasteArea
 						xmlData={xmlData}

@@ -1,33 +1,73 @@
 import { SignUpButton, useAuth } from "@clerk/tanstack-react-start";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
+import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
 import Footer from "@/app/components/footer";
 import Header from "@/app/components/header";
+import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/")({
 	head: () => ({
 		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
 	}),
+	beforeLoad: async () => {
+		const { userId } = await fetchClerkAuth();
+		if (userId) {
+			throw redirect({ to: "/ghcards" });
+		}
+	},
+	pendingComponent: AuthLoadingScreen,
 	component: Home,
 });
 
 function Home() {
-	const { isSignedIn, isLoaded } = useAuth();
+	const { isLoaded, isSignedIn } = useAuth();
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (isLoaded && isSignedIn) {
-			navigate({ to: "/ghcards", replace: true });
+			navigate({ to: "/ghcards" });
 		}
 	}, [isLoaded, isSignedIn, navigate]);
+
+	if (!isLoaded) {
+		return <AuthLoadingScreen />;
+	}
 
 	return (
 		<div className="min-h-screen bg-black font-sans text-white">
 			<div className="mx-auto flex min-h-screen max-w-400 flex-col p-4 md:px-6 md:pt-6 md:pb-2">
 				<Header />
-				<LandingPageContent />
+				{isSignedIn ? <SignedInLandingContent /> : <LandingPageContent />}
 				<Footer />
+			</div>
+		</div>
+	);
+}
+
+function SignedInLandingContent() {
+	return (
+		<div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center py-12 md:py-20">
+			<div className="flex flex-col items-center gap-6 text-center">
+				<h1 className="text-3xl font-bold md:text-5xl">
+					Welcome back to Hopper Clip
+				</h1>
+				<p className="text-lg text-neutral-400 md:text-xl">
+					Head to your cards to manage and share your Grasshopper definitions.
+				</p>
+				<Link
+					to="/ghcards"
+					className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200 md:text-base"
+				>
+					Go to My Cards
+					<ArrowRight className="h-4 w-4" />
+				</Link>
 			</div>
 		</div>
 	);

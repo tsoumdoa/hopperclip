@@ -28,6 +28,18 @@ export default function Header() {
 					</SignUpButton>
 				</SignedOut>
 				<SignedIn>
+					<Link
+						to="/ghcards"
+						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+					>
+						My Cards
+					</Link>
+					<Link
+						to="/duckerweb"
+						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+					>
+						DuckerWeb
+					</Link>
 					<UserButton />
 				</SignedIn>
 			</div>
