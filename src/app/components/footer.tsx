@@ -24,7 +24,7 @@ export default function Footer() {
 						© {new Date().getFullYear()} HopperClip. All rights reserved.
 					</div>
 					<a
-						href="https://github.com/tsoumdoa/better-gh-lib"
+						href="https://github.com/tsoumdoa/hopperclip"
 						className="text-xs text-neutral-600"
 						aria-label="HopperClip on GitHub"
 					>

@@ -51,19 +51,18 @@ export function AddGhDialog(props: {
 		availableTags,
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
 
-	const { handlePasteFromClipboard } = useXmlPasteHandler(
-		setXmlData,
-		setIsValidXml,
-		setAddError,
-		{
+	const {
+		handlePasteFromClipboard,
+		handleFileSelected,
+		invalidatePendingImport,
+	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
 			onSingleScriptComponent: (nickName) => {
 				if (name.length === 0 && nickName.length > 0) {
 					setName(nickName);
 					autoFilledNameRef.current = nickName;
 				}
 			},
-		}
-	);
+		});
 
 	const handleClearPastedXml = () => {
 		if (
@@ -124,11 +123,13 @@ export function AddGhDialog(props: {
 		if (hasValues) {
 			e.preventDefault();
 		} else {
+			invalidatePendingImport();
 			props.setOpen(false);
 		}
 	};
 
 	const handleCancel = () => {
+		invalidatePendingImport();
 		setName("");
 		setDescription("");
 		setAddError("");
@@ -158,6 +159,7 @@ export function AddGhDialog(props: {
 								xmlError={addError}
 								setXmlError={setAddError}
 								handlePasteFromClipboard={handlePasteFromClipboard}
+								handleFileSelected={handleFileSelected}
 								onClearPastedXml={handleClearPastedXml}
 							/>
 							<div className="flex flex-col gap-y-1.5">

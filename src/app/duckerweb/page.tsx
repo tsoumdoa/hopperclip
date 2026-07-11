@@ -20,6 +20,7 @@ export default function DuckerWebPage() {
 		edges,
 		error,
 		handlePasteFromClipboard,
+		handleFileSelected,
 		handleClear,
 		setViewMode,
 	} = useDuckerwebState();
@@ -36,6 +37,7 @@ export default function DuckerWebPage() {
 					isValidXml={isValidXml}
 					xmlError={xmlError}
 					onPaste={handlePasteFromClipboard}
+					onFileSelected={handleFileSelected}
 					onClear={handleClear}
 				/>
 

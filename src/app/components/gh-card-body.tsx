@@ -33,6 +33,7 @@ export function NameDescriptionAndTags(props: {
 	xmlError: string;
 	setXmlError: (error: string) => void;
 	handlePasteFromClipboard: () => void;
+	handleFileSelected: (file: File) => void;
 }) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const [addError, setAddError] = useState("");
@@ -189,6 +190,7 @@ export function NameDescriptionAndTags(props: {
 						xmlError={props.xmlError}
 						setXmlError={props.setXmlError}
 						handlePasteFromClipboard={props.handlePasteFromClipboard}
+						handleFileSelected={props.handleFileSelected}
 						isEditMode={true}
 					/>
 				</div>

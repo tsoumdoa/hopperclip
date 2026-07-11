@@ -102,8 +102,7 @@ function extractItems(chunk: XmlChunk): Record<string, unknown> {
 		} else if (typeName === "gh_bytearray") {
 			// Handle binary data streams (e.g., cluster content)
 			const stream = item.stream as
-				| { length?: string; [key: string]: unknown }
-				| undefined;
+				{ length?: string; [key: string]: unknown } | undefined;
 			if (stream && stream["#text"]) {
 				result[name] = {
 					data: String(stream["#text"]),
@@ -624,8 +623,7 @@ function parseComponent(
 
 	// Parse cluster data if present (for Cluster components)
 	const clusterData = containerItems.ClusterDocument as
-		| { data: string; size: number }
-		| undefined;
+		{ data: string; size: number } | undefined;
 	if (clusterData) {
 		component.cluster = {
 			data: clusterData.data,
@@ -667,7 +665,10 @@ export function parseGrasshopper(
 
 	// Navigate to DefinitionObjects
 	const chunks = normalizeArray(archive.chunks?.chunk);
-	const clipboardChunk = chunks.find((c) => c.name === "Clipboard" || c.name === "Archive");
+	const clipboardChunk = chunks.find(
+		(c) =>
+			c.name === "Clipboard" || c.name === "Archive" || c.name === "Definition"
+	);
 
 	if (!clipboardChunk) {
 		return {
@@ -744,9 +745,14 @@ export function parseGrasshopper(
 
 		// Map output port GUIDs → full handle ID ("${componentId}.${portKey}")
 		// so input.source referencing an output port resolves to the correct handle
-		for (const [portKey, outputPort] of Object.entries(parsed.component.outputs)) {
+		for (const [portKey, outputPort] of Object.entries(
+			parsed.component.outputs
+		)) {
 			if (outputPort.instanceGuid) {
-				outputPortGuidToHandle.set(outputPort.instanceGuid, `${uniqueId}.${portKey}`);
+				outputPortGuidToHandle.set(
+					outputPort.instanceGuid,
+					`${uniqueId}.${portKey}`
+				);
 			}
 		}
 
@@ -763,8 +769,7 @@ export function parseGrasshopper(
 
 			for (const src of allSources) {
 				const resolvedFrom =
-					outputPortGuidToHandle.get(src) ??
-					guidToId.get(src);
+					outputPortGuidToHandle.get(src) ?? guidToId.get(src);
 
 				if (resolvedFrom) {
 					wires.push({
@@ -809,9 +814,10 @@ export function parseGrasshopper(
 	// Extract metadata
 	const metadata: ParsedGrasshopper["metadata"] = {};
 
-	const pluginVersionItem = clipboardChunks
-		.flatMap((c) => normalizeArray(c.items?.item))
-		.find((i) => i.name === "plugin_version");
+	const pluginVersionItem = [
+		...normalizeArray(clipboardChunk.items?.item),
+		...clipboardChunks.flatMap((c) => normalizeArray(c.items?.item)),
+	].find((i) => i.name === "plugin_version");
 
 	if (pluginVersionItem) {
 		metadata.pluginVersion = `${pluginVersionItem.Major}.${pluginVersionItem.Minor}.${pluginVersionItem.Revision}`;

@@ -30,13 +30,14 @@ export default function useGhCardControl(cardInfo: GhPost) {
 	const [isValidXml, setIsValidXml] = useState(false);
 	const [xmlError, setXmlError] = useState("");
 
-	const { handlePasteFromClipboard } = useXmlPasteHandler(
-		setNewXmlData,
-		setIsValidXml,
-		setXmlError
-	);
+	const {
+		handlePasteFromClipboard,
+		handleFileSelected,
+		invalidatePendingImport,
+	} = useXmlPasteHandler(setNewXmlData, setIsValidXml, setXmlError);
 
 	const handleCancelEditMode = () => {
+		invalidatePendingImport();
 		setReset(true);
 		setEditMode(false);
 		setTag("");
@@ -207,5 +208,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		xmlError,
 		setXmlError,
 		handlePasteFromClipboard,
+		handleFileSelected,
 	};
 }

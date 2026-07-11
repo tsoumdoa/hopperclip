@@ -38,11 +38,15 @@ function LandingPageContent() {
 		<div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center py-12 md:py-20">
 			<div className="flex flex-col items-center gap-8 text-center">
 				<h1 className="text-4xl font-bold md:text-6xl">
-					A lightning-fast pastebin for your Grasshopper logic
+					Share a Grasshopper definition in one click.
 				</h1>
 				<p className="text-lg text-neutral-400 md:text-xl">
-					The quiet, ever-ready shelf for your Grasshopper ideas. Drop a script,
-					grab a link, share the magic—no clutter, no fuss.
+					Drop a{" "}
+					<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">
+						.gh
+					</code>{" "}
+					file, paste the XML, or grab a shareable link — no file attachments,
+					no zip-and-upload, no fuss.
 				</p>
 				<SignUpButton mode="modal">
 					<button className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200 md:text-base">
@@ -54,30 +58,31 @@ function LandingPageContent() {
 				</SignUpButton>
 				<div className="grid w-full grid-cols-1 gap-6 pt-8 md:grid-cols-3">
 					<FeatureCard
-						title="Organize"
-						description="Keep your Grasshopper scripts organized in one place. Tag, categorize, and find them instantly."
+						title="Drop or paste"
+						description="Import a .gh or .ghx file when adding a definition, or paste the GhXml directly. Either way, you get a clean shareable link."
 					/>
 					<FeatureCard
-						title="Share"
-						description="Share your scripts with others. Generate shareable links with optional expiration dates."
+						title="Share with a link"
+						description="Send a short URL. Recipients can inspect the definition in their browser and copy its GhXml."
 					/>
 					<FeatureCard
-						title="Access Anywhere"
-						description="Access your script library from any device. Your scripts are always just a click away."
+						title="Stay organized"
+						description="Tag, search, and find every definition you've saved — from one-panel tricks to full design systems."
 					/>
 				</div>
 
-				<div className="mt-16 w-full rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-					<h2 className="mb-2 text-2xl font-bold">New: DuckerWeb</h2>
-					<p className="mb-4 text-neutral-400">
-						Automatically extract names, descriptions and icons from your
-						Grasshopper plugins. Create reference documentation instantly.
-					</p>
+				<div className="mt-12 flex w-full items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-6 py-4">
+					<div className="text-left">
+						<h2 className="text-lg font-semibold">Also try DuckerWeb</h2>
+						<p className="text-sm text-neutral-400">
+							Auto-generate plugin reference docs from a GhXml.
+						</p>
+					</div>
 					<Link
 						to="/duckerweb"
 						className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
 					>
-						Try DuckerWeb
+						Open
 						<ArrowRight className="h-4 w-4" />
 					</Link>
 				</div>
