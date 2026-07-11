@@ -6,8 +6,8 @@ import { z } from "zod";
 import AddGHCard, {
 	ADD_DIALOG_STATE_EVENT,
 	openAddGhDialog,
-	type AddDialogStateEventDetail,
 } from "@/app/components/add-gh-card";
+import type { AddDialogStateEventDetail } from "@/types/gh-card";
 import { GhPageFileDropLayer } from "@/app/components/gh-page-file-drop-layer";
 import Header from "@/app/components/header";
 import GhCardDisplay from "@/app/ghcards/components/gh-card-display";

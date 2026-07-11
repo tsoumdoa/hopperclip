@@ -6,6 +6,11 @@ import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../utils/gh-xml";
 import { GhFileDropzone } from "./gh-file-dropzone";
 import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
+import type {
+	GhCardXmlPasteProps,
+	IngestResult,
+	UseXmlPasteHandlerOptions,
+} from "@/types/gh-card";
 
 export function sanitizeGhCardName(raw: string): string {
 	return raw
@@ -23,12 +28,6 @@ export function getSingleScriptNickName(
 	}
 	const sanitized = sanitizeGhCardName(components[0].nickName);
 	return sanitized.length > 0 ? sanitized : undefined;
-}
-
-export interface IngestResult {
-	isValid: boolean;
-	xml?: string;
-	errorMsg?: string;
 }
 
 /**
@@ -64,17 +63,7 @@ export function ingestGhXml(
 	};
 }
 
-export function GhCardXmlPaste(props: {
-	xmlData: string | undefined;
-	setXmlData: (data: string | undefined) => void;
-	isValidXml: boolean;
-	xmlError: string;
-	setXmlError: (error: string) => void;
-	handlePasteFromClipboard: () => void;
-	handleFileSelected: (file: File) => void;
-	onClearPastedXml?: () => void;
-	isEditMode?: boolean;
-}) {
+export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 	const { xmlData, isValidXml, setXmlError } = props;
 
 	useEffect(() => {
@@ -148,10 +137,6 @@ export function GhCardXmlPaste(props: {
 			)}
 		</div>
 	);
-}
-
-interface UseXmlPasteHandlerOptions {
-	onSingleScriptComponent?: (nickName: string) => void;
 }
 
 /**

@@ -1,20 +1,6 @@
 import { FileUp } from "lucide-react";
 import { useRef, useState } from "react";
-
-interface GhFileDropzoneProps {
-	/**
-	 * Called with the dropped/picked File. The parent is responsible for
-	 * actually decoding it (via ghFileToGhXml) and feeding the resulting
-	 * GhXml into the same validation path as clipboard paste.
-	 *
-	 * Splitting this out keeps the dropzone purely presentational — it can
-	 * be reused for any future "accept a .gh/.ghx file" surface.
-	 */
-	onFileSelected: (file: File) => void;
-	disabled?: boolean;
-	className?: string;
-	idleLabel?: string;
-}
+import type { GhFileDropzoneProps } from "@/types/gh-card";
 
 /**
  * Drag-and-drop + file-picker component for accepting Grasshopper `.gh` or

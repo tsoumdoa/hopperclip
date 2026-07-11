@@ -22,15 +22,9 @@ import { api as convex } from "../../../convex/_generated/api";
 import { nanoid } from "nanoid";
 import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
 import { compress } from "../utils/gzip";
+import type { AddGhDialogProps } from "@/types/gh-card";
 
-export function AddGhDialog(props: {
-	open: boolean;
-	setOpen: (b: boolean) => void;
-	adding: boolean;
-	setAdding: (b: boolean) => void;
-	initialFile?: File | null;
-	onInitialFileConsumed?: () => void;
-}) {
+export function AddGhDialog(props: AddGhDialogProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const addGhCard = useMutation(convex.ghCard.addPost);
 	const [addError, setAddError] = useState("");

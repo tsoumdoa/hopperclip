@@ -2,19 +2,15 @@
 
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import type {
+	AddDialogStateEventDetail,
+	OpenAddDialogEventDetail,
+} from "@/types/gh-card";
 import { AddGhDialog } from "./add-gh-dialog";
 
 // Lets other components (e.g. the empty-library CTA) open the add dialog.
 export const OPEN_ADD_DIALOG_EVENT = "hopperclip:open-add-dialog";
 export const ADD_DIALOG_STATE_EVENT = "hopperclip:add-dialog-state";
-
-export interface OpenAddDialogEventDetail {
-	file?: File;
-}
-
-export interface AddDialogStateEventDetail {
-	open: boolean;
-}
 
 export function openAddGhDialog(detail?: OpenAddDialogEventDetail) {
 	window.dispatchEvent(

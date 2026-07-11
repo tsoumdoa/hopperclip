@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
+import type { GhPageFileDropLayerProps } from "@/types/gh-card";
 import { detectGhFileKind } from "../utils/gh-file";
 
 export function isFileDragEvent(
@@ -15,12 +16,6 @@ export function getFirstDroppedFile(e: DragEvent): File | null {
 	const files = e.dataTransfer?.files;
 	if (!files || files.length === 0) return null;
 	return files[0] ?? null;
-}
-
-interface GhPageFileDropLayerProps {
-	enabled: boolean;
-	onGhFileDrop: (file: File) => void;
-	children: React.ReactNode;
 }
 
 /**
