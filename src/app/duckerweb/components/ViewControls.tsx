@@ -1,15 +1,8 @@
 import { GitBranch, List, Code } from "lucide-react";
-import type { ViewMode } from "../types/type";
+import type { ViewControlsProps, ViewTab } from "../types/type";
 import { cn } from "@/lib/utils";
 
-interface ViewControlsProps {
-	viewMode: ViewMode;
-	isCopied: boolean;
-	onCopyAll: () => void;
-	onSetViewMode: (mode: ViewMode) => void;
-}
-
-const tabs: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
+const tabs: ViewTab[] = [
 	{ key: "list", label: "List", icon: <List size={16} /> },
 	{ key: "flow", label: "Flow", icon: <GitBranch size={16} /> },
 	{ key: "json", label: "JSON", icon: <Code size={16} /> },

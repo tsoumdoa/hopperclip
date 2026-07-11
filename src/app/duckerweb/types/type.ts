@@ -1,4 +1,5 @@
 import type { Node, Edge, Position } from "@xyflow/react";
+import type { ParsedGrasshopper } from "parser/src/types";
 import type { ReactNode } from "react";
 
 export type GHNodeType = "value" | "panel" | "component" | "script" | "slider" | "valueList" | "toggle" | "swatch" | "button" | "group" | "relay";
@@ -42,6 +43,54 @@ export type ParsedComponent = {
 };
 
 export type ViewMode = "list" | "flow" | "json";
+
+export type DuckerwebState = {
+	xmlData: string | undefined;
+	isValidXml: boolean;
+	xmlError: string;
+	parsedData: ParsedGrasshopper | null;
+	viewMode: ViewMode;
+	nodes: GHNode[];
+	edges: Edge[];
+	error: string;
+};
+
+export type DuckerwebImportResult =
+	| {
+			ok: true;
+			parsedData: ParsedGrasshopper;
+			nodes: GHNode[];
+			edges: Edge[];
+	  }
+	| { ok: false; error: string };
+
+export type DuckerwebMainZoneProps = {
+	children: ReactNode;
+	onFileSelected: (file: File) => void;
+	className?: string;
+};
+
+export type XmlPasteAreaProps = {
+	xmlData: string | undefined;
+	isValidXml: boolean;
+	xmlError: string;
+	onPaste: () => void;
+	onFileSelected: (file: File) => void;
+	onClear: () => void;
+};
+
+export type ViewControlsProps = {
+	viewMode: ViewMode;
+	isCopied: boolean;
+	onCopyAll: () => void;
+	onSetViewMode: (mode: ViewMode) => void;
+};
+
+export type ViewTab = {
+	key: ViewMode;
+	label: string;
+	icon: ReactNode;
+};
 
 export type GHFlowCanvasProps = {
 	nodes: FlowNode[];

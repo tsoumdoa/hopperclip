@@ -1,31 +1,16 @@
 import { useState, useCallback, useRef } from "react";
 import { buildGhJson } from "parser/src/parser";
+import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../../utils/gh-file";
 import { generateFlowData } from "../gh-flow-generator";
-import type { ParsedGrasshopper } from "parser/src/types";
-import type { GHNode, ViewMode } from "../types/type";
+import type {
+	DuckerwebImportResult,
+	DuckerwebState,
+	GHNode,
+	ViewMode,
+} from "../types/type";
 import type { Edge } from "@xyflow/react";
-
-interface DuckerwebState {
-	xmlData: string | undefined;
-	isValidXml: boolean;
-	xmlError: string;
-	parsedData: ParsedGrasshopper | null;
-	viewMode: ViewMode;
-	nodes: GHNode[];
-	edges: Edge[];
-	error: string;
-}
-
-type DuckerwebImportResult =
-	| {
-			ok: true;
-			parsedData: ParsedGrasshopper;
-			nodes: GHNode[];
-			edges: Edge[];
-	  }
-	| { ok: false; error: string };
 
 export function prepareDuckerwebImport(
 	xml: string,
