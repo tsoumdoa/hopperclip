@@ -2,7 +2,18 @@ import type { Node, Edge, Position } from "@xyflow/react";
 import type { ParsedGrasshopper } from "parser/src/types";
 import type { ReactNode } from "react";
 
-export type GHNodeType = "value" | "panel" | "component" | "script" | "slider" | "valueList" | "toggle" | "swatch" | "button" | "group" | "relay";
+export type GHNodeType =
+	| "value"
+	| "panel"
+	| "component"
+	| "script"
+	| "slider"
+	| "valueList"
+	| "toggle"
+	| "swatch"
+	| "button"
+	| "group"
+	| "relay";
 
 export type GHNodeData = {
 	label: string;

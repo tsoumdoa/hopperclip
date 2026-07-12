@@ -9,11 +9,7 @@ export interface Wire {
 export type WireStyle = "normal" | "faint" | "hidden";
 
 export type DataMapping =
-	| "none"
-	| "flatten"
-	| "graft"
-	| "simplify"
-	| "reparametrize";
+	"none" | "flatten" | "graft" | "simplify" | "reparametrize";
 
 export interface PortOptions {
 	mapping?: DataMapping; // Tree mapping: flatten, graft, etc.
@@ -90,7 +86,15 @@ export interface Component {
 }
 
 export interface ComponentValue {
-	type: "slider" | "panel" | "valueList" | "number" | "text" | "toggle" | "swatch" | "button";
+	type:
+		| "slider"
+		| "panel"
+		| "valueList"
+		| "number"
+		| "text"
+		| "toggle"
+		| "swatch"
+		| "button";
 	// Slider specific
 	min?: number;
 	max?: number;

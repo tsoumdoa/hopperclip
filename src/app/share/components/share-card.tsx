@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { useState } from "react";
 import { toast } from "sonner";
+import { normalizeGhXmlForClipboard } from "../../utils/gh-xml";
 import { GetSharedPost } from "@/types/types";
 import { GHFlowCanvas } from "../../duckerweb/components/GHFlowCanvas";
 import { GitBranch, List } from "lucide-react";
@@ -40,7 +41,9 @@ export default function GhShareCard(props: {
 		setIsLoading(true);
 
 		try {
-			await navigator.clipboard.writeText(props.decodedXml);
+			await navigator.clipboard.writeText(
+				normalizeGhXmlForClipboard(props.decodedXml)
+			);
 			toast.success("GhXml copied to clipboard");
 		} catch {
 			toast.error("Failed to copy GhXml", {
@@ -86,7 +89,9 @@ export default function GhShareCard(props: {
 	}
 
 	return (
-		<div className={`flex w-full ${props.viewMode === "flow" ? "max-w-6xl" : "max-w-xl"}`}>
+		<div
+			className={`flex w-full ${props.viewMode === "flow" ? "max-w-6xl" : "max-w-xl"}`}
+		>
 			<Card className="w-full gap-2 border-neutral-800 bg-neutral-900 p-4">
 				<CardHeader className="px-0">
 					<CardTitle className="flex items-center justify-between">

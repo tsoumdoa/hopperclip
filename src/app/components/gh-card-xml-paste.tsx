@@ -1,11 +1,16 @@
-import { X } from "lucide-react";
+import { Clipboard, FileUp, X } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../utils/gh-xml";
-import { GhFileDropzone } from "./gh-file-dropzone";
 import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
+import { cn } from "@/lib/utils";
+import type {
+	GhCardXmlPasteProps,
+	IngestResult,
+	UseXmlPasteHandlerOptions,
+} from "@/types/gh-card";
 
 export function sanitizeGhCardName(raw: string): string {
 	return raw
@@ -23,12 +28,6 @@ export function getSingleScriptNickName(
 	}
 	const sanitized = sanitizeGhCardName(components[0].nickName);
 	return sanitized.length > 0 ? sanitized : undefined;
-}
-
-export interface IngestResult {
-	isValid: boolean;
-	xml?: string;
-	errorMsg?: string;
 }
 
 /**
@@ -64,18 +63,9 @@ export function ingestGhXml(
 	};
 }
 
-export function GhCardXmlPaste(props: {
-	xmlData: string | undefined;
-	setXmlData: (data: string | undefined) => void;
-	isValidXml: boolean;
-	xmlError: string;
-	setXmlError: (error: string) => void;
-	handlePasteFromClipboard: () => void;
-	handleFileSelected: (file: File) => void;
-	onClearPastedXml?: () => void;
-	isEditMode?: boolean;
-}) {
+export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 	const { xmlData, isValidXml, setXmlError } = props;
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		if (xmlData && isValidXml) {
@@ -88,6 +78,26 @@ export function GhCardXmlPaste(props: {
 		props.setXmlError("");
 		props.onClearPastedXml?.();
 	};
+
+	const handlePickerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const files = event.target.files;
+		if (files && files.length > 0) {
+			props.handleFileSelected(files[0]);
+		}
+		event.target.value = "";
+	};
+
+	const linkClass = cn(
+		"inline-flex items-center gap-1.5 text-sm transition-colors",
+		props.isEditMode
+			? "text-neutral-900 hover:text-black"
+			: "text-neutral-500 hover:text-neutral-800"
+	);
+
+	const hintClass = cn(
+		"text-xs",
+		props.isEditMode ? "text-neutral-800" : "text-neutral-400"
+	);
 
 	return (
 		<div className="text-sm">
@@ -123,19 +133,33 @@ export function GhCardXmlPaste(props: {
 					)}
 				</div>
 			) : (
-				<div className="flex flex-col gap-2 sm:flex-row">
-					<button
-						type="button"
-						onClick={props.handlePasteFromClipboard}
-						className="animate border-input flex-1 rounded-md border bg-neutral-100 p-2 font-medium text-neutral-500 shadow-xs transition-all hover:text-neutral-700"
-					>
-						{props.isEditMode
-							? "Replace GhXml from Clipboard"
-							: "Paste GhXml from Clipboard"}
-					</button>
-					<GhFileDropzone
-						className="flex-1"
-						onFileSelected={props.handleFileSelected}
+				<div className="flex flex-col gap-1">
+					<div className="flex items-center gap-3">
+						<button
+							type="button"
+							onClick={props.handlePasteFromClipboard}
+							className={linkClass}
+						>
+							<Clipboard className="h-3.5 w-3.5" />
+							<span>Paste</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => inputRef.current?.click()}
+							className={linkClass}
+							data-testid="gh-file-browse-button"
+						>
+							<FileUp className="h-3.5 w-3.5" />
+							<span>Browse</span>
+						</button>
+					</div>
+					<p className={hintClass}>or drop a file</p>
+					<input
+						ref={inputRef}
+						type="file"
+						accept=".gh,.ghx,application/gzip,application/xml,application/octet-stream"
+						onChange={handlePickerChange}
+						className="hidden"
 					/>
 				</div>
 			)}
@@ -148,10 +172,6 @@ export function GhCardXmlPaste(props: {
 			)}
 		</div>
 	);
-}
-
-interface UseXmlPasteHandlerOptions {
-	onSingleScriptComponent?: (nickName: string) => void;
 }
 
 /**

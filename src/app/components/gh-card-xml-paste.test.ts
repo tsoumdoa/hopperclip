@@ -67,6 +67,13 @@ describe("ingestGhXml", () => {
 		expect(result.errorMsg).toMatch(/^Pasted.*not valid/);
 	});
 
+	test("rejects malformed quote-stripped XML", () => {
+		const malformed = validXml.replaceAll('="', "=").replaceAll('"', "");
+		const result = ingestGhXml(malformed, "clipboard");
+		expect(result.isValid).toBe(false);
+		expect(result.errorMsg).toContain("Malformed XML");
+	});
+
 	test("invokes onSingleScriptComponent for single-script valid XML", () => {
 		const spy = vi.fn();
 		ingestGhXml(validXml, "file", { onSingleScriptComponent: spy });
