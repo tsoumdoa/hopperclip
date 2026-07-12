@@ -5,7 +5,10 @@ import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isStaticPrerenderPath, STATIC_PRERENDER_PATHS } from "./src/lib/static-pages";
+import {
+	isStaticPrerenderPath,
+	STATIC_PRERENDER_PATHS,
+} from "./src/lib/static-pages";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 

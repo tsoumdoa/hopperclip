@@ -77,14 +77,12 @@ export default function PrivacyPolicy() {
 									The core functionality of Hopper Clip involves you creating
 									and managing Grasshopper script snippets. This content,
 									including the Grasshopper XML script files and associated
-									metadata (name, description, tags), is stored by us as part
-									of the Service.
+									metadata (name, description, tags), is stored by us as part of
+									the Service.
 								</li>
 								<li className="mb-2">
-									<strong className="font-semibold">
-										Shared Content:
-									</strong>{" "}
-									You may choose to generate time-limited share links for your
+									<strong className="font-semibold">Shared Content:</strong> You
+									may choose to generate time-limited share links for your
 									script snippets. When you do, a unique share token is created
 									that allows anyone with the link to access your shared script
 									content and metadata until the link expires. You may revoke
@@ -111,9 +109,9 @@ export default function PrivacyPolicy() {
 									device identifiers.
 								</li>
 								<li className="mb-2">
-									<strong className="font-semibold">Error Tracking:</strong>{" "}
-									We automatically capture JavaScript exceptions that occur
-									while you use the Service to help us identify and fix bugs.
+									<strong className="font-semibold">Error Tracking:</strong> We
+									automatically capture JavaScript exceptions that occur while
+									you use the Service to help us identify and fix bugs.
 								</li>
 								<li className="mb-2">
 									<strong className="font-semibold">
@@ -209,7 +207,9 @@ export default function PrivacyPolicy() {
 									measures to protect your data.
 								</li>
 								<li className="mb-2">
-									<strong className="font-semibold">Client-Side Features:</strong>{" "}
+									<strong className="font-semibold">
+										Client-Side Features:
+									</strong>{" "}
 									Some features, such as the Grasshopper script documentation
 									tool (DuckerWeb), run entirely in your browser and do not
 									transmit or store any data on our servers.
@@ -237,8 +237,8 @@ export default function PrivacyPolicy() {
 											database, serverless functions, and real-time data sync
 										</li>
 										<li className="mb-1">
-											<strong className="font-semibold">Cloudflare R2</strong>{" "}
-											— blob storage for script content
+											<strong className="font-semibold">Cloudflare R2</strong> —
+											blob storage for script content
 										</li>
 										<li className="mb-1">
 											<strong className="font-semibold">PostHog</strong> — web
@@ -288,11 +288,11 @@ export default function PrivacyPolicy() {
 							</h2>
 							<p className="mb-6 leading-relaxed">
 								Hopper Clip is not intended for use by children under the age of
-								13. We do not knowingly collect personal information from children
-								under 13. If we learn that we have collected personal information
-								of a child under 13, we will take steps to delete such
-								information. If you believe a child under 13 has provided us with
-								personal information, please contact us.
+								13. We do not knowingly collect personal information from
+								children under 13. If we learn that we have collected personal
+								information of a child under 13, we will take steps to delete
+								such information. If you believe a child under 13 has provided
+								us with personal information, please contact us.
 							</p>
 							<h2 className="mb-4 text-3xl font-bold text-neutral-300">
 								8. Your Privacy Choices and Rights

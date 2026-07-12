@@ -27,9 +27,9 @@ function getComputedSideWidth(ports: Port[], manualWidth?: number) {
 	return Math.max(
 		MIN_SIDE_WIDTH,
 		SIDE_PADDING_X * 2 +
-		HANDLE_SIZE / 2 +
-		LABEL_GAP +
-		longestLabelLength * APPROX_CHAR_WIDTH
+			HANDLE_SIZE / 2 +
+			LABEL_GAP +
+			longestLabelLength * APPROX_CHAR_WIDTH
 	);
 }
 
@@ -80,9 +80,7 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 					try {
 						const mod = await loader();
 						await highlighter.loadLanguage(
-							mod.default as Parameters<
-								typeof highlighter.loadLanguage
-							>[0]
+							mod.default as Parameters<typeof highlighter.loadLanguage>[0]
 						);
 						safeLang = lang;
 					} catch {
@@ -143,8 +141,9 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 		<>
 			<div className="relative overflow-visible">
 				<div
-					className={`relative flex overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${selected ? "border-[#444]" : "border-[#444]"
-						}`}
+					className={`relative flex overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${
+						selected ? "border-[#444]" : "border-[#444]"
+					}`}
 				>
 					<div
 						className="flex flex-col justify-around border-r border-[#444] bg-[#E8E8E8] px-2 py-2"

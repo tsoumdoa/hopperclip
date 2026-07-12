@@ -5,7 +5,10 @@ export default function useTagFilters() {
 	const searchParam = "tagFilter";
 	const [tagFilters, setTagFilters] = useState<string[]>([]);
 	const [isPending, startTransition] = useTransition();
-	const search = useSearch({ strict: false }) as Record<string, string | undefined>;
+	const search = useSearch({ strict: false }) as Record<
+		string,
+		string | undefined
+	>;
 	const navigate = useNavigate();
 
 	const params = useMemo(() => {

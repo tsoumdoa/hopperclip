@@ -7,17 +7,17 @@ interface ComponentListProps {
 }
 
 export function ComponentList({ parsedData }: ComponentListProps) {
-	const components: ParsedComponent[] = Object.values(parsedData.components).map(
-		(c) => ({
-			id: c.id,
-			type: c.type,
-			nickName: c.nickName,
-			description: c.description,
-			library: c.library,
-			inputs: c.inputs,
-			outputs: c.outputs,
-		})
-	);
+	const components: ParsedComponent[] = Object.values(
+		parsedData.components
+	).map((c) => ({
+		id: c.id,
+		type: c.type,
+		nickName: c.nickName,
+		description: c.description,
+		library: c.library,
+		inputs: c.inputs,
+		outputs: c.outputs,
+	}));
 
 	return (
 		<div>

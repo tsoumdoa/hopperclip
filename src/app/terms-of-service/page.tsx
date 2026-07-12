@@ -204,13 +204,13 @@ export default function PrivacyPolicy() {
 							7. Data Storage
 						</h2>
 						<p className="pb-6 leading-relaxed">
-							Metadata associated with each script snippet is stored in
-							Convex, our backend platform that provides the database and
-							serverless functions for the Service. The actual script content
-							is gzip-compressed and stored in Cloudflare R2 blob storage.
-							We implement reasonable security measures to protect your data.
-							As site administrators, we have access to this data for the
-							purpose of operating, maintaining, and supporting the Service.
+							Metadata associated with each script snippet is stored in Convex,
+							our backend platform that provides the database and serverless
+							functions for the Service. The actual script content is
+							gzip-compressed and stored in Cloudflare R2 blob storage. We
+							implement reasonable security measures to protect your data. As
+							site administrators, we have access to this data for the purpose
+							of operating, maintaining, and supporting the Service.
 						</p>
 
 						<h2 className="pb-4 text-3xl font-bold text-neutral-900">
@@ -221,7 +221,9 @@ export default function PrivacyPolicy() {
 							provide the Service, including:
 						</p>
 						<ul className="list-disc pb-6 pl-5 leading-relaxed">
-							<li className="pb-2">Clerk (for authentication and user management)</li>
+							<li className="pb-2">
+								Clerk (for authentication and user management)
+							</li>
 							<li className="pb-2">
 								Convex (for database, serverless functions, and real-time data
 								sync)
@@ -232,7 +234,9 @@ export default function PrivacyPolicy() {
 							<li className="pb-2">
 								PostHog (for web analytics and error tracking)
 							</li>
-							<li className="pb-2">Vercel (for application hosting and deployment)</li>
+							<li className="pb-2">
+								Vercel (for application hosting and deployment)
+							</li>
 						</ul>
 						<p className="pb-6 leading-relaxed">
 							These providers are contractually obligated to protect your

@@ -1,6 +1,10 @@
 import type { GHHandlePositionProps } from "../types/type";
 
-export function HandlePosition({ position, children, className = "" }: GHHandlePositionProps) {
+export function HandlePosition({
+	position,
+	children,
+	className = "",
+}: GHHandlePositionProps) {
 	const isLeft = position === "left";
 
 	return (

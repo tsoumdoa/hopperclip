@@ -62,7 +62,10 @@ export default function useGhCardControl(cardInfo: GhPost) {
 			try {
 				await deleteFromBucket({ data: cardInfo.bucketUrl! });
 			} catch (error) {
-				console.error("Failed to delete storage blob (post already removed):", error);
+				console.error(
+					"Failed to delete storage blob (post already removed):",
+					error
+				);
 			}
 		} catch (error) {
 			console.error("Failed to delete post:", error);
