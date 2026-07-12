@@ -122,7 +122,10 @@ export function MetricsDialog(props: {
 						)}
 					</TabsContent>
 
-					<TabsContent value="flow" className="mt-0 h-[70vh] p-4">
+					<TabsContent
+						value="flow"
+						className="mt-0 h-[70vh] min-h-0 flex-none p-4"
+					>
 						{props.loading ? (
 							<div className="flex h-full items-center justify-center">
 								<span className="text-neutral-400">Loading flow...</span>
