@@ -11,9 +11,11 @@ import {
 	AlertDialogContent,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
+import { useDropZone } from "../hooks/use-drop-zone";
+import { DropOverlay } from "./drop-overlay";
 import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
@@ -22,13 +24,9 @@ import { api as convex } from "../../../convex/_generated/api";
 import { nanoid } from "nanoid";
 import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
 import { compress } from "../utils/gzip";
+import type { AddGhDialogProps } from "@/types/gh-card";
 
-export function AddGhDialog(props: {
-	open: boolean;
-	setOpen: (b: boolean) => void;
-	adding: boolean;
-	setAdding: (b: boolean) => void;
-}) {
+export function AddGhDialog(props: AddGhDialogProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const addGhCard = useMutation(convex.ghCard.addPost);
 	const [addError, setAddError] = useState("");
@@ -56,13 +54,40 @@ export function AddGhDialog(props: {
 		handleFileSelected,
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
-			onSingleScriptComponent: (nickName) => {
-				if (name.length === 0 && nickName.length > 0) {
-					setName(nickName);
-					autoFilledNameRef.current = nickName;
-				}
-			},
-		});
+		onSingleScriptComponent: (nickName) => {
+			if (name.length === 0 && nickName.length > 0) {
+				setName(nickName);
+				autoFilledNameRef.current = nickName;
+			}
+		},
+	});
+
+	const { isDragging, dragHandlers } = useDropZone(
+		handleFileSelected,
+		props.open
+	);
+
+	const consumedInitialFileRef = useRef<File | null>(null);
+
+	useEffect(() => {
+		if (!props.open) {
+			consumedInitialFileRef.current = null;
+		}
+	}, [props.open]);
+
+	useEffect(() => {
+		if (!props.open || !props.initialFile) return;
+		if (consumedInitialFileRef.current === props.initialFile) return;
+
+		consumedInitialFileRef.current = props.initialFile;
+		void handleFileSelected(props.initialFile);
+		props.onInitialFileConsumed?.();
+	}, [
+		props.open,
+		props.initialFile,
+		props.onInitialFileConsumed,
+		handleFileSelected,
+	]);
 
 	const handleClearPastedXml = () => {
 		if (
@@ -142,7 +167,11 @@ export function AddGhDialog(props: {
 
 	return (
 		<AlertDialog open={props.open}>
-			<AlertDialogContent onEscapeKeyDown={handleEscapeKeyDown}>
+			<AlertDialogContent
+				onEscapeKeyDown={handleEscapeKeyDown}
+				{...dragHandlers}
+			>
+				{isDragging && <DropOverlay className="rounded-lg" />}
 				<AlertDialogHeader>
 					<AlertDialogTitle className="text-lg">
 						{props.adding && addError.length === 0

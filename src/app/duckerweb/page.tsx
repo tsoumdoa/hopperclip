@@ -80,9 +80,7 @@ export default function DuckerWebPage() {
 			{parsedData && viewMode !== "flow" && (
 				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
 					<div className="mx-auto w-full max-w-4xl">
-						{viewMode === "list" && (
-							<ComponentList parsedData={parsedData} />
-						)}
+						{viewMode === "list" && <ComponentList parsedData={parsedData} />}
 
 						{viewMode === "json" && <GHJsonView data={parsedData} />}
 					</div>

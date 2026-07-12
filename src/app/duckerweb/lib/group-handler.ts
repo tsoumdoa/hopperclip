@@ -13,7 +13,7 @@ export function handleGroup(
 				y: component.visuals.bounds.y,
 				width: component.visuals.bounds.width * POSITION_SCALE_X,
 				height: component.visuals.bounds.height,
-		  }
+			}
 		: computeGroupBounds(component.members ?? [], nodePositions);
 
 	const nodeData: GHNodeData = {
@@ -23,8 +23,7 @@ export function handleGroup(
 		outputs: [],
 		selected: component.state?.selected,
 		members: component.members,
-		containerBounds:
-			bounds.width > 0 && bounds.height > 0 ? bounds : undefined,
+		containerBounds: bounds.width > 0 && bounds.height > 0 ? bounds : undefined,
 	};
 
 	return {

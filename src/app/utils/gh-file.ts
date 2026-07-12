@@ -6,6 +6,7 @@ import {
 	grasshopperBinaryToXml,
 	inflateGrasshopperBinary,
 } from "./gh-binary";
+import { normalizeGhXmlForClipboard } from "./gh-xml";
 
 export type GhFileKind = "gh" | "ghx" | "unknown";
 
@@ -144,10 +145,10 @@ export async function ghFileToGhXml(
 
 	const view = new Uint8Array(buffer);
 	if (kind === "ghx") {
-		return decodeUtf8(view, file.name, kind);
+		return normalizeGhXmlForClipboard(decodeUtf8(view, file.name, kind));
 	}
 
-	return decodeGhFile(buffer, file.name);
+	return normalizeGhXmlForClipboard(await decodeGhFile(buffer, file.name));
 }
 
 /**

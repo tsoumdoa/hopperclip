@@ -26,27 +26,36 @@ export function DuckerwebMainZone({
 		setIsDragging(false);
 	}, []);
 
-	const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-		if (!isFileDragEvent(event)) return;
-		event.preventDefault();
-		dragDepth.current += 1;
-		setIsDragging(true);
-	}, []);
+	const handleDragEnter = useCallback(
+		(event: React.DragEvent<HTMLDivElement>) => {
+			if (!isFileDragEvent(event)) return;
+			event.preventDefault();
+			dragDepth.current += 1;
+			setIsDragging(true);
+		},
+		[]
+	);
 
-	const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-		if (!isFileDragEvent(event)) return;
-		event.preventDefault();
-		dragDepth.current = Math.max(0, dragDepth.current - 1);
-		if (dragDepth.current === 0) {
-			setIsDragging(false);
-		}
-	}, []);
+	const handleDragLeave = useCallback(
+		(event: React.DragEvent<HTMLDivElement>) => {
+			if (!isFileDragEvent(event)) return;
+			event.preventDefault();
+			dragDepth.current = Math.max(0, dragDepth.current - 1);
+			if (dragDepth.current === 0) {
+				setIsDragging(false);
+			}
+		},
+		[]
+	);
 
-	const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-		if (!isFileDragEvent(event)) return;
-		event.preventDefault();
-		event.dataTransfer.dropEffect = "copy";
-	}, []);
+	const handleDragOver = useCallback(
+		(event: React.DragEvent<HTMLDivElement>) => {
+			if (!isFileDragEvent(event)) return;
+			event.preventDefault();
+			event.dataTransfer.dropEffect = "copy";
+		},
+		[]
+	);
 
 	const handleDrop = useCallback(
 		(event: React.DragEvent<HTMLDivElement>) => {

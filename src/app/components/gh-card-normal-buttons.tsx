@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useFetchGhXml } from "../hooks/use-fetch-gh-xml";
 import { ShareDialog } from "./gh-card-dialog";
 import { Id } from "../../../convex/_generated/dataModel";
+import { normalizeGhXmlForClipboard } from "../utils/gh-xml";
 
 export function NormalButtons(props: {
 	editMode: boolean;
@@ -23,7 +24,7 @@ export function NormalButtons(props: {
 		setIsLoading(true);
 		try {
 			const decoded = await downloadData(props.bucketId);
-			await navigator.clipboard.writeText(decoded);
+			await navigator.clipboard.writeText(normalizeGhXmlForClipboard(decoded));
 			toast.success("GhXml copied to clipboard");
 		} catch {
 			toast.error("Failed to copy GhXml", {

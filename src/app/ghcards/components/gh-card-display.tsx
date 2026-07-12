@@ -1,6 +1,6 @@
 "use client";
 import GHCard from "@/app/components/gh-card";
-import { OPEN_ADD_DIALOG_EVENT } from "@/app/components/add-gh-card";
+import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
 import useFilter from "../hooks/use-filter";
 import Filter from "./filter";
 import { X } from "lucide-react";
@@ -35,6 +35,7 @@ export default function GHCardDisplay(props: {
 	tagFilters?: string[];
 	sortOrder: SortOrder;
 }) {
+	const { openAddDialog } = useGhCardsPageActions();
 	const ghCards = useQuery(convex.ghCard.getAll, {
 		tags: props.tagFilters,
 		sortOrder: props.sortOrder,
@@ -81,11 +82,10 @@ export default function GHCardDisplay(props: {
 			return (
 				<EmptyState
 					title="Your library is empty"
-					description="Copy a script in Grasshopper, then add your first card to start building your snippet library."
+					description="Drop a .gh or .ghx file anywhere on this page, paste GhXml from Grasshopper, or add your first card to start building your snippet library."
 					action={{
 						label: "Add your first card",
-						onClick: () =>
-							window.dispatchEvent(new CustomEvent(OPEN_ADD_DIALOG_EVENT)),
+						onClick: () => openAddDialog(),
 					}}
 				/>
 			);
