@@ -16,13 +16,19 @@ export default function Header() {
 			<div className="flex items-center gap-3">
 				<SignedOut>
 					<SignInButton>
-						<button className="flex h-8 w-20 items-center justify-center rounded-full border-2 border-white bg-black font-semibold transition-all hover:bg-neutral-400">
+						<button
+							type="button"
+							className="px-1 text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+						>
 							Sign in
 						</button>
 					</SignInButton>
 
 					<SignUpButton>
-						<button className="flex h-8 w-20 items-center justify-center rounded-full border-2 border-white bg-black font-semibold transition-all hover:bg-neutral-400">
+						<button
+							type="button"
+							className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-neutral-200"
+						>
 							Sign up
 						</button>
 					</SignUpButton>
