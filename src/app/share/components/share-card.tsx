@@ -89,7 +89,9 @@ export default function GhShareCard(props: {
 	}
 
 	return (
-		<div className={`flex w-full ${props.viewMode === "flow" ? "max-w-6xl" : "max-w-xl"}`}>
+		<div
+			className={`flex w-full ${props.viewMode === "flow" ? "max-w-6xl" : "max-w-xl"}`}
+		>
 			<Card className="w-full gap-2 border-neutral-800 bg-neutral-900 p-4">
 				<CardHeader className="px-0">
 					<CardTitle className="flex items-center justify-between">

@@ -24,7 +24,7 @@ export function DropOverlay({
 		<div
 			className={cn(
 				"absolute inset-0 z-20 flex items-center justify-center overflow-hidden rounded-lg bg-neutral-950/85 backdrop-blur-md",
-				className,
+				className
 			)}
 			aria-hidden
 		>

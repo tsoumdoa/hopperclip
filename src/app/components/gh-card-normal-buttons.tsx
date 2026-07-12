@@ -24,9 +24,7 @@ export function NormalButtons(props: {
 		setIsLoading(true);
 		try {
 			const decoded = await downloadData(props.bucketId);
-			await navigator.clipboard.writeText(
-				normalizeGhXmlForClipboard(decoded)
-			);
+			await navigator.clipboard.writeText(normalizeGhXmlForClipboard(decoded));
 			toast.success("GhXml copied to clipboard");
 		} catch {
 			toast.error("Failed to copy GhXml", {

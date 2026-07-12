@@ -1,18 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, type ReactNode } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import AddGHCard, {
-	ADD_DIALOG_STATE_EVENT,
-	openAddGhDialog,
-} from "@/app/components/add-gh-card";
-import { CARD_EDIT_MODE_STATE_EVENT } from "@/app/components/gh-card";
-import type {
-	AddDialogStateEventDetail,
-	CardEditModeStateEventDetail,
-} from "@/types/gh-card";
+import AddGHCard from "@/app/components/add-gh-card";
 import { GhPageFileDropLayer } from "@/app/components/gh-page-file-drop-layer";
+import {
+	GhCardsPageProvider,
+	useGhCardsPageActions,
+	useGhCardsPageState,
+} from "@/app/ghcards/contexts/gh-cards-page-context";
 import Header from "@/app/components/header";
 import GhCardDisplay from "@/app/ghcards/components/gh-card-display";
 import { GhCardGridSkeleton } from "@/app/ghcards/components/gh-card-skeleton";
@@ -40,6 +37,14 @@ export const Route = createFileRoute("/_authed/ghcards")({
 });
 
 function GhcardsPage() {
+	return (
+		<GhCardsPageProvider>
+			<GhcardsPageContent />
+		</GhCardsPageProvider>
+	);
+}
+
+function GhcardsPageContent() {
 	const { username } = Route.useLoaderData();
 	const search = Route.useSearch();
 	const sortKey = search.sort ?? "ascLastEdited";
@@ -47,34 +52,8 @@ function GhcardsPage() {
 		typeof search.tagFilter === "string"
 			? search.tagFilter.split(",").filter(Boolean)
 			: [];
-	const [addDialogOpen, setAddDialogOpen] = useState(false);
-	const [cardInEditMode, setCardInEditMode] = useState(false);
-
-	useEffect(() => {
-		const handleDialogState = (e: Event) => {
-			const detail = (e as CustomEvent<AddDialogStateEventDetail>).detail;
-			setAddDialogOpen(detail.open);
-		};
-		const handleEditModeState = (e: Event) => {
-			const detail = (e as CustomEvent<CardEditModeStateEventDetail>).detail;
-			setCardInEditMode(detail.editMode);
-		};
-		window.addEventListener(ADD_DIALOG_STATE_EVENT, handleDialogState);
-		window.addEventListener(CARD_EDIT_MODE_STATE_EVENT, handleEditModeState);
-		return () => {
-			window.removeEventListener(ADD_DIALOG_STATE_EVENT, handleDialogState);
-			window.removeEventListener(
-				CARD_EDIT_MODE_STATE_EVENT,
-				handleEditModeState,
-			);
-		};
-	}, []);
-
 	return (
-		<GhPageFileDropLayer
-			enabled={!addDialogOpen && !cardInEditMode}
-			onGhFileDrop={(file) => openAddGhDialog({ file })}
-		>
+		<GhCardsPageDropLayer>
 			<div className="min-h-screen bg-black p-4 font-sans text-white md:p-6">
 				<div className="mx-auto max-w-400">
 					<Header />
@@ -91,11 +70,28 @@ function GhcardsPage() {
 						<UserTags tagFilters={sanitizedTagFilter} />
 					</div>
 					<Suspense fallback={<GhCardGridSkeleton />}>
-						<GhCardDisplay tagFilters={sanitizedTagFilter} sortOrder={sortKey} />
+						<GhCardDisplay
+							tagFilters={sanitizedTagFilter}
+							sortOrder={sortKey}
+						/>
 					</Suspense>
 				</div>
 				<ShortcutHint />
 			</div>
+		</GhCardsPageDropLayer>
+	);
+}
+
+function GhCardsPageDropLayer({ children }: { children: ReactNode }) {
+	const { addDialogOpen, hasEditingCards } = useGhCardsPageState();
+	const { openAddDialog } = useGhCardsPageActions();
+
+	return (
+		<GhPageFileDropLayer
+			enabled={!addDialogOpen && !hasEditingCards}
+			onGhFileDrop={openAddDialog}
+		>
+			{children}
 		</GhPageFileDropLayer>
 	);
 }

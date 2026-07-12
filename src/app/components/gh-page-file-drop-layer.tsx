@@ -6,9 +6,7 @@ import { toast } from "sonner";
 import type { GhPageFileDropLayerProps } from "@/types/gh-card";
 import { detectGhFileKind } from "../utils/gh-file";
 
-export function isFileDragEvent(
-	e: Pick<DragEvent, "dataTransfer">
-): boolean {
+export function isFileDragEvent(e: Pick<DragEvent, "dataTransfer">): boolean {
 	return Array.from(e.dataTransfer?.types ?? []).includes("Files");
 }
 
@@ -61,7 +59,7 @@ export function GhPageFileDropLayer({
 		};
 
 		const handleDrop = (e: DragEvent) => {
-			if (!enabled) return;
+			if (!enabled || !isFileDragEvent(e)) return;
 			e.preventDefault();
 			dragCounter.current = 0;
 			setIsDragging(false);

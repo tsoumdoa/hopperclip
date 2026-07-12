@@ -64,7 +64,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 
 	const { isDragging, dragHandlers } = useDropZone(
 		handleFileSelected,
-		props.open,
+		props.open
 	);
 
 	const consumedInitialFileRef = useRef<File | null>(null);

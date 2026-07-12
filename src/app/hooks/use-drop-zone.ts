@@ -22,7 +22,7 @@ function isFileDragEvent(event: React.DragEvent): boolean {
  */
 export function useDropZone(
 	onDrop: (file: File) => void,
-	enabled: boolean = true,
+	enabled: boolean = true
 ) {
 	const [isDragging, setIsDragging] = useState(false);
 	const dragDepth = useRef(0);
@@ -47,7 +47,7 @@ export function useDropZone(
 			dragDepth.current += 1;
 			setIsDragging(true);
 		},
-		[enabled],
+		[enabled]
 	);
 
 	const handleDragLeave = useCallback(
@@ -60,7 +60,7 @@ export function useDropZone(
 				setIsDragging(false);
 			}
 		},
-		[enabled],
+		[enabled]
 	);
 
 	const handleDragOver = useCallback(
@@ -70,7 +70,7 @@ export function useDropZone(
 			event.stopPropagation();
 			event.dataTransfer.dropEffect = "copy";
 		},
-		[enabled],
+		[enabled]
 	);
 
 	const handleDrop = useCallback(
@@ -85,7 +85,7 @@ export function useDropZone(
 				onDropRef.current(files[0]);
 			}
 		},
-		[enabled],
+		[enabled]
 	);
 
 	return {

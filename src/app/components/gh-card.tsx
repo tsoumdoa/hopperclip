@@ -10,12 +10,10 @@ import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
 import { useEffect, useState } from "react";
-import type { CardEditModeStateEventDetail } from "@/types/gh-card";
+import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
 import { GhPost } from "@/types/types";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-
-export const CARD_EDIT_MODE_STATE_EVENT = "hopperclip:card-edit-mode-state";
 
 export default function GHCard(props: {
 	cardInfo: GhPost;
@@ -51,17 +49,18 @@ export default function GHCard(props: {
 
 	const { isDragging, dragHandlers } = useDropZone(
 		handleFileSelected,
-		editMode,
+		editMode
 	);
+	const { setCardEditing } = useGhCardsPageActions();
 
 	useEffect(() => {
-		window.dispatchEvent(
-			new CustomEvent<CardEditModeStateEventDetail>(
-				CARD_EDIT_MODE_STATE_EVENT,
-				{ detail: { editMode } },
-			),
-		);
-	}, [editMode]);
+		const cardId = props.cardInfo._id;
+		setCardEditing(cardId, editMode);
+
+		return () => {
+			setCardEditing(cardId, false);
+		};
+	}, [editMode, props.cardInfo._id, setCardEditing]);
 
 	const [openSharedDialog, setOpenSharedDialog] = useState(false);
 	const [openMetricsDialog, setOpenMetricsDialog] = useState(false);

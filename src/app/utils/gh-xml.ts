@@ -67,7 +67,10 @@ export function normalizeGhXmlForClipboard(xml: string): string {
 
 	const outerIndentStart = xml.lastIndexOf("\n", outerChunksStart) + 1;
 	const outerIndent = xml.slice(outerIndentStart, outerChunksStart);
-	const leadingWhitespace = xml.slice(outerChunksOpenEnd, definitionMatch.index);
+	const leadingWhitespace = xml.slice(
+		outerChunksOpenEnd,
+		definitionMatch.index
+	);
 	const outerOpening = xml
 		.slice(outerChunksStart, outerChunksOpenEnd)
 		.replace(/\bcount=(['"])[^'"]*\1/, 'count="1"');

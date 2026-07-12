@@ -1,17 +1,5 @@
 import type { ReactNode } from "react";
 
-export type OpenAddDialogEventDetail = {
-	file?: File;
-};
-
-export type AddDialogStateEventDetail = {
-	open: boolean;
-};
-
-export type CardEditModeStateEventDetail = {
-	editMode: boolean;
-};
-
 export type AddGhDialogProps = {
 	open: boolean;
 	setOpen: (open: boolean) => void;

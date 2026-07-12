@@ -1,9 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, test } from "vitest";
-import {
-	normalizeGhXmlForClipboard,
-	validateGhXml,
-} from "./gh-xml";
+import { normalizeGhXmlForClipboard, validateGhXml } from "./gh-xml";
 
 const CLIPBOARD_XML = fs.readFileSync(
 	"parser/sand/xmls/csharp-component.xml",
@@ -16,8 +13,10 @@ describe("normalizeGhXmlForClipboard", () => {
 	});
 
 	test("converts a full definition and removes file-only root chunks", () => {
-		const definitionXml = CLIPBOARD_XML
-			.replace('<chunks count="1">', '<chunks count="2">')
+		const definitionXml = CLIPBOARD_XML.replace(
+			'<chunks count="1">',
+			'<chunks count="2">'
+		)
 			.replace('<chunk name="Clipboard">', '<chunk name="Definition">')
 			.replace(
 				"  </chunks>\n</Archive>",

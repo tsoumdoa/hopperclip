@@ -91,12 +91,12 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 		"inline-flex items-center gap-1.5 text-sm transition-colors",
 		props.isEditMode
 			? "text-neutral-900 hover:text-black"
-			: "text-neutral-500 hover:text-neutral-800",
+			: "text-neutral-500 hover:text-neutral-800"
 	);
 
 	const hintClass = cn(
 		"text-xs",
-		props.isEditMode ? "text-neutral-800" : "text-neutral-400",
+		props.isEditMode ? "text-neutral-800" : "text-neutral-400"
 	);
 
 	return (
