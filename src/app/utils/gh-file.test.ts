@@ -559,7 +559,8 @@ describe("ghFileToGhXml", () => {
 
 		const xml = await ghFileToGhXml(file);
 
-		expect(xml).toContain('<chunk name="Definition">');
+		expect(xml).toContain('<chunk name="Clipboard">');
+		expect(xml).not.toContain('<chunk name="Definition">');
 		expect(xml).toContain(
 			'<item name="Plane" type_name="gh_plane" type_code="72">'
 		);
