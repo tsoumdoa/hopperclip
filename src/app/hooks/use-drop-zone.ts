@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
-function isFileDragEvent(event: React.DragEvent): boolean {
-	return Array.from(event.dataTransfer.types).includes("Files");
-}
+import { getFirstDroppedFile, isFileDragEvent } from "../utils/file-drag";
 
 /**
  * Reusable drag-and-drop hook for accepting file drops on any element.
@@ -80,10 +77,8 @@ export function useDropZone(
 			event.stopPropagation();
 			dragDepth.current = 0;
 			setIsDragging(false);
-			const files = event.dataTransfer.files;
-			if (files.length > 0) {
-				onDropRef.current(files[0]);
-			}
+			const file = getFirstDroppedFile(event);
+			if (file) onDropRef.current(file);
 		},
 		[enabled]
 	);

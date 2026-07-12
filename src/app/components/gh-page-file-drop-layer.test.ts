@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { isFileDragEvent } from "./gh-page-file-drop-layer";
+import { isFileDragEvent } from "../utils/file-drag";
 
 describe("isFileDragEvent", () => {
 	test("returns true when the drag payload includes Files", () => {
