@@ -104,11 +104,9 @@ export type ViewTab = {
 };
 
 export type GHFlowCanvasProps = {
-	nodes: FlowNode[];
+	nodes: GHNode[];
 	edges: Edge[];
 };
-
-export type FlowNode = Node<GHNodeData>;
 
 export type ScriptData = {
 	language?: string;
