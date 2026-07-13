@@ -16,7 +16,11 @@ import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
 import { useDropZone } from "../hooks/use-drop-zone";
 import { DropOverlay } from "./drop-overlay";
-import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
+import {
+	GhCardXmlPaste,
+	shouldAutoFillGhCardName,
+	useXmlPasteHandler,
+} from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { useMutation, useQuery } from "convex/react";
@@ -51,7 +55,13 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
 
 	const autoFillName = (candidate: string) => {
-		if (currentNameRef.current.length === 0 && candidate.length > 0) {
+		if (
+			candidate.length > 0 &&
+			shouldAutoFillGhCardName(
+				currentNameRef.current,
+				autoFilledNameRef.current
+			)
+		) {
 			currentNameRef.current = candidate;
 			setName(candidate);
 			autoFilledNameRef.current = candidate;
@@ -83,8 +93,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	useEffect(() => {
 		if (!props.open) {
 			consumedInitialFileRef.current = null;
+			currentNameRef.current = "";
+			autoFilledNameRef.current = null;
+			setName("");
 		}
-	}, [props.open]);
+	}, [props.open, setName]);
 
 	useEffect(() => {
 		if (!props.open || !props.initialFile) return;

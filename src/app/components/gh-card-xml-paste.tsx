@@ -23,6 +23,16 @@ export function getGhCardNameFromFileName(fileName: string): string {
 	return fileName.replace(/\.(?:gh|ghx)$/i, "").slice(0, 30);
 }
 
+export function shouldAutoFillGhCardName(
+	currentName: string,
+	autoFilledName: string | null
+): boolean {
+	return (
+		currentName.length === 0 ||
+		(autoFilledName !== null && currentName === autoFilledName)
+	);
+}
+
 export function getSingleScriptNickName(
 	parsed: ParsedGrasshopper
 ): string | undefined {

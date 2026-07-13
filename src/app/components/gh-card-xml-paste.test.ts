@@ -6,6 +6,7 @@ import {
 	getSingleScriptNickName,
 	ingestGhXml,
 	sanitizeGhCardName,
+	shouldAutoFillGhCardName,
 } from "./gh-card-xml-paste";
 
 describe("getGhCardNameFromFileName", () => {
@@ -25,6 +26,24 @@ describe("getGhCardNameFromFileName", () => {
 		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
 			"A".repeat(30)
 		);
+	});
+});
+
+describe("shouldAutoFillGhCardName", () => {
+	test("allows an import to fill an empty name", () => {
+		expect(shouldAutoFillGhCardName("", null)).toBe(true);
+	});
+
+	test("allows a replacement file to replace the tracked auto-filled name", () => {
+		expect(shouldAutoFillGhCardName("A", "A")).toBe(true);
+	});
+
+	test("protects a name after the user edits it", () => {
+		expect(shouldAutoFillGhCardName("Custom name", null)).toBe(false);
+	});
+
+	test("does not replace a name that differs from the tracked auto-fill", () => {
+		expect(shouldAutoFillGhCardName("Custom name", "A")).toBe(false);
 	});
 });
 
