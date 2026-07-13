@@ -30,8 +30,8 @@ import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
 import { compress } from "../utils/gzip";
 import type { AddGhDialogProps } from "@/types/gh-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createFlowPreview } from "../duckerweb/gh-flow-generator";
 import { GhFlowView } from "./gh-flow-view";
-import { createFlowPreview } from "./gh-flow-preview";
 
 type AddDialogTab = "details" | "flow";
 

@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
 import type { Edge } from "@xyflow/react";
-import type { FlowNode } from "../duckerweb/types/type";
+import type { GHNode } from "../duckerweb/types/type";
 import { GHFlowCanvas } from "../duckerweb/components/GHFlowCanvas";
 
 export function GhFlowView(props: {
-	nodes: FlowNode[];
+	nodes: GHNode[];
 	edges: Edge[];
 	loading?: boolean;
+	errorMessage?: string;
 	emptyMessage?: string;
 	className?: string;
 }) {
@@ -15,6 +16,10 @@ export function GhFlowView(props: {
 			{props.loading ? (
 				<div className="flex h-full items-center justify-center">
 					<span className="text-neutral-400">Loading flow...</span>
+				</div>
+			) : props.errorMessage ? (
+				<div className="flex h-full items-center justify-center px-6 text-center">
+					<span className="text-red-400">{props.errorMessage}</span>
 				</div>
 			) : props.nodes.length > 0 ? (
 				<GHFlowCanvas nodes={props.nodes} edges={props.edges} />
