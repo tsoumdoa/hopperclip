@@ -7,7 +7,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { GHFlowCanvas } from "../duckerweb/components/GHFlowCanvas";
+import { GhFlowView } from "./gh-flow-view";
 import type { ScriptMetrics } from "../hooks/use-script-metrics";
 import type { GHNode } from "../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
@@ -126,17 +126,11 @@ export function MetricsDialog(props: {
 						value="flow"
 						className="mt-0 h-[70vh] min-h-0 flex-none p-4"
 					>
-						{props.loading ? (
-							<div className="flex h-full items-center justify-center">
-								<span className="text-neutral-400">Loading flow...</span>
-							</div>
-						) : props.nodes.length > 0 ? (
-							<GHFlowCanvas nodes={props.nodes} edges={props.edges} />
-						) : (
-							<div className="flex h-full items-center justify-center">
-								<span className="text-neutral-400">No flow data available</span>
-							</div>
-						)}
+						<GhFlowView
+							nodes={props.nodes}
+							edges={props.edges}
+							loading={props.loading}
+						/>
 					</TabsContent>
 				</Tabs>
 			</DialogContent>
