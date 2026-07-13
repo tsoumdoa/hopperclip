@@ -59,9 +59,8 @@ You will also need to provide the necessary API keys and environment variables, 
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/tsoumdoa/better-gh-lib
+    git clone https://github.com/tsoumdoa/hopperclip
     ```
-    _(Remember to replace `[YourGitHubUsername]` with your actual GitHub username and adjust `hopperclip.git` if your repo name is different)_
 2.  **Navigate into the project directory:**
     ```bash
     cd hopperclip
