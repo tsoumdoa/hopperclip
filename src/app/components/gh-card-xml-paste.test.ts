@@ -2,10 +2,50 @@ import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import {
+	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
 	sanitizeGhCardName,
+	shouldAutoFillGhCardName,
 } from "./gh-card-xml-paste";
+
+describe("getGhCardNameFromFileName", () => {
+	test("removes the .gh extension", () => {
+		expect(getGhCardNameFromFileName("Panelizer.gh")).toBe("Panelizer");
+	});
+
+	test("removes the .ghx extension case-insensitively", () => {
+		expect(getGhCardNameFromFileName("MyFacade.GHX")).toBe("MyFacade");
+	});
+
+	test("preserves dots in the basename", () => {
+		expect(getGhCardNameFromFileName("Facade.v2.gh")).toBe("Facade.v2");
+	});
+
+	test("clips names to the input's 30-character limit", () => {
+		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
+			"A".repeat(30)
+		);
+	});
+});
+
+describe("shouldAutoFillGhCardName", () => {
+	test("allows an import to fill an empty name", () => {
+		expect(shouldAutoFillGhCardName("", null)).toBe(true);
+	});
+
+	test("allows a replacement file to replace the tracked auto-filled name", () => {
+		expect(shouldAutoFillGhCardName("A", "A")).toBe(true);
+	});
+
+	test("protects a name after the user edits it", () => {
+		expect(shouldAutoFillGhCardName("Custom name", null)).toBe(false);
+	});
+
+	test("does not replace a name that differs from the tracked auto-fill", () => {
+		expect(shouldAutoFillGhCardName("Custom name", "A")).toBe(false);
+	});
+});
 
 test("sanitizeGhCardName strips disallowed characters", () => {
 	expect(sanitizeGhCardName("MyScript:foo")).toBe("MyScriptfoo");

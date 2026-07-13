@@ -16,7 +16,11 @@ import { toast } from "sonner";
 import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-and-description";
 import { useDropZone } from "../hooks/use-drop-zone";
 import { DropOverlay } from "./drop-overlay";
-import { GhCardXmlPaste, useXmlPasteHandler } from "./gh-card-xml-paste";
+import {
+	GhCardXmlPaste,
+	shouldAutoFillGhCardName,
+	useXmlPasteHandler,
+} from "./gh-card-xml-paste";
 import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { useMutation, useQuery } from "convex/react";
@@ -39,6 +43,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	const [isValidXml, setIsValidXml] = useState(false);
 	const [activeTab, setActiveTab] = useState<AddDialogTab>("details");
 	const autoFilledNameRef = useRef<string | null>(null);
+	const currentNameRef = useRef("");
 	const {
 		name,
 		setName,
@@ -55,17 +60,33 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		availableTags,
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
 
+	const autoFillName = (candidate: string) => {
+		if (
+			candidate.length > 0 &&
+			shouldAutoFillGhCardName(
+				currentNameRef.current,
+				autoFilledNameRef.current
+			)
+		) {
+			currentNameRef.current = candidate;
+			setName(candidate);
+			autoFilledNameRef.current = candidate;
+		}
+	};
+
+	const handleNameChange = (value: string) => {
+		currentNameRef.current = value;
+		autoFilledNameRef.current = null;
+		setName(value);
+	};
+
 	const {
 		handlePasteFromClipboard,
 		handleFileSelected,
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
-		onSingleScriptComponent: (nickName) => {
-			if (name.length === 0 && nickName.length > 0) {
-				setName(nickName);
-				autoFilledNameRef.current = nickName;
-			}
-		},
+		onSingleScriptComponent: autoFillName,
+		onFilePicked: autoFillName,
 	});
 
 	const { isDragging, dragHandlers } = useDropZone(
@@ -79,8 +100,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		if (!props.open) {
 			consumedInitialFileRef.current = null;
 			setActiveTab("details");
+			currentNameRef.current = "";
+			autoFilledNameRef.current = null;
+			setName("");
 		}
-	}, [props.open]);
+	}, [props.open, setName]);
 
 	const flowPreview = useMemo(
 		() => (xmlData && isValidXml ? createFlowPreview(xmlData) : null),
@@ -106,6 +130,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 			autoFilledNameRef.current !== null &&
 			name === autoFilledNameRef.current
 		) {
+			currentNameRef.current = "";
 			setName("");
 		}
 		autoFilledNameRef.current = null;
@@ -139,6 +164,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 				setXmlData(undefined);
 				setTags([]);
 				setName("");
+				currentNameRef.current = "";
 				setDescription("");
 				autoFilledNameRef.current = null;
 				toast.success(`"${name}" added to your library`);
@@ -168,6 +194,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	const handleCancel = () => {
 		invalidatePendingImport();
 		setName("");
+		currentNameRef.current = "";
 		setDescription("");
 		setAddError("");
 		setTags([]);
@@ -222,7 +249,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 										className="font-semibold"
 										maxLength={30}
 										value={name}
-										onChange={(e) => setName(e.target.value)}
+										onChange={(e) => handleNameChange(e.target.value)}
 										disabled={props.adding}
 										autoComplete="off"
 									/>
