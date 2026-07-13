@@ -2,10 +2,32 @@ import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import {
+	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
 	sanitizeGhCardName,
 } from "./gh-card-xml-paste";
+
+describe("getGhCardNameFromFileName", () => {
+	test("removes .gh and .ghx extensions", () => {
+		expect(getGhCardNameFromFileName("Panelizer.gh")).toBe("Panelizer");
+		expect(getGhCardNameFromFileName("MyFacade.GHX")).toBe("MyFacade");
+	});
+
+	test("only removes the final Grasshopper extension", () => {
+		expect(getGhCardNameFromFileName("Facade.v2.ghx")).toBe("Facade.v2");
+	});
+
+	test("truncates names to the input's 30-character limit", () => {
+		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
+			"A".repeat(30)
+		);
+	});
+
+	test("returns undefined when the basename is empty", () => {
+		expect(getGhCardNameFromFileName(".gh")).toBeUndefined();
+	});
+});
 
 test("sanitizeGhCardName strips disallowed characters", () => {
 	expect(sanitizeGhCardName("MyScript:foo")).toBe("MyScriptfoo");

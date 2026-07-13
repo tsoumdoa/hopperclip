@@ -48,6 +48,8 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		onTagValueChange,
 		availableTags,
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
+	const nameRef = useRef(name);
+	nameRef.current = name;
 
 	const {
 		handlePasteFromClipboard,
@@ -55,9 +57,17 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
 		onSingleScriptComponent: (nickName) => {
-			if (name.length === 0 && nickName.length > 0) {
+			if (nameRef.current.length === 0 && nickName.length > 0) {
+				nameRef.current = nickName;
 				setName(nickName);
 				autoFilledNameRef.current = nickName;
+			}
+		},
+		onFilePicked: (fileName) => {
+			if (nameRef.current.length === 0) {
+				nameRef.current = fileName;
+				setName(fileName);
+				autoFilledNameRef.current = fileName;
 			}
 		},
 	});
@@ -199,7 +209,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 									className="font-semibold"
 									maxLength={30}
 									value={name}
-									onChange={(e) => setName(e.target.value)}
+									onChange={(e) => {
+										autoFilledNameRef.current = null;
+										nameRef.current = e.target.value;
+										setName(e.target.value);
+									}}
 									disabled={props.adding}
 									autoComplete="off"
 								/>
