@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
 							project is available{" "}
 							<a
 								className="underline"
-								href="https://github.com/tsoumdoa/better-gh-lib"
+								href="https://github.com/tsoumdoa/hopperclip"
 							>
 								here
 							</a>
