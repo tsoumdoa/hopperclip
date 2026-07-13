@@ -13,7 +13,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { normalizeGhXmlForClipboard } from "../../utils/gh-xml";
 import { GetSharedPost } from "@/types/types";
-import { GHFlowCanvas } from "../../duckerweb/components/GHFlowCanvas";
+import { GhFlowView } from "../../components/gh-flow-view";
 import { GitBranch, List } from "lucide-react";
 import type { ViewMode } from "../../duckerweb/types/type";
 import type { GHNode } from "../../duckerweb/types/type";
@@ -140,23 +140,14 @@ export default function GhShareCard(props: {
 
 				{props.viewMode === "flow" && (
 					<CardContent className="px-0">
-						{props.flowLoading ? (
-							<div className="flex h-[70vh] items-center justify-center">
-								<span className="text-neutral-400">Loading flow...</span>
-							</div>
-						) : props.flowError ? (
-							<div className="flex h-[70vh] items-center justify-center">
-								<span className="text-red-400">{props.flowError}</span>
-							</div>
-						) : props.flowNodes.length > 0 ? (
-							<div className="h-[70vh]">
-								<GHFlowCanvas nodes={props.flowNodes} edges={props.flowEdges} />
-							</div>
-						) : (
-							<div className="flex h-[70vh] items-center justify-center">
-								<span className="text-neutral-400">No flow data available</span>
-							</div>
-						)}
+						<div className="h-[70vh]">
+							<GhFlowView
+								nodes={props.flowNodes}
+								edges={props.flowEdges}
+								loading={props.flowLoading}
+								errorMessage={props.flowError ?? undefined}
+							/>
+						</div>
 					</CardContent>
 				)}
 
