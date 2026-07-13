@@ -2,10 +2,31 @@ import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import {
+	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
 	sanitizeGhCardName,
 } from "./gh-card-xml-paste";
+
+describe("getGhCardNameFromFileName", () => {
+	test("removes the .gh extension", () => {
+		expect(getGhCardNameFromFileName("Panelizer.gh")).toBe("Panelizer");
+	});
+
+	test("removes the .ghx extension case-insensitively", () => {
+		expect(getGhCardNameFromFileName("MyFacade.GHX")).toBe("MyFacade");
+	});
+
+	test("preserves dots in the basename", () => {
+		expect(getGhCardNameFromFileName("Facade.v2.gh")).toBe("Facade.v2");
+	});
+
+	test("clips names to the input's 30-character limit", () => {
+		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
+			"A".repeat(30)
+		);
+	});
+});
 
 test("sanitizeGhCardName strips disallowed characters", () => {
 	expect(sanitizeGhCardName("MyScript:foo")).toBe("MyScriptfoo");

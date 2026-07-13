@@ -19,6 +19,10 @@ export function sanitizeGhCardName(raw: string): string {
 		.slice(0, 30);
 }
 
+export function getGhCardNameFromFileName(fileName: string): string {
+	return fileName.replace(/\.(?:gh|ghx)$/i, "").slice(0, 30);
+}
+
 export function getSingleScriptNickName(
 	parsed: ParsedGrasshopper
 ): string | undefined {
@@ -233,8 +237,17 @@ export function useXmlPasteHandler(
 		try {
 			const xml = await ghFileToGhXml(file);
 			if (requestId !== activeRequest.current) return;
-			const result = ingestGhXml(xml, "file", options);
+			const result = ingestGhXml(xml, "file", {
+				...options,
+				// A valid file import uses its filename; script nicknames remain the
+				// clipboard-paste fallback.
+				onSingleScriptComponent: undefined,
+			});
 			if (result.isValid) {
+				const fileName = getGhCardNameFromFileName(file.name);
+				if (fileName.length > 0) {
+					options?.onFilePicked?.(fileName);
+				}
 				setIsValidXml(true);
 				setXmlData(xml);
 			} else {
