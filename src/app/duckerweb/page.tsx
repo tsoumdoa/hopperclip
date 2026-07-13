@@ -38,7 +38,7 @@ export default function DuckerWebPage() {
 				<div className="flex items-center justify-between pb-4">
 					<h1 className="text-lg font-medium">DuckerWeb</h1>
 					<a
-						href="https://github.com/mcneel/ducker"
+						href="https://github.com/tsoumdoa/hopperclip"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
