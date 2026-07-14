@@ -62,6 +62,21 @@ describe("diffGrasshopper", () => {
 		expect(modified?.changes).toContain("Value");
 	});
 
+	test("describes changes using semantic facet labels", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const component = Object.values(after.components)[0];
+		component.nickName = `${component.nickName} revised`;
+		component.state = { ...component.state, locked: !component.state?.locked };
+
+		const diff = diffGrasshopper(before, after);
+		const modified = diff.components.find(
+			(item) => item.key === component.instanceGuid
+		);
+
+		expect(modified?.changes).toEqual(["Component details", "Runtime state"]);
+	});
+
 	test("reports rewiring independently from component changes", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
