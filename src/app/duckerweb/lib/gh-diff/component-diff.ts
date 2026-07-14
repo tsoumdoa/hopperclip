@@ -1,19 +1,28 @@
 import type { Component, InputPort } from "parser/src/types";
 import type { GHComponentDiff, GHDiffStatus } from "../../types/type";
 import type { DefinitionIndex } from "./definition-index";
-import { semanticEqual } from "./semantic-equality";
+import { deepEqual } from "./deep-equal";
 
 type ComponentContext = {
 	component: Component;
 	definition: DefinitionIndex;
 };
 
-type SemanticFacet = {
+type ChangeRule = {
 	label: string;
-	read: (context: ComponentContext) => unknown;
+	changed: (before: ComponentContext, after: ComponentContext) => boolean;
 };
 
 const POSITION_TOLERANCE = 2;
+const COMPONENT_DETAIL_KEYS = [
+	"type",
+	"typeGuid",
+	"nickName",
+	"library",
+	"description",
+] as const;
+const EXPRESSION_KEYS = ["expression", "internalExpression"] as const;
+const STATE_KEYS = ["hidden", "locked", "frozen"] as const;
 
 const byInstanceGuid = <T extends { instanceGuid: string }>(a: T, b: T) =>
 	a.instanceGuid.localeCompare(b.instanceGuid);
@@ -44,43 +53,70 @@ function memberIdentities({
 		.sort();
 }
 
+function componentFieldsChanged(
+	before: Component,
+	after: Component,
+	keys: readonly (keyof Component)[]
+): boolean {
+	return keys.some((key) => before[key] !== after[key]);
+}
+
+function runtimeStateChanged(before: Component, after: Component): boolean {
+	return STATE_KEYS.some((key) => before.state?.[key] !== after.state?.[key]);
+}
+
 /**
  * The semantic diff policy. Visuals, selection, and wire sources are absent on
  * purpose: layout is reported separately and connections have their own diff.
  */
-const SEMANTIC_FACETS: readonly SemanticFacet[] = [
+const CHANGE_RULES: readonly ChangeRule[] = [
 	{
 		label: "Component details",
-		read: ({ component }) => ({
-			type: component.type,
-			typeGuid: component.typeGuid,
-			nickName: component.nickName,
-			library: component.library,
-			description: component.description,
-		}),
+		changed: (before, after) =>
+			componentFieldsChanged(
+				before.component,
+				after.component,
+				COMPONENT_DETAIL_KEYS
+			),
 	},
 	{
 		label: "Port settings",
-		read: ({ component }) => portSettings(component),
+		changed: (before, after) =>
+			!deepEqual(portSettings(before.component), portSettings(after.component)),
 	},
-	{ label: "Value", read: ({ component }) => component.value },
+	{
+		label: "Value",
+		changed: (before, after) =>
+			!deepEqual(before.component.value, after.component.value),
+	},
 	{
 		label: "Expression",
-		read: ({ component }) => ({
-			expression: component.expression,
-			internal: component.internalExpression,
-		}),
+		changed: (before, after) =>
+			componentFieldsChanged(
+				before.component,
+				after.component,
+				EXPRESSION_KEYS
+			),
 	},
-	{ label: "Script", read: ({ component }) => component.script },
-	{ label: "Cluster contents", read: ({ component }) => component.cluster },
-	{ label: "Group membership", read: memberIdentities },
+	{
+		label: "Script",
+		changed: (before, after) =>
+			!deepEqual(before.component.script, after.component.script),
+	},
+	{
+		label: "Cluster contents",
+		changed: (before, after) =>
+			!deepEqual(before.component.cluster, after.component.cluster),
+	},
+	{
+		label: "Group membership",
+		changed: (before, after) =>
+			!deepEqual(memberIdentities(before), memberIdentities(after)),
+	},
 	{
 		label: "Runtime state",
-		read: ({ component }) => ({
-			hidden: component.state?.hidden,
-			locked: component.state?.locked,
-			frozen: component.state?.frozen,
-		}),
+		changed: (before, after) =>
+			runtimeStateChanged(before.component, after.component),
 	},
 ];
 
@@ -88,9 +124,9 @@ function changedFacets(
 	before: ComponentContext,
 	after: ComponentContext
 ): string[] {
-	return SEMANTIC_FACETS.filter(
-		(facet) => !semanticEqual(facet.read(before), facet.read(after))
-	).map((facet) => facet.label);
+	return CHANGE_RULES.filter((rule) => rule.changed(before, after)).map(
+		(rule) => rule.label
+	);
 }
 
 function position(component: Component) {

@@ -10,6 +10,6 @@ function canonicalize(value: unknown): unknown {
 	);
 }
 
-export function semanticEqual(a: unknown, b: unknown): boolean {
+export function deepEqual(a: unknown, b: unknown): boolean {
 	return JSON.stringify(canonicalize(a)) === JSON.stringify(canonicalize(b));
 }
