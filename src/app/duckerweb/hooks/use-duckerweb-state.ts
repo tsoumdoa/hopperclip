@@ -4,9 +4,11 @@ import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../../utils/gh-file";
 import { generateFlowData } from "../gh-flow-generator";
+import { diffGrasshopper } from "../gh-diff";
 import type {
 	DuckerwebImportResult,
 	DuckerwebState,
+	GHDiffResult,
 	GHNode,
 	ViewMode,
 } from "../types/type";
@@ -46,6 +48,9 @@ export function prepareDuckerwebImport(
 export function useDuckerwebState(): DuckerwebState & {
 	handlePasteFromClipboard: () => Promise<void>;
 	handleFileSelected: (file: File) => Promise<void>;
+	handlePasteComparison: () => Promise<void>;
+	handleComparisonFileSelected: (file: File) => Promise<void>;
+	handleClearComparison: () => void;
 	handleClear: () => void;
 	setViewMode: React.Dispatch<React.SetStateAction<ViewMode>>;
 } {
@@ -57,7 +62,12 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [nodes, setNodes] = useState<GHNode[]>([]);
 	const [edges, setEdges] = useState<Edge[]>([]);
 	const [error, setError] = useState("");
+	const [comparisonData, setComparisonData] =
+		useState<ParsedGrasshopper | null>(null);
+	const [diffResult, setDiffResult] = useState<GHDiffResult | null>(null);
+	const [diffError, setDiffError] = useState("");
 	const activeRequest = useRef(0);
+	const activeComparisonRequest = useRef(0);
 
 	const resetFlowState = useCallback(() => {
 		setXmlData(undefined);
@@ -68,6 +78,9 @@ export function useDuckerwebState(): DuckerwebState & {
 		setNodes([]);
 		setEdges([]);
 		setError("");
+		setComparisonData(null);
+		setDiffResult(null);
+		setDiffError("");
 	}, []);
 
 	/**
@@ -89,7 +102,28 @@ export function useDuckerwebState(): DuckerwebState & {
 		setEdges(result.edges);
 		setXmlError("");
 		setError("");
+		setComparisonData(null);
+		setDiffResult(null);
+		setDiffError("");
 	}, []);
+
+	const ingestComparisonXml = useCallback(
+		(xml: string, source: "clipboard" | "file") => {
+			if (!parsedData) return;
+			const result = prepareDuckerwebImport(xml, source);
+
+			if (!result.ok) {
+				setDiffError(result.error);
+				return;
+			}
+
+			setComparisonData(result.parsedData);
+			setDiffResult(diffGrasshopper(parsedData, result.parsedData));
+			setDiffError("");
+			setViewMode("diff");
+		},
+		[parsedData]
+	);
 
 	const handlePasteFromClipboard = useCallback(async () => {
 		const requestId = ++activeRequest.current;
@@ -137,8 +171,56 @@ export function useDuckerwebState(): DuckerwebState & {
 
 	const handleClear = useCallback(() => {
 		activeRequest.current += 1;
+		activeComparisonRequest.current += 1;
 		resetFlowState();
 	}, [resetFlowState]);
+
+	const handlePasteComparison = useCallback(async () => {
+		const requestId = ++activeComparisonRequest.current;
+		setDiffError("");
+
+		try {
+			const text = await navigator.clipboard.readText();
+			if (requestId !== activeComparisonRequest.current) return;
+			if (text.length === 0) {
+				setDiffError("Clipboard is empty");
+				return;
+			}
+			ingestComparisonXml(text, "clipboard");
+		} catch (err) {
+			if (requestId !== activeComparisonRequest.current) return;
+			setDiffError("Failed to read clipboard contents: \n" + String(err));
+		}
+	}, [ingestComparisonXml]);
+
+	const handleComparisonFileSelected = useCallback(
+		async (file: File) => {
+			const requestId = ++activeComparisonRequest.current;
+			setDiffError("");
+			try {
+				const xml = await ghFileToGhXml(file);
+				if (requestId !== activeComparisonRequest.current) return;
+				ingestComparisonXml(xml, "file");
+			} catch (err) {
+				if (requestId !== activeComparisonRequest.current) return;
+				setDiffError(
+					err instanceof GhFileError
+						? err.message
+						: `Failed to read file "${file.name}": \n${
+								err instanceof Error ? err.message : String(err)
+							}`
+				);
+			}
+		},
+		[ingestComparisonXml]
+	);
+
+	const handleClearComparison = useCallback(() => {
+		activeComparisonRequest.current += 1;
+		setComparisonData(null);
+		setDiffResult(null);
+		setDiffError("");
+	}, []);
 
 	return {
 		xmlData,
@@ -149,8 +231,14 @@ export function useDuckerwebState(): DuckerwebState & {
 		nodes,
 		edges,
 		error,
+		comparisonData,
+		diffResult,
+		diffError,
 		handlePasteFromClipboard,
 		handleFileSelected,
+		handlePasteComparison,
+		handleComparisonFileSelected,
+		handleClearComparison,
 		handleClear,
 		setViewMode,
 	};

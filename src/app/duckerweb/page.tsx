@@ -9,6 +9,7 @@ import { ViewControls } from "./components/ViewControls";
 import { ComponentList } from "./components/ComponentList";
 import { GHFlowCanvas } from "./components/GHFlowCanvas";
 import { GHJsonView } from "./components/GHJsonView";
+import { GHDiffView } from "./components/GHDiffView";
 
 export default function DuckerWebPage() {
 	const {
@@ -20,8 +21,13 @@ export default function DuckerWebPage() {
 		nodes,
 		edges,
 		error,
+		diffResult,
+		diffError,
 		handlePasteFromClipboard,
 		handleFileSelected,
+		handlePasteComparison,
+		handleComparisonFileSelected,
+		handleClearComparison,
 		handleClear,
 		setViewMode,
 	} = useDuckerwebState();
@@ -30,7 +36,12 @@ export default function DuckerWebPage() {
 
 	return (
 		<DuckerwebMainZone
-			onFileSelected={handleFileSelected}
+			onFileSelected={
+				viewMode === "diff" ? handleComparisonFileSelected : handleFileSelected
+			}
+			dropTitle={
+				viewMode === "diff" ? "Drop changed .gh or .ghx definition" : undefined
+			}
 			className="flex h-dvh flex-col overflow-hidden bg-black font-sans text-white"
 		>
 			<div className="mx-auto w-full max-w-4xl shrink-0 px-4 pt-4 md:px-6 md:pt-6">
@@ -47,14 +58,16 @@ export default function DuckerWebPage() {
 					</a>
 				</div>
 
-				<XmlPasteArea
-					xmlData={xmlData}
-					isValidXml={isValidXml}
-					xmlError={xmlError}
-					onPaste={handlePasteFromClipboard}
-					onFileSelected={handleFileSelected}
-					onClear={handleClear}
-				/>
+				{(!parsedData || viewMode !== "diff") && (
+					<XmlPasteArea
+						xmlData={xmlData}
+						isValidXml={isValidXml}
+						xmlError={xmlError}
+						onPaste={handlePasteFromClipboard}
+						onFileSelected={handleFileSelected}
+						onClear={handleClear}
+					/>
+				)}
 
 				{parsedData && (
 					<ViewControls
@@ -77,12 +90,26 @@ export default function DuckerWebPage() {
 				</div>
 			)}
 
-			{parsedData && viewMode !== "flow" && (
+			{parsedData && viewMode !== "flow" && viewMode !== "diff" && (
 				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
 					<div className="mx-auto w-full max-w-4xl">
 						{viewMode === "list" && <ComponentList parsedData={parsedData} />}
 
 						{viewMode === "json" && <GHJsonView data={parsedData} />}
+					</div>
+				</div>
+			)}
+
+			{parsedData && viewMode === "diff" && (
+				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 md:px-6">
+					<div className="mx-auto flex min-h-full w-full max-w-7xl flex-col">
+						<GHDiffView
+							diff={diffResult}
+							error={diffError}
+							onPasteComparison={handlePasteComparison}
+							onFileSelected={handleComparisonFileSelected}
+							onClearComparison={handleClearComparison}
+						/>
 					</div>
 				</div>
 			)}

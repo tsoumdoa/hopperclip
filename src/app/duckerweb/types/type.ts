@@ -1,6 +1,6 @@
 import type { Node, Edge, Position } from "@xyflow/react";
 import type { ParsedGrasshopper } from "parser/src/types";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 export type GHNodeType =
 	| "value"
@@ -53,7 +53,27 @@ export type ParsedComponent = {
 	outputs: Record<string, { nick: string; description?: string }>;
 };
 
-export type ViewMode = "list" | "flow" | "json";
+export type ViewMode = "list" | "flow" | "diff" | "json";
+
+export type GHDiffStatus = "added" | "modified" | "removed" | "unchanged";
+
+export type GHComponentDiff = {
+	key: string;
+	label: string;
+	type: string;
+	status: GHDiffStatus;
+	changes: string[];
+};
+
+export type GHDiffResult = {
+	components: GHComponentDiff[];
+	counts: Record<GHDiffStatus, number>;
+	layoutMoves: number;
+	addedWires: number;
+	removedWires: number;
+	nodes: GHNode[];
+	edges: Edge[];
+};
 
 export type DuckerwebState = {
 	xmlData: string | undefined;
@@ -64,6 +84,9 @@ export type DuckerwebState = {
 	nodes: GHNode[];
 	edges: Edge[];
 	error: string;
+	comparisonData: ParsedGrasshopper | null;
+	diffResult: GHDiffResult | null;
+	diffError: string;
 };
 
 export type DuckerwebImportResult =
@@ -79,6 +102,7 @@ export type DuckerwebMainZoneProps = {
 	children: ReactNode;
 	onFileSelected: (file: File) => void;
 	className?: string;
+	dropTitle?: string;
 };
 
 export type XmlPasteAreaProps = {
@@ -225,6 +249,7 @@ export type GHEdgeProps = {
 	sourcePosition: Position;
 	targetPosition: Position;
 	selected?: boolean;
+	style?: CSSProperties;
 };
 
 export type HandleVariant = "detailed" | "compact";

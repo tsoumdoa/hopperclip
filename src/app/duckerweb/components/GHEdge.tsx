@@ -9,6 +9,7 @@ export function GHEdge({
 	sourcePosition,
 	targetPosition,
 	selected,
+	style,
 }: GHEdgeProps) {
 	const [edgePath] = getBezierPath({
 		sourceX,
@@ -26,6 +27,7 @@ export function GHEdge({
 			style={{
 				stroke: selected ? "#00a0ff" : "#555552",
 				strokeWidth: selected ? 2 : 1.5,
+				...style,
 			}}
 		/>
 	);

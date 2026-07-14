@@ -17,6 +17,7 @@ export function DuckerwebMainZone({
 	children,
 	onFileSelected,
 	className,
+	dropTitle = "Drop .gh or .ghx file to import",
 }: DuckerwebMainZoneProps) {
 	const [isDragging, setIsDragging] = useState(false);
 	const dragDepth = useRef(0);
@@ -94,7 +95,7 @@ export function DuckerwebMainZone({
 							<FileUp className="h-7 w-7 text-emerald-300" />
 						</div>
 						<p className="text-lg font-semibold text-neutral-100">
-							Drop .gh or .ghx file to import
+							{dropTitle}
 						</p>
 						<p className="text-sm text-neutral-400">
 							Release anywhere in this view
