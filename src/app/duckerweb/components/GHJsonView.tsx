@@ -35,17 +35,19 @@ export function GHJsonView({ data }: GHJsonViewProps) {
 	}, [data]);
 
 	return (
-		<div className="gh-json-viewer mb-6 overflow-auto rounded-lg border border-neutral-800 bg-[#1e1e2e] p-4">
-			{html ? (
-				<div
-					className="text-xs leading-relaxed"
-					dangerouslySetInnerHTML={{ __html: html }}
-				/>
-			) : (
-				<pre className="font-mono text-xs text-neutral-500">
-					Loading syntax highlighter...
-				</pre>
-			)}
+		<div className="gh-json-viewer mb-6 w-full overflow-x-hidden rounded-lg border border-neutral-800 bg-[#1e1e2e]">
+			<div className="mx-auto w-full max-w-4xl p-4">
+				{html ? (
+					<div
+						className="text-xs leading-relaxed"
+						dangerouslySetInnerHTML={{ __html: html }}
+					/>
+				) : (
+					<pre className="font-mono text-xs text-neutral-500">
+						Loading syntax highlighter...
+					</pre>
+				)}
+			</div>
 		</div>
 	);
 }

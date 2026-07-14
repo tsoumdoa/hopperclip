@@ -10,6 +10,7 @@ import { ComponentList } from "./components/ComponentList";
 import { GHFlowCanvas } from "./components/GHFlowCanvas";
 import { GHJsonView } from "./components/GHJsonView";
 import { GHDiffView } from "./components/GHDiffView";
+import { cn } from "@/lib/utils";
 
 export default function DuckerWebPage() {
 	const {
@@ -42,49 +43,63 @@ export default function DuckerWebPage() {
 			dropTitle={
 				viewMode === "diff" ? "Drop changed .gh or .ghx definition" : undefined
 			}
-			className="flex h-dvh flex-col overflow-hidden bg-black font-sans text-white"
+			className={cn(
+				"flex flex-col bg-black font-sans text-white",
+				viewMode === "diff" ? "min-h-dvh" : "h-dvh overflow-hidden"
+			)}
 		>
-			<div className="mx-auto w-full max-w-4xl shrink-0 px-4 pt-4 md:px-6 md:pt-6">
-				<Header />
-				<div className="flex items-center justify-between pb-4">
-					<h1 className="text-lg font-medium">DuckerWeb</h1>
-					<a
-						href="https://github.com/tsoumdoa/hopperclip"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
-					>
-						GitHub
-					</a>
+			<div className="w-full shrink-0 px-4 pt-4 md:px-6 md:pt-6">
+				<div className="mx-auto w-full max-w-6xl">
+					<Header />
+					<div className="flex items-center justify-between pb-4">
+						<h1 className="text-lg font-medium">DuckerWeb</h1>
+						<a
+							href="https://github.com/tsoumdoa/hopperclip"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+						>
+							GitHub
+						</a>
+					</div>
+
+					{parsedData ? (
+						<div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-950/60 p-2">
+							<XmlPasteArea
+								xmlData={xmlData}
+								isValidXml={isValidXml}
+								xmlError={xmlError}
+								compact
+								onPaste={handlePasteFromClipboard}
+								onFileSelected={handleFileSelected}
+								onClear={handleClear}
+							/>
+							<ViewControls
+								viewMode={viewMode}
+								isCopied={isCopied}
+								onCopyAll={handleCopyAll}
+								onSetViewMode={setViewMode}
+							/>
+						</div>
+					) : (
+						<XmlPasteArea
+							xmlData={xmlData}
+							isValidXml={isValidXml}
+							xmlError={xmlError}
+							onPaste={handlePasteFromClipboard}
+							onFileSelected={handleFileSelected}
+							onClear={handleClear}
+						/>
+					)}
+
+					<div className="py-2" />
+					{error && <p className="mb-4 text-red-400">{error}</p>}
 				</div>
-
-				{(!parsedData || viewMode !== "diff") && (
-					<XmlPasteArea
-						xmlData={xmlData}
-						isValidXml={isValidXml}
-						xmlError={xmlError}
-						onPaste={handlePasteFromClipboard}
-						onFileSelected={handleFileSelected}
-						onClear={handleClear}
-					/>
-				)}
-
-				{parsedData && (
-					<ViewControls
-						viewMode={viewMode}
-						isCopied={isCopied}
-						onCopyAll={handleCopyAll}
-						onSetViewMode={setViewMode}
-					/>
-				)}
-
-				<div className="py-2" />
-				{error && <p className="mb-4 text-red-400">{error}</p>}
 			</div>
 
 			{parsedData && viewMode === "flow" && (
 				<div className="min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto h-full w-full max-w-4xl">
+					<div className="mx-auto h-full w-full max-w-6xl">
 						<GHFlowCanvas nodes={nodes} edges={edges} />
 					</div>
 				</div>
@@ -92,7 +107,7 @@ export default function DuckerWebPage() {
 
 			{parsedData && viewMode !== "flow" && viewMode !== "diff" && (
 				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto w-full max-w-4xl">
+					<div className="mx-auto w-full max-w-6xl">
 						{viewMode === "list" && <ComponentList parsedData={parsedData} />}
 
 						{viewMode === "json" && <GHJsonView data={parsedData} />}
@@ -101,8 +116,8 @@ export default function DuckerWebPage() {
 			)}
 
 			{parsedData && viewMode === "diff" && (
-				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 md:px-6">
-					<div className="mx-auto flex min-h-full w-full max-w-7xl flex-col">
+				<div className="px-4 pb-6 md:px-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0">
+					<div className="mx-auto flex h-full w-full max-w-6xl flex-col">
 						<GHDiffView
 							diff={diffResult}
 							error={diffError}

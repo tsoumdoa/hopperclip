@@ -180,6 +180,13 @@
 
 	.gh-json-viewer pre {
 		margin: 0;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
+
+	.gh-json-viewer code {
+		white-space: inherit;
 	}
 
 	.gh-json-viewer pre.shiki {

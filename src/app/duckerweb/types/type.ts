@@ -109,6 +109,7 @@ export type XmlPasteAreaProps = {
 	xmlData: string | undefined;
 	isValidXml: boolean;
 	xmlError: string;
+	compact?: boolean;
 	onPaste: () => void;
 	onFileSelected: (file: File) => void;
 	onClear: () => void;

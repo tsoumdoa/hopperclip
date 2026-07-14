@@ -251,7 +251,7 @@ export function GHDiffView({
 				</p>
 			)}
 
-			<div className="grid min-h-[560px] flex-1 gap-4 lg:grid-cols-[290px_minmax(0,1fr)]">
+			<div className="grid h-[860px] shrink-0 grid-rows-[300px_minmax(0,1fr)] gap-4 lg:h-auto lg:min-h-0 lg:flex-1 lg:grid-cols-[290px_minmax(0,1fr)] lg:grid-rows-1">
 				<aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950/80">
 					<div className="border-b border-neutral-800 px-4 py-3">
 						<p className="text-sm font-semibold text-neutral-200">
@@ -313,7 +313,7 @@ export function GHDiffView({
 					</div>
 				</aside>
 
-				<div className="relative min-h-[500px] overflow-hidden rounded-xl border border-neutral-800 bg-[#cbc9c8]">
+				<div className="relative min-h-0 overflow-hidden rounded-xl border border-neutral-800 bg-[#cbc9c8]">
 					<div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-3 rounded-lg border border-black/10 bg-white/85 px-3 py-2 text-[11px] font-semibold text-neutral-700 shadow-sm backdrop-blur">
 						<span className="flex items-center gap-1.5">
 							<span className="h-2 w-2 rounded-full bg-green-500" />
