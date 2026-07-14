@@ -25,9 +25,10 @@ export function GHEdge({
 		<BaseEdge
 			path={edgePath}
 			style={{
-				stroke: selected ? "#00a0ff" : "#555552",
-				strokeWidth: selected ? 2 : 1.5,
+				stroke: "#555552",
+				strokeWidth: 1.5,
 				...style,
+				...(selected && { stroke: "#00a0ff", strokeWidth: 2, opacity: 1 }),
 			}}
 		/>
 	);

@@ -127,9 +127,15 @@ export type ViewTab = {
 	icon: ReactNode;
 };
 
+export type GHFlowCanvasFocus = {
+	nodeId: string;
+	nonce: number;
+};
+
 export type GHFlowCanvasProps = {
 	nodes: GHNode[];
 	edges: Edge[];
+	focus?: GHFlowCanvasFocus | null;
 };
 
 export type ScriptData = {

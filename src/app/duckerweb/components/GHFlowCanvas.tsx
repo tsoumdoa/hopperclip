@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
 	ReactFlow,
 	Background,
 	BackgroundVariant,
 	Controls,
+	useReactFlow,
 	type NodeTypes,
 	type EdgeTypes,
 } from "@xyflow/react";
@@ -42,7 +43,23 @@ const edgeTypes: EdgeTypes = {
 	default: GHEdge as EdgeTypes[string],
 };
 
-export function GHFlowCanvas({ nodes, edges }: GHFlowCanvasProps) {
+function FocusOnNode({ focus }: { focus: GHFlowCanvasProps["focus"] }) {
+	const { fitView } = useReactFlow();
+
+	useEffect(() => {
+		if (!focus) return;
+		fitView({
+			nodes: [{ id: focus.nodeId }],
+			duration: 350,
+			padding: 0.4,
+			maxZoom: 1.2,
+		});
+	}, [focus, fitView]);
+
+	return null;
+}
+
+export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 	const defaultEdgeOptions = useMemo(
 		() => ({
 			type: "default",
@@ -73,6 +90,7 @@ export function GHFlowCanvas({ nodes, edges }: GHFlowCanvasProps) {
 					color="#bbb8af"
 				/>
 				<Controls />
+				<FocusOnNode focus={focus} />
 			</ReactFlow>
 		</div>
 	);

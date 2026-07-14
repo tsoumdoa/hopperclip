@@ -6,9 +6,13 @@ import {
 	Move,
 	RotateCcw,
 } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { GHDiffResult, GHDiffStatus } from "../types/type";
+import type {
+	GHDiffResult,
+	GHDiffStatus,
+	GHFlowCanvasFocus,
+} from "../types/type";
 import { GHFlowCanvas } from "./GHFlowCanvas";
 
 type GHDiffViewProps = {
@@ -90,6 +94,8 @@ function ComparisonActions({
 	);
 }
 
+let canvasRemountSeq = 0;
+
 export function GHDiffView({
 	diff,
 	error,
@@ -97,6 +103,15 @@ export function GHDiffView({
 	onFileSelected,
 	onClearComparison,
 }: GHDiffViewProps) {
+	const [focus, setFocus] = useState<GHFlowCanvasFocus | null>(null);
+	// Remounting the canvas when a new comparison arrives re-runs fitView, so
+	// the viewport never shows a stale framing from the previous diff.
+	const canvasKey = useMemo(() => ++canvasRemountSeq, [diff]);
+
+	useEffect(() => {
+		setFocus(null);
+	}, [diff]);
+
 	if (!diff) {
 		return (
 			<div className="mx-auto flex min-h-[380px] max-w-3xl items-center justify-center py-8">
@@ -243,7 +258,8 @@ export function GHDiffView({
 							Changed components
 						</p>
 						<p className="mt-0.5 text-xs text-neutral-600">
-							{diff.counts.unchanged} unchanged hidden from this list
+							Click a change to locate it · {diff.counts.unchanged} unchanged
+							hidden
 						</p>
 					</div>
 					<div className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -258,9 +274,21 @@ export function GHDiffView({
 										component.status as Exclude<GHDiffStatus, "unchanged">
 									];
 								return (
-									<div
+									<button
 										key={component.key}
-										className="rounded-lg border border-transparent px-3 py-2.5 hover:border-neutral-800 hover:bg-neutral-900/70"
+										type="button"
+										onClick={() =>
+											setFocus((previous) => ({
+												nodeId: component.key,
+												nonce: (previous?.nonce ?? 0) + 1,
+											}))
+										}
+										className={cn(
+											"w-full rounded-lg border px-3 py-2.5 text-left focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:outline-none",
+											focus?.nodeId === component.key
+												? "border-neutral-700 bg-neutral-900"
+												: "border-transparent hover:border-neutral-800 hover:bg-neutral-900/70"
+										)}
 									>
 										<div className="flex items-start gap-2.5">
 											<span
@@ -278,7 +306,7 @@ export function GHDiffView({
 												</p>
 											</div>
 										</div>
-									</div>
+									</button>
 								);
 							})
 						)}
@@ -300,7 +328,12 @@ export function GHDiffView({
 							Removed
 						</span>
 					</div>
-					<GHFlowCanvas nodes={diff.nodes} edges={diff.edges} />
+					<GHFlowCanvas
+						key={canvasKey}
+						nodes={diff.nodes}
+						edges={diff.edges}
+						focus={focus}
+					/>
 				</div>
 			</div>
 		</div>
