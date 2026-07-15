@@ -212,7 +212,7 @@ export function GHDiffView({
 			...edge,
 			style: {
 				...edge.style,
-				opacity: !filter ? 0.9 : isMatch ? edge.style?.opacity : 0.14,
+				opacity: filter && !isMatch ? 0.14 : edge.style?.opacity,
 			},
 		};
 	});
@@ -356,7 +356,9 @@ export function GHDiffView({
 					<div className="min-h-0 flex-1 overflow-y-auto p-2">
 						{visibleComponents.length === 0 ? (
 							<div className="px-3 py-8 text-center text-sm text-neutral-500">
-								The definitions have the same logic.
+								{filter
+									? "No changes match this filter."
+									: "The definitions have the same logic."}
 							</div>
 						) : (
 							visibleComponents.map((component) => {

@@ -221,16 +221,20 @@ function buildOverlayEdges(
 
 	for (const [key, wire] of newWires) {
 		const status = oldWires.has(key) ? "unchanged" : "added";
-		if (status === "added") added += 1;
 		const edge = presentWire(wire, after, status, edges.length);
-		if (edge) edges.push(edge);
+		if (edge) {
+			edges.push(edge);
+			if (status === "added") added += 1;
+		}
 	}
 
 	for (const [key, wire] of oldWires) {
 		if (newWires.has(key)) continue;
-		removed += 1;
 		const edge = presentWire(wire, before, "removed", edges.length);
-		if (edge) edges.push(edge);
+		if (edge) {
+			edges.push(edge);
+			removed += 1;
+		}
 	}
 
 	return { edges, added, removed };

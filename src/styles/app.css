@@ -158,8 +158,8 @@
 	}
 
 	.react-flow__node.gh-diff-node--unchanged {
-		opacity: 1;
-		filter: none;
+		opacity: 0.42;
+		filter: saturate(0.35);
 	}
 
 	.react-flow__node.gh-diff-node--added {

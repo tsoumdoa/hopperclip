@@ -27,13 +27,9 @@ export function assessDefinitionOverlap(
 	const matchedCount = [...before.componentsByKey.keys()].filter((key) =>
 		after.componentsByKey.has(key)
 	).length;
-	const bothEmpty =
-		before.componentsByKey.size === 0 && after.componentsByKey.size === 0;
-	const ratio = bothEmpty
-		? 1
-		: smallerCount === 0
-			? 0
-			: matchedCount / smallerCount;
+	// With no components on one side there is no identity evidence with which
+	// to reject the comparison. Treat it as a valid all-added/all-removed diff.
+	const ratio = smallerCount === 0 ? 1 : matchedCount / smallerCount;
 	const enoughMatches =
 		smallerCount <= 5 || matchedCount >= MIN_MATCHES_FOR_LARGE_DEFINITION;
 

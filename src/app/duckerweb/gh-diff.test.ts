@@ -41,6 +41,31 @@ describe("diffGrasshopper", () => {
 		expect(overlap.ratio).toBeGreaterThanOrEqual(0.25);
 		expect(overlap.isComparable).toBe(true);
 	});
+
+	test.each([
+		["all-added", false],
+		["all-removed", true],
+	] as const)(
+		"accepts an %s comparison with an empty definition",
+		(_, swap) => {
+			const populated = fixture("parser/sand/xmls/brep-area-Wire.xml");
+			const empty = clone(populated);
+			empty.components = {};
+			empty.wires = [];
+			const before = swap ? populated : empty;
+			const after = swap ? empty : populated;
+
+			const overlap = assessDefinitionOverlap(before, after);
+			const diff = diffGrasshopper(before, after);
+
+			expect(overlap.ratio).toBe(1);
+			expect(overlap.isComparable).toBe(true);
+			expect(swap ? diff.counts.removed : diff.counts.added).toBe(
+				Object.keys(populated.components).length
+			);
+		}
+	);
+
 	test("ignores layout and selection changes while reporting the movement", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
@@ -116,6 +141,32 @@ describe("diffGrasshopper", () => {
 		expect(
 			diff.edges.filter((edge) => edge.data?.diffStatus === "removed")
 		).toHaveLength(before.wires.length);
+	});
+
+	test("does not count unresolved wires that cannot be presented", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const target = Object.values(after.components).find(
+			(component) => Object.keys(component.inputs).length > 0
+		);
+		expect(target).toBeDefined();
+		if (!target) return;
+		const [inputKey, input] = Object.entries(target.inputs)[0];
+		after.wires.push({
+			from: "missing-source-guid",
+			to: `${target.id}.${inputKey}`,
+			sourceComponentGuid: "missing-source-guid",
+			targetPortGuid: input.instanceGuid,
+		});
+
+		const added = diffGrasshopper(before, after);
+		const removed = diffGrasshopper(after, before);
+
+		expect(added.addedWires).toBe(0);
+		expect(removed.removedWires).toBe(0);
+		expect(
+			added.edges.filter((edge) => edge.data?.diffStatus === "added")
+		).toHaveLength(0);
 	});
 
 	test("reports added and removed components by stable instance ID", () => {

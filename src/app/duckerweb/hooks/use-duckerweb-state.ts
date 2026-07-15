@@ -103,6 +103,10 @@ export function useDuckerwebState(): DuckerwebState & {
 			}
 
 			setXmlData(xml);
+			// Any comparison already being read captured the previous original.
+			// Invalidate it before committing this replacement so it cannot publish
+			// a stale diff after the new original is visible.
+			activeComparisonRequest.current += 1;
 			setIsValidXml(true);
 			setParsedData(result.parsedData);
 			setNodes(result.nodes);
@@ -204,6 +208,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	const handlePasteComparison = useCallback(async () => {
 		const requestId = ++activeComparisonRequest.current;
 		setDiffError("");
+		setComparisonRejected(false);
 
 		try {
 			const text = await navigator.clipboard.readText();
@@ -223,6 +228,7 @@ export function useDuckerwebState(): DuckerwebState & {
 		async (file: File) => {
 			const requestId = ++activeComparisonRequest.current;
 			setDiffError("");
+			setComparisonRejected(false);
 			try {
 				const xml = await ghFileToGhXml(file);
 				if (requestId !== activeComparisonRequest.current) return;
