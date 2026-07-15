@@ -35,6 +35,13 @@ export function handleGroup(
 				? { width: bounds.width, height: bounds.height }
 				: undefined,
 		data: nodeData,
+		className: [
+			component.state?.hidden && "gh-runtime-node--hidden",
+			(component.state?.locked || component.state?.frozen) &&
+				"gh-runtime-node--locked",
+		]
+			.filter(Boolean)
+			.join(" "),
 		zIndex: 0,
 	} as GHNode;
 }

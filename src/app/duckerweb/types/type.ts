@@ -1,6 +1,7 @@
 import type { Node, Edge, Position } from "@xyflow/react";
 import type { ParsedGrasshopper } from "parser/src/types";
 import type { CSSProperties, ReactNode } from "react";
+import type { GHRuntimeState } from "../lib/runtime-palette";
 
 export type GHNodeType =
 	| "value"
@@ -22,6 +23,7 @@ export type GHNodeData = {
 	outputs: Port[];
 	accentColor?: string;
 	selected?: boolean;
+	runtimeState?: GHRuntimeState;
 	members?: string[];
 	containerBounds?: Bounds;
 	value?: string;
@@ -63,6 +65,7 @@ export type GHComponentDiff = {
 	type: string;
 	status: GHDiffStatus;
 	changes: string[];
+	layoutMoved: boolean;
 };
 
 export type GHDiffResult = {
@@ -87,6 +90,9 @@ export type DuckerwebState = {
 	comparisonData: ParsedGrasshopper | null;
 	diffResult: GHDiffResult | null;
 	diffError: string;
+	fileName: string;
+	comparisonFileName: string;
+	comparisonRejected: boolean;
 };
 
 export type DuckerwebImportResult =
@@ -109,6 +115,7 @@ export type XmlPasteAreaProps = {
 	xmlData: string | undefined;
 	isValidXml: boolean;
 	xmlError: string;
+	fileName?: string;
 	compact?: boolean;
 	onPaste: () => void;
 	onFileSelected: (file: File) => void;
@@ -153,6 +160,7 @@ export type GHNodeProps = {
 		outputs: Port[];
 		accentColor?: string;
 		selected?: boolean;
+		runtimeState?: GHRuntimeState;
 		inputWidth?: number;
 		outputWidth?: number;
 		value?: string;

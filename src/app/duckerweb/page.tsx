@@ -24,6 +24,9 @@ export default function DuckerWebPage() {
 		error,
 		diffResult,
 		diffError,
+		fileName,
+		comparisonFileName,
+		comparisonRejected,
 		handlePasteFromClipboard,
 		handleFileSelected,
 		handlePasteComparison,
@@ -69,6 +72,7 @@ export default function DuckerWebPage() {
 								xmlData={xmlData}
 								isValidXml={isValidXml}
 								xmlError={xmlError}
+								fileName={fileName}
 								compact
 								onPaste={handlePasteFromClipboard}
 								onFileSelected={handleFileSelected}
@@ -86,6 +90,7 @@ export default function DuckerWebPage() {
 							xmlData={xmlData}
 							isValidXml={isValidXml}
 							xmlError={xmlError}
+							fileName={fileName}
 							onPaste={handlePasteFromClipboard}
 							onFileSelected={handleFileSelected}
 							onClear={handleClear}
@@ -124,6 +129,9 @@ export default function DuckerWebPage() {
 							onPasteComparison={handlePasteComparison}
 							onFileSelected={handleComparisonFileSelected}
 							onClearComparison={handleClearComparison}
+							originalFileName={fileName}
+							comparisonFileName={comparisonFileName}
+							comparisonRejected={comparisonRejected}
 						/>
 					</div>
 				</div>

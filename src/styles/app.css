@@ -153,9 +153,13 @@
 			filter 160ms ease;
 	}
 
+	.react-flow__node.gh-diff-node.gh-diff-filter-ghost {
+		opacity: 0.3;
+	}
+
 	.react-flow__node.gh-diff-node--unchanged {
-		opacity: 0.42;
-		filter: saturate(0.35);
+		opacity: 1;
+		filter: none;
 	}
 
 	.react-flow__node.gh-diff-node--added {
@@ -171,11 +175,18 @@
 	}
 
 	.react-flow__node.gh-diff-node--removed {
-		opacity: 0.78;
+		opacity: 1;
 		outline: 3px solid #ef4444;
 		outline-offset: 3px;
 		filter: grayscale(0.45) drop-shadow(0 0 1px #dc2626)
 			drop-shadow(0 0 6px #ef444499);
+	}
+
+	.react-flow__node.gh-diff-node--layout {
+		opacity: 1;
+		outline: 3px solid #60a5fa;
+		outline-offset: 3px;
+		filter: saturate(0.55) drop-shadow(0 0 6px #60a5fa99);
 	}
 
 	.gh-json-viewer pre {

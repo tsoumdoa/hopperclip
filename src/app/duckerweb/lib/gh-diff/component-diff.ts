@@ -65,6 +65,20 @@ function runtimeStateChanged(before: Component, after: Component): boolean {
 	return STATE_KEYS.some((key) => before.state?.[key] !== after.state?.[key]);
 }
 
+function runtimeStateChanges(before: Component, after: Component): string[] {
+	const labels = {
+		hidden: { on: "Hidden (visibility off)", off: "Visible (visibility on)" },
+		locked: { on: "Locked", off: "Unlocked" },
+		frozen: { on: "Frozen", off: "Unfrozen" },
+	} as const;
+	return STATE_KEYS.flatMap((key) => {
+		const oldValue = Boolean(before.state?.[key]);
+		const newValue = Boolean(after.state?.[key]);
+		if (oldValue === newValue) return [];
+		return [labels[key][newValue ? "on" : "off"]];
+	});
+}
+
 /**
  * The semantic diff policy. Visuals, selection, and wire sources are absent on
  * purpose: layout is reported separately and connections have their own diff.
@@ -113,20 +127,19 @@ const CHANGE_RULES: readonly ChangeRule[] = [
 		changed: (before, after) =>
 			!deepEqual(memberIdentities(before), memberIdentities(after)),
 	},
-	{
-		label: "Runtime state",
-		changed: (before, after) =>
-			runtimeStateChanged(before.component, after.component),
-	},
 ];
 
 function changedFacets(
 	before: ComponentContext,
 	after: ComponentContext
 ): string[] {
-	return CHANGE_RULES.filter((rule) => rule.changed(before, after)).map(
-		(rule) => rule.label
-	);
+	const changes = CHANGE_RULES.filter((rule) =>
+		rule.changed(before, after)
+	).map((rule) => rule.label);
+	if (runtimeStateChanged(before.component, after.component)) {
+		changes.push(...runtimeStateChanges(before.component, after.component));
+	}
+	return changes;
 }
 
 function position(component: Component) {
@@ -155,6 +168,7 @@ function presenceDiff(
 		type: component.type,
 		status,
 		changes: [`Component ${status}`],
+		layoutMoved: false,
 	};
 }
 
@@ -194,13 +208,15 @@ export function diffComponents(
 			{ component: oldComponent, definition: before },
 			{ component: newComponent, definition: after }
 		);
-		if (hasMoved(oldComponent, newComponent)) layoutMoves += 1;
+		const layoutMoved = hasMoved(oldComponent, newComponent);
+		if (layoutMoved) layoutMoves += 1;
 		components.push({
 			key,
 			label: newComponent.nickName,
 			type: newComponent.type,
 			status: changes.length > 0 ? "modified" : "unchanged",
 			changes,
+			layoutMoved,
 		});
 	}
 

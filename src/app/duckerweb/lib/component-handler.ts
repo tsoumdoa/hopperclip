@@ -34,9 +34,20 @@ export function handleComponent(
 		outputs,
 		accentColor: getAccentColor(component),
 		selected: component.state?.selected,
+		runtimeState:
+			component.state?.locked || component.state?.frozen
+				? "locked"
+				: component.state?.hidden
+					? "hidden"
+					: "normal",
 		value: extractValue(component),
 		height: position.height,
 	};
+	const runtimeClasses = [
+		component.state?.hidden && "gh-runtime-node--hidden",
+		(component.state?.locked || component.state?.frozen) &&
+			"gh-runtime-node--locked",
+	].filter(Boolean);
 
 	if (component.value?.type === "valueList") {
 		nodeData.items = component.value.items;
@@ -56,6 +67,7 @@ export function handleComponent(
 		type: nodeType,
 		position,
 		data: nodeData,
+		className: runtimeClasses.join(" "),
 		zIndex: 10,
 	} as GHNode;
 }

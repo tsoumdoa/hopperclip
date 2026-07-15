@@ -21,7 +21,12 @@ type GHDiffViewProps = {
 	onPasteComparison: () => void;
 	onFileSelected: (file: File) => void;
 	onClearComparison: () => void;
+	originalFileName: string;
+	comparisonFileName: string;
+	comparisonRejected: boolean;
 };
+
+type DiffFilter = Exclude<GHDiffStatus, "unchanged"> | "layout" | "connections";
 
 const statusStyles: Record<
 	Exclude<GHDiffStatus, "unchanged">,
@@ -102,14 +107,19 @@ export function GHDiffView({
 	onPasteComparison,
 	onFileSelected,
 	onClearComparison,
+	originalFileName,
+	comparisonFileName,
+	comparisonRejected,
 }: GHDiffViewProps) {
 	const [focus, setFocus] = useState<GHFlowCanvasFocus | null>(null);
+	const [filter, setFilter] = useState<DiffFilter | null>(null);
 	// Remounting the canvas when a new comparison arrives re-runs fitView, so
 	// the viewport never shows a stale framing from the previous diff.
 	const canvasKey = useMemo(() => ++canvasRemountSeq, [diff]);
 
 	useEffect(() => {
 		setFocus(null);
+		setFilter(null);
 	}, [diff]);
 
 	if (!diff) {
@@ -120,16 +130,31 @@ export function GHDiffView({
 						<GitCompareArrows className="h-6 w-6 text-yellow-300" />
 					</div>
 					<p className="text-xs font-semibold tracking-[0.18em] text-neutral-500 uppercase">
-						Original loaded
+						{comparisonRejected ? "Comparison stopped" : "Original loaded"}
 					</p>
 					<h2 className="mt-2 text-xl font-semibold text-neutral-100">
-						Add the changed definition
+						{comparisonRejected
+							? "Definitions appear unrelated"
+							: "Add the changed definition"}
 					</h2>
-					<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-neutral-400">
-						Ducker compares components, parameters, scripts, and connections.
-						Moving components around the canvas does not count as a logic
-						change.
-					</p>
+					{comparisonRejected ? (
+						<>
+							<p className="mt-2 text-sm text-neutral-300">
+								<span className="font-medium">{originalFileName}</span>
+								<span className="mx-2 text-neutral-600">→</span>
+								<span className="font-medium">{comparisonFileName}</span>
+							</p>
+							<p className="mx-auto mt-3 max-w-lg rounded-lg border border-blue-900/60 bg-blue-950/30 px-4 py-3 text-left text-sm leading-6 text-blue-200">
+								{error}
+							</p>
+						</>
+					) : (
+						<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-neutral-400">
+							Ducker compares components, parameters, scripts, and connections.
+							Moving components around the canvas does not count as a logic
+							change.
+						</p>
+					)}
 					<div className="mt-6 flex justify-center">
 						<ComparisonActions
 							onPaste={onPasteComparison}
@@ -139,7 +164,7 @@ export function GHDiffView({
 					<p className="mt-4 text-xs text-neutral-600">
 						Tip: you can also drop the changed .gh or .ghx file anywhere here.
 					</p>
-					{error && (
+					{error && !comparisonRejected && (
 						<p className="mt-5 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-left text-sm font-medium text-red-300">
 							{error}
 						</p>
@@ -155,9 +180,44 @@ export function GHDiffView({
 		diff.counts.removed +
 		diff.addedWires +
 		diff.removedWires;
-	const changedComponents = diff.components.filter(
-		(component) => component.status !== "unchanged"
+	const changedEdges = diff.edges.filter(
+		(edge) => edge.data?.diffStatus !== "unchanged"
 	);
+	const connectionKeys = new Set(
+		changedEdges.flatMap((edge) => [edge.source, edge.target])
+	);
+	const visibleComponents = diff.components.filter((component) => {
+		if (filter === "layout") return component.layoutMoved;
+		if (filter === "connections") return connectionKeys.has(component.key);
+		if (filter) return component.status === filter;
+		return component.status !== "unchanged" || component.layoutMoved;
+	});
+	const visibleKeys = new Set(
+		visibleComponents.map((component) => component.key)
+	);
+	const canvasNodes = diff.nodes.map((node) => ({
+		...node,
+		className: cn(
+			node.className,
+			filter && !visibleKeys.has(node.id) && "gh-diff-filter-ghost"
+		),
+	}));
+	const canvasEdges = diff.edges.map((edge) => {
+		const isMatch =
+			!filter ||
+			(filter === "connections"
+				? edge.data?.diffStatus !== "unchanged"
+				: visibleKeys.has(edge.source) && visibleKeys.has(edge.target));
+		return {
+			...edge,
+			style: {
+				...edge.style,
+				opacity: !filter ? 0.9 : isMatch ? edge.style?.opacity : 0.14,
+			},
+		};
+	});
+	const toggleFilter = (next: DiffFilter) =>
+		setFilter((current) => (current === next ? null : next));
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -180,8 +240,17 @@ export function GHDiffView({
 								: `${logicChanges} logic change${logicChanges === 1 ? "" : "s"}`}
 						</span>
 					</div>
-					<p className="mt-1 text-sm text-neutral-500">
-						Original → changed · matched by Grasshopper instance ID
+					<p className="mt-1 text-sm text-neutral-400">
+						<span className="font-medium text-neutral-200">
+							{originalFileName}
+						</span>
+						<span className="mx-2 text-neutral-600">→</span>
+						<span className="font-medium text-neutral-200">
+							{comparisonFileName}
+						</span>
+						<span className="ml-2 text-neutral-600">
+							· matched by instance ID
+						</span>
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -205,12 +274,16 @@ export function GHDiffView({
 				{(["added", "modified", "removed"] as const).map((status) => {
 					const style = statusStyles[status];
 					return (
-						<div
+						<button
+							type="button"
+							onClick={() => toggleFilter(status)}
+							aria-pressed={filter === status}
 							key={status}
 							className={cn(
-								"rounded-xl border px-4 py-3",
+								"rounded-xl border px-4 py-3 text-left transition hover:brightness-125 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none",
 								style.border,
-								style.bg
+								style.bg,
+								filter === status && "ring-2 ring-white/70"
 							)}
 						>
 							<p className={cn("text-2xl font-semibold", style.text)}>
@@ -219,10 +292,35 @@ export function GHDiffView({
 							<p className="mt-0.5 text-xs font-medium text-neutral-400">
 								{style.label}
 							</p>
-						</div>
+						</button>
 					);
 				})}
-				<div className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-3">
+				<button
+					type="button"
+					onClick={() => toggleFilter("layout")}
+					aria-pressed={filter === "layout"}
+					className={cn(
+						"rounded-xl border border-blue-400/30 bg-blue-400/10 px-4 py-3 text-left transition hover:brightness-125 focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:outline-none",
+						filter === "layout" && "ring-2 ring-blue-300/70"
+					)}
+				>
+					<div className="flex items-center gap-2 text-blue-300">
+						<Move className="h-4 w-4" />
+						<p className="text-lg font-semibold">{diff.layoutMoves}</p>
+					</div>
+					<p className="mt-1 text-xs font-medium text-neutral-400">
+						Layout change
+					</p>
+				</button>
+				<button
+					type="button"
+					onClick={() => toggleFilter("connections")}
+					aria-pressed={filter === "connections"}
+					className={cn(
+						"rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-3 text-left transition hover:border-neutral-600 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none",
+						filter === "connections" && "ring-2 ring-white/70"
+					)}
+				>
 					<div className="flex items-center gap-2 text-neutral-200">
 						<Cable className="h-4 w-4" />
 						<p className="text-lg font-semibold">
@@ -233,16 +331,7 @@ export function GHDiffView({
 					<p className="mt-1 text-xs font-medium text-neutral-500">
 						Connections
 					</p>
-				</div>
-				<div className="col-span-2 rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-3 lg:col-span-1">
-					<div className="flex items-center gap-2 text-neutral-300">
-						<Move className="h-4 w-4" />
-						<p className="text-lg font-semibold">{diff.layoutMoves}</p>
-					</div>
-					<p className="mt-1 text-xs font-medium text-neutral-500">
-						Layout moves ignored
-					</p>
-				</div>
+				</button>
 			</div>
 
 			{error && (
@@ -258,21 +347,23 @@ export function GHDiffView({
 							Changed components
 						</p>
 						<p className="mt-0.5 text-xs text-neutral-600">
-							Click a change to locate it · {diff.counts.unchanged} unchanged
-							hidden
+							{filter
+								? `Filtering by ${filter === "layout" ? "layout change" : filter === "connections" ? "connection changes" : filter}`
+								: "Click a change to locate it"}{" "}
+							· {diff.counts.unchanged} unchanged
 						</p>
 					</div>
 					<div className="min-h-0 flex-1 overflow-y-auto p-2">
-						{changedComponents.length === 0 ? (
+						{visibleComponents.length === 0 ? (
 							<div className="px-3 py-8 text-center text-sm text-neutral-500">
 								The definitions have the same logic.
 							</div>
 						) : (
-							changedComponents.map((component) => {
+							visibleComponents.map((component) => {
 								const style =
-									statusStyles[
-										component.status as Exclude<GHDiffStatus, "unchanged">
-									];
+									component.status === "unchanged"
+										? null
+										: statusStyles[component.status];
 								return (
 									<button
 										key={component.key}
@@ -294,15 +385,23 @@ export function GHDiffView({
 											<span
 												className={cn(
 													"mt-1.5 h-2 w-2 shrink-0 rounded-full",
-													style.dot
+													style?.dot ?? "bg-blue-400"
 												)}
 											/>
 											<div className="min-w-0">
 												<p className="truncate text-sm font-medium text-neutral-200">
 													{component.label}
 												</p>
-												<p className={cn("mt-0.5 text-xs", style.text)}>
-													{component.changes.join(" · ")}
+												<p
+													className={cn(
+														"mt-0.5 text-xs",
+														style?.text ?? "text-blue-300"
+													)}
+												>
+													{[
+														...component.changes,
+														...(component.layoutMoved ? ["Layout change"] : []),
+													].join(" · ")}
 												</p>
 											</div>
 										</div>
@@ -327,11 +426,15 @@ export function GHDiffView({
 							<span className="h-2 w-2 rounded-full bg-red-500" />
 							Removed
 						</span>
+						<span className="flex items-center gap-1.5">
+							<span className="h-2 w-2 rounded-full bg-blue-400" />
+							Layout change
+						</span>
 					</div>
 					<GHFlowCanvas
 						key={canvasKey}
-						nodes={diff.nodes}
-						edges={diff.edges}
+						nodes={canvasNodes}
+						edges={canvasEdges}
 						focus={focus}
 					/>
 				</div>

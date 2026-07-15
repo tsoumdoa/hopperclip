@@ -10,6 +10,7 @@ export function XmlPasteArea({
 	xmlData,
 	isValidXml,
 	xmlError,
+	fileName,
 	compact = false,
 	onPaste,
 	onFileSelected,
@@ -29,11 +30,27 @@ export function XmlPasteArea({
 	if (hasLoadedDefinition && compact) {
 		return (
 			<div className="contents">
-				<div className="flex flex-wrap items-center gap-2">
+				<div className="flex min-w-0 flex-wrap items-center gap-2">
 					<span className="inline-flex items-center gap-1.5 px-1 text-xs font-medium whitespace-nowrap text-emerald-400">
 						<span aria-hidden>✓</span>
 						GhXml validated
 					</span>
+					<div className="flex min-w-0 items-center gap-1 border-r border-neutral-800 pr-2">
+						<span
+							className="max-w-48 truncate text-xs font-medium text-neutral-300"
+							title={fileName}
+						>
+							{fileName}
+						</span>
+						<button
+							type="button"
+							className="inline-flex items-center gap-1 rounded-md px-2 py-2 text-xs whitespace-nowrap text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300"
+							onClick={onClear}
+						>
+							Clear
+							<X className="h-3.5 w-3.5" />
+						</button>
+					</div>
 					<button
 						type="button"
 						onClick={onPaste}
@@ -60,14 +77,6 @@ export function XmlPasteArea({
 						onChange={handlePickerChange}
 						className="hidden"
 					/>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 px-2 py-2 text-xs whitespace-nowrap text-red-400 transition-colors hover:text-red-300"
-						onClick={onClear}
-					>
-						Clear
-						<X className="h-3.5 w-3.5" />
-					</button>
 				</div>
 
 				{xmlError.length > 0 && (

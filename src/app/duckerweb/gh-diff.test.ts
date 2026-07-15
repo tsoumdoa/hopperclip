@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { describe, expect, test } from "vitest";
-import { diffGrasshopper } from "./gh-diff";
+import { assessDefinitionOverlap, diffGrasshopper } from "./gh-diff";
 
 function fixture(path: string): ParsedGrasshopper {
 	return buildGhJson(fs.readFileSync(path, "utf8"), {
@@ -15,6 +15,32 @@ function clone(parsed: ParsedGrasshopper): ParsedGrasshopper {
 }
 
 describe("diffGrasshopper", () => {
+	test("rejects definitions with less than 25% component overlap", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		for (const component of Object.values(after.components)) {
+			component.instanceGuid = `different-${component.instanceGuid}`;
+		}
+
+		const overlap = assessDefinitionOverlap(before, after);
+
+		expect(overlap.ratio).toBe(0);
+		expect(overlap.isComparable).toBe(false);
+	});
+
+	test("accepts definitions at the 25% overlap boundary", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const components = Object.values(after.components);
+		components.slice(1).forEach((component) => {
+			component.instanceGuid = `different-${component.instanceGuid}`;
+		});
+
+		const overlap = assessDefinitionOverlap(before, after);
+
+		expect(overlap.ratio).toBeGreaterThanOrEqual(0.25);
+		expect(overlap.isComparable).toBe(true);
+	});
 	test("ignores layout and selection changes while reporting the movement", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
@@ -74,7 +100,7 @@ describe("diffGrasshopper", () => {
 			(item) => item.key === component.instanceGuid
 		);
 
-		expect(modified?.changes).toEqual(["Component details", "Runtime state"]);
+		expect(modified?.changes).toEqual(["Component details", "Locked"]);
 	});
 
 	test("reports rewiring independently from component changes", () => {

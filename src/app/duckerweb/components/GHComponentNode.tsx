@@ -1,6 +1,7 @@
 import type { GHNodeProps, Port } from "../types/type";
 import { HANDLE_SIZE } from "./constants";
 import { GHHandle } from "./Handle";
+import { runtimePalette } from "../lib/runtime-palette";
 const SIDE_PADDING_X = 8;
 const LABEL_GAP = 4;
 const APPROX_CHAR_WIDTH = 5.5;
@@ -39,6 +40,10 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 
 	const inputWidth = getComputedSideWidth(inputs, data.inputWidth);
 	const outputWidth = getComputedSideWidth(outputs, data.outputWidth);
+	const palette = runtimePalette(
+		data.runtimeState ?? "normal",
+		data.accentColor
+	);
 
 	return (
 		<div className="relative overflow-visible">
@@ -48,8 +53,8 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 				}`}
 			>
 				<div
-					className="flex flex-col justify-around border-r border-[#444] bg-[#E8E8E8] px-2 py-2"
-					style={{ width: inputWidth }}
+					className="flex flex-col justify-around border-r border-[#444] px-2 py-2"
+					style={{ width: inputWidth, backgroundColor: palette.side }}
 				>
 					{inputs.map((input) => (
 						<div
@@ -61,7 +66,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 
 				<div
 					className="flex items-center justify-center px-2 py-2"
-					style={{ backgroundColor: data.accentColor ?? "#808080" }}
+					style={{ backgroundColor: palette.center }}
 				>
 					<span
 						className="text-[11px] font-bold tracking-tight text-white"
@@ -75,8 +80,8 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 				</div>
 
 				<div
-					className="flex flex-col justify-around border-l border-[#444] bg-[#E8E8E8] px-2 py-2"
-					style={{ width: outputWidth }}
+					className="flex flex-col justify-around border-l border-[#444] px-2 py-2"
+					style={{ width: outputWidth, backgroundColor: palette.side }}
 				>
 					{outputs.map((output) => (
 						<div
@@ -104,7 +109,10 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 						id={input.id}
 					/>
 
-					<span className="ml-1 min-w-0 text-left text-[10px] whitespace-nowrap text-[#222]">
+					<span
+						className="ml-1 min-w-0 text-left text-[10px] whitespace-nowrap"
+						style={{ color: palette.text }}
+					>
 						{input.label}
 					</span>
 				</div>
@@ -120,7 +128,10 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 						transform: "translateY(-50%)",
 					}}
 				>
-					<span className="mr-1 min-w-0 text-right text-[10px] whitespace-nowrap text-[#222]">
+					<span
+						className="mr-1 min-w-0 text-right text-[10px] whitespace-nowrap"
+						style={{ color: palette.text }}
+					>
 						{output.label}
 					</span>
 

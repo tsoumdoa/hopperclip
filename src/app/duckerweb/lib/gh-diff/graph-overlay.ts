@@ -31,7 +31,8 @@ function withDiffPresentation(
 	key: string,
 	status: GHDiffStatus,
 	position: GHNode["position"],
-	geometry?: GHNode
+	geometry?: GHNode,
+	layoutMoved = false
 ): GHNode {
 	const inputs = Object.values(component.inputs);
 	const outputs = Object.values(component.outputs);
@@ -41,7 +42,8 @@ function withDiffPresentation(
 		id: key,
 		position,
 		style: geometry?.style ?? node.style,
-		className: `gh-diff-node gh-diff-node--${status}`,
+		className:
+			`${node.className ?? ""} gh-diff-node gh-diff-node--${status}${layoutMoved && status === "unchanged" ? " gh-diff-node--layout" : ""}`.trim(),
 		data: {
 			...node.data,
 			containerBounds:
@@ -145,7 +147,8 @@ function buildOverlayNodes(
 								diff.key,
 								diff.status,
 								oldNode.position,
-								oldNode
+								oldNode,
+								diff.layoutMoved
 							),
 						]
 					: [];
