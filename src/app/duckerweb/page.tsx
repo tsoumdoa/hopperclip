@@ -52,7 +52,7 @@ export default function DuckerWebPage() {
 			)}
 		>
 			<div className="w-full shrink-0 px-4 pt-4 md:px-6 md:pt-6">
-				<div className="mx-auto w-full max-w-6xl">
+				<div className="mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
 					<Header />
 					<div className="flex items-center justify-between pb-4">
 						<h1 className="text-lg font-medium">DuckerWeb</h1>
@@ -104,7 +104,7 @@ export default function DuckerWebPage() {
 
 			{parsedData && viewMode === "flow" && (
 				<div className="min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto h-full w-full max-w-6xl">
+					<div className="mx-auto h-full w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
 						<GHFlowCanvas nodes={nodes} edges={edges} />
 					</div>
 				</div>
@@ -112,7 +112,7 @@ export default function DuckerWebPage() {
 
 			{parsedData && viewMode !== "flow" && viewMode !== "diff" && (
 				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto w-full max-w-6xl">
+					<div className="mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
 						{viewMode === "list" && <ComponentList parsedData={parsedData} />}
 
 						{viewMode === "json" && <GHJsonView data={parsedData} />}
@@ -122,7 +122,7 @@ export default function DuckerWebPage() {
 
 			{parsedData && viewMode === "diff" && (
 				<div className="px-4 pb-6 md:px-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0">
-					<div className="mx-auto flex h-full w-full max-w-6xl flex-col">
+					<div className="mx-auto flex h-full w-full max-w-6xl flex-col min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
 						<GHDiffView
 							diff={diffResult}
 							error={diffError}

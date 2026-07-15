@@ -37,7 +37,7 @@ export function ComponentList({ parsedData }: ComponentListProps) {
 			<p className="mb-4 text-neutral-400">
 				Found {components.length} component(s)
 			</p>
-			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 				{components.map((comp) => (
 					<ComponentCard key={comp.id} component={comp} />
 				))}
