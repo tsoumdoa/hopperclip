@@ -12,12 +12,22 @@ export function handleComponent(
 	const inputs = Object.entries(component.inputs).map(([key, port]) => ({
 		id: `${component.id}.${key}`,
 		label: port.nick,
+		options: port.options,
 		hasSource: !!port.source,
 	}));
 
-	const outputs = Object.entries(component.outputs).map(([key, port]) => ({
+	const outputEntries = Object.entries(component.outputs);
+	const outputs = outputEntries.map(([key, port]) => ({
 		id: `${component.id}.${key}`,
 		label: port.nick,
+		options:
+			component.internalExpression && outputEntries.length === 1
+				? {
+						...port.options,
+						expression:
+							port.options?.expression ?? component.internalExpression,
+					}
+				: port.options,
 	}));
 
 	const position = nodePositions.get(component.id) ?? {

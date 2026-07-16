@@ -1,5 +1,5 @@
 import type { Node, Edge, Position } from "@xyflow/react";
-import type { ParsedGrasshopper } from "parser/src/types";
+import type { ParsedGrasshopper, PortOptions } from "parser/src/types";
 import type { CSSProperties, ReactNode } from "react";
 import type { GHRuntimeState } from "../lib/runtime-palette";
 
@@ -36,6 +36,7 @@ export type GHNode = Node<GHNodeData>;
 export type Port = {
 	id: string;
 	label: string;
+	options?: PortOptions;
 };
 
 export type Bounds = {

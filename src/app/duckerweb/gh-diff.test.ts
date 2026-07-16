@@ -113,6 +113,42 @@ describe("diffGrasshopper", () => {
 		expect(modified?.changes).toContain("Value");
 	});
 
+	test("reports combined port options and presents them in the diff flow", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const component = Object.values(after.components).find(
+			(candidate) =>
+				Object.keys(candidate.inputs).length > 0 &&
+				Object.keys(candidate.outputs).length > 0
+		);
+
+		expect(component).toBeDefined();
+		if (!component) return;
+
+		const input = Object.values(component.inputs)[0];
+		const output = Object.values(component.outputs)[0];
+		input.options = {
+			mapping: "flatten",
+			simplify: true,
+			reverse: true,
+			expression: "x + 1",
+		};
+		output.options = { mapping: "graft", reverse: true };
+
+		const diff = diffGrasshopper(before, after);
+		const modified = diff.components.find(
+			(candidate) => candidate.key === component.instanceGuid
+		);
+		const overlayNode = diff.nodes.find(
+			(candidate) => candidate.id === component.instanceGuid
+		);
+
+		expect(modified?.status).toBe("modified");
+		expect(modified?.changes).toContain("Port settings");
+		expect(overlayNode?.data.inputs[0]?.options).toEqual(input.options);
+		expect(overlayNode?.data.outputs[0]?.options).toEqual(output.options);
+	});
+
 	test("describes changes using semantic facet labels", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
