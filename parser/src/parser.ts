@@ -156,6 +156,38 @@ function parseMapping(mappingValue: number): DataMapping {
 	}
 }
 
+function parsePortOptions(
+	items: Record<string, unknown>
+): PortOptions | undefined {
+	const options: PortOptions = {};
+	let hasOptions = false;
+
+	// Mapping: 0=None, 1=Flatten, 2=Graft, 3=Reparametrize
+	if (items.Mapping !== undefined) {
+		options.mapping = parseMapping(items.Mapping as number);
+		hasOptions = true;
+	}
+
+	if (items.SimplifyData === true) {
+		options.simplify = true;
+		hasOptions = true;
+	}
+
+	// GH_IO writes this setting as ReverseData. Keep Reverse as a fallback for
+	// archives produced by other serializers.
+	if (items.ReverseData === true || items.Reverse === true) {
+		options.reverse = true;
+		hasOptions = true;
+	}
+
+	if (items.Expression && typeof items.Expression === "string") {
+		options.expression = items.Expression;
+		hasOptions = true;
+	}
+
+	return hasOptions ? options : undefined;
+}
+
 function parseParamChunk(
 	paramChunk: XmlChunk,
 	type: "input" | "output"
@@ -184,35 +216,8 @@ function parseParamChunk(
 		}
 	}
 
-	// Parse parameter options (mapping, simplify, etc.)
-	const options: PortOptions = {};
-	let hasOptions = false;
-
-	// Mapping: 0=None, 1=Flatten, 2=Graft, 3=Reparametrize
-	if (items.Mapping !== undefined) {
-		options.mapping = parseMapping(items.Mapping as number);
-		hasOptions = true;
-	}
-
-	// Simplify data
-	if (items.SimplifyData === true) {
-		options.simplify = true;
-		hasOptions = true;
-	}
-
-	// Reverse
-	if (items.Reverse === true) {
-		options.reverse = true;
-		hasOptions = true;
-	}
-
-	// Expression applied to this parameter
-	if (items.Expression && typeof items.Expression === "string") {
-		options.expression = items.Expression as string;
-		hasOptions = true;
-	}
-
-	if (hasOptions) {
+	const options = parsePortOptions(items);
+	if (options) {
 		port.options = options;
 	}
 
@@ -593,10 +598,17 @@ function parseComponent(
 	// but other components source their output via the component's InstanceGuid.
 	// Add a synthetic output so wires resolve to a proper handle ID.
 	if (Object.keys(component.outputs).length === 0) {
-		component.outputs["value"] = {
+		const output: OutputPort = {
 			nick: "V",
 			instanceGuid: instanceGuid,
 		};
+
+		// Standalone parameters (Number, Panel, etc.) store data operations on
+		// their Container instead of in a nested parameter chunk.
+		const outputOptions = parsePortOptions(containerItems);
+		if (outputOptions) output.options = outputOptions;
+
+		component.outputs["value"] = output;
 	}
 
 	// Parse script if present
