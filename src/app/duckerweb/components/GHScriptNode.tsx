@@ -217,10 +217,10 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 							id={input.id}
 						/>
 
-						<div className="ml-1 min-w-0 text-[10px]">
+						<div className="ml-1 min-w-0 flex-1 pr-2 text-[10px]">
 							<PortLabel
 								port={input}
-								align="left"
+								align="right"
 								style={{ color: palette.text }}
 							/>
 						</div>

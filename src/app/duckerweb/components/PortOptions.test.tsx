@@ -42,5 +42,7 @@ describe("PortLabel", () => {
 		expect(html).toContain('data-port-option="graft"');
 		expect(html).toContain('data-port-option="simplify"');
 		expect(html).not.toContain('data-port-option="flatten"');
+		expect(html).toContain("w-full");
+		expect(html).toContain("justify-end");
 	});
 });
