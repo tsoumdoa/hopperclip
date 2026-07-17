@@ -42,4 +42,22 @@ describe("XmlPasteArea", () => {
 		expect(html).toContain("Browse for new file");
 		expect(html).toContain("Replacement failed");
 	});
+
+	test("uses compact replacement controls inside the view toolbar", () => {
+		const html = renderToStaticMarkup(
+			<XmlPasteArea
+				xmlData="<Archive />"
+				isValidXml
+				xmlError=""
+				compact
+				{...handlers}
+			/>
+		);
+
+		expect(html).toContain("GhXml validated");
+		expect(html).toContain("Paste new");
+		expect(html).toContain("Browse new");
+		expect(html).toContain("Clear");
+		expect(html).not.toContain("Paste new GhXml</span>");
+	});
 });

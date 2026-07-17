@@ -146,8 +146,58 @@
 		position: relative;
 	}
 
+	.react-flow__node.gh-diff-node {
+		border-radius: 5px;
+		transition:
+			opacity 160ms ease,
+			filter 160ms ease;
+	}
+
+	.react-flow__node.gh-diff-node.gh-diff-filter-ghost {
+		opacity: 0.3;
+	}
+
+	.react-flow__node.gh-diff-node--unchanged {
+		opacity: 0.42;
+		filter: saturate(0.35);
+	}
+
+	.react-flow__node.gh-diff-node--added {
+		outline: 3px solid #22c55e;
+		outline-offset: 3px;
+		filter: drop-shadow(0 0 1px #16a34a) drop-shadow(0 0 6px #22c55e99);
+	}
+
+	.react-flow__node.gh-diff-node--modified {
+		outline: 3px solid #eab308;
+		outline-offset: 3px;
+		filter: drop-shadow(0 0 1px #ca8a04) drop-shadow(0 0 6px #eab30899);
+	}
+
+	.react-flow__node.gh-diff-node--removed {
+		opacity: 1;
+		outline: 3px solid #ef4444;
+		outline-offset: 3px;
+		filter: grayscale(0.45) drop-shadow(0 0 1px #dc2626)
+			drop-shadow(0 0 6px #ef444499);
+	}
+
+	.react-flow__node.gh-diff-node--layout {
+		opacity: 1;
+		outline: 3px solid #60a5fa;
+		outline-offset: 3px;
+		filter: saturate(0.55) drop-shadow(0 0 6px #60a5fa99);
+	}
+
 	.gh-json-viewer pre {
 		margin: 0;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
+
+	.gh-json-viewer code {
+		white-space: inherit;
 	}
 
 	.gh-json-viewer pre.shiki {

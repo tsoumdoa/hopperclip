@@ -12,12 +12,22 @@ export function handleComponent(
 	const inputs = Object.entries(component.inputs).map(([key, port]) => ({
 		id: `${component.id}.${key}`,
 		label: port.nick,
+		options: port.options,
 		hasSource: !!port.source,
 	}));
 
-	const outputs = Object.entries(component.outputs).map(([key, port]) => ({
+	const outputEntries = Object.entries(component.outputs);
+	const outputs = outputEntries.map(([key, port]) => ({
 		id: `${component.id}.${key}`,
 		label: port.nick,
+		options:
+			component.internalExpression && outputEntries.length === 1
+				? {
+						...port.options,
+						expression:
+							port.options?.expression ?? component.internalExpression,
+					}
+				: port.options,
 	}));
 
 	const position = nodePositions.get(component.id) ?? {
@@ -34,9 +44,20 @@ export function handleComponent(
 		outputs,
 		accentColor: getAccentColor(component),
 		selected: component.state?.selected,
+		runtimeState:
+			component.state?.locked || component.state?.frozen
+				? "locked"
+				: component.state?.hidden
+					? "hidden"
+					: "normal",
 		value: extractValue(component),
 		height: position.height,
 	};
+	const runtimeClasses = [
+		component.state?.hidden && "gh-runtime-node--hidden",
+		(component.state?.locked || component.state?.frozen) &&
+			"gh-runtime-node--locked",
+	].filter(Boolean);
 
 	if (component.value?.type === "valueList") {
 		nodeData.items = component.value.items;
@@ -56,6 +77,7 @@ export function handleComponent(
 		type: nodeType,
 		position,
 		data: nodeData,
+		className: runtimeClasses.join(" "),
 		zIndex: 10,
 	} as GHNode;
 }

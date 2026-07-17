@@ -1,8 +1,11 @@
 import type { GHNodeProps } from "../types/type";
 import { GHHandle } from "./Handle";
 import { HandlePosition } from "./HandlePosition";
+import { PortLabel } from "./PortOptions";
 
 export function GHRelayNode({ data, selected }: GHNodeProps) {
+	const output = data.outputs[0];
+
 	return (
 		<div className="relative overflow-visible">
 			<div
@@ -11,9 +14,13 @@ export function GHRelayNode({ data, selected }: GHNodeProps) {
 				}`}
 				style={{ backgroundColor: "#E8E8E8" }}
 			>
-				<span className="px-2 py-1.5 text-[11px] font-bold tracking-tight whitespace-nowrap text-[#222]">
-					{data.label}
-				</span>
+				<div className="px-2 py-1.5 text-[11px] font-bold tracking-tight text-[#222]">
+					{output ? (
+						<PortLabel port={{ ...output, label: data.label }} align="left" />
+					) : (
+						data.label
+					)}
+				</div>
 			</div>
 
 			<HandlePosition position="left">

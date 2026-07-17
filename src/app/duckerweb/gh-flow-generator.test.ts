@@ -75,3 +75,65 @@ test("createFlowPreview creates graph data from valid Grasshopper XML", () => {
 test("createFlowPreview returns null for invalid XML", () => {
 	expect(createFlowPreview("not Grasshopper XML")).toBeNull();
 });
+
+test("generateFlowData carries combined input and output parameter options", () => {
+	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
+	const parsed = buildGhJson(xml, { includeVisuals: true });
+	const component = Object.values(parsed.components).find(
+		(candidate) =>
+			Object.keys(candidate.inputs).length > 0 &&
+			Object.keys(candidate.outputs).length > 0
+	);
+
+	expect(component).toBeDefined();
+	if (!component) return;
+
+	const input = Object.values(component.inputs)[0];
+	const output = Object.values(component.outputs)[0];
+	input.options = {
+		mapping: "flatten",
+		simplify: true,
+		reverse: true,
+		expression: "x * 2",
+	};
+	output.options = { mapping: "graft", simplify: true };
+
+	const { nodes } = generateFlowData(parsed);
+	const node = nodes.find((candidate) => candidate.id === component.id);
+
+	expect(node?.data.inputs[0]?.options).toEqual(input.options);
+	expect(node?.data.outputs[0]?.options).toEqual(output.options);
+});
+
+test("generateFlowData exposes standalone parameter internal expressions", () => {
+	const xml = fs.readFileSync(
+		"parser/sand/xmls/flatten-internal-expression.xml",
+		"utf8"
+	);
+	const parsed = buildGhJson(xml, { includeVisuals: true });
+	const component = Object.values(parsed.components).find(
+		(candidate) => candidate.internalExpression
+	);
+
+	expect(component?.internalExpression).toBeDefined();
+	if (!component) return;
+
+	const { nodes } = generateFlowData(parsed);
+	const node = nodes.find((candidate) => candidate.id === component.id);
+
+	expect(node?.data.outputs[0]?.options?.expression).toBe(
+		component.internalExpression
+	);
+
+	const mappedParameter = Object.values(parsed.components).find(
+		(candidate) =>
+			Object.values(candidate.outputs)[0]?.options?.mapping === "flatten"
+	);
+	const mappedNode = nodes.find(
+		(candidate) => candidate.id === mappedParameter?.id
+	);
+
+	expect(mappedParameter).toBeDefined();
+	expect(mappedNode?.type).toBe("relay");
+	expect(mappedNode?.data.outputs[0]?.options?.mapping).toBe("flatten");
+});
