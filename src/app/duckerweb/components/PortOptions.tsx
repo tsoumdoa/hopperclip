@@ -16,7 +16,9 @@ type OptionBadge = {
 	Icon: LucideIcon;
 };
 
-const OPTION_WIDTH = 15;
+// 14px chip + 2px inter-badge gap; the flat +2 covers the wider 4px gap
+// between the badge group and the label.
+const OPTION_WIDTH = 16;
 
 function getOptionBadges(options?: ParsedPortOptions): OptionBadge[] {
 	if (!options) return [];
@@ -46,7 +48,7 @@ export function getPortContentWidth(port: Port, approximateCharWidth: number) {
 	return (
 		port.label.length * approximateCharWidth +
 		optionCount * OPTION_WIDTH +
-		(optionCount > 0 ? 3 : 0)
+		(optionCount > 0 ? 2 : 0)
 	);
 }
 
@@ -73,7 +75,7 @@ export function PortLabel({
 
 	return (
 		<span
-			className={`pointer-events-auto flex min-w-0 items-center gap-0.5 whitespace-nowrap ${
+			className={`pointer-events-auto flex min-w-0 items-center gap-1 whitespace-nowrap ${
 				align === "right" ? "justify-end text-right" : "justify-start text-left"
 			}`}
 			style={style}
@@ -83,11 +85,11 @@ export function PortLabel({
 			}
 		>
 			{badges.length > 0 && (
-				<span className="flex shrink-0 items-center gap-px" aria-hidden="true">
+				<span className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
 					{badges.map(({ key, label, Icon }) => (
 						<span
 							key={key}
-							className="flex size-3.5 items-center justify-center rounded-[3px] border border-[#777] bg-gradient-to-b from-[#f7f7f7] to-[#c7c7c7] text-[#555] shadow-sm"
+							className="flex size-3.5 items-center justify-center rounded-[3px] bg-[#444] text-[#f2f2f2]"
 							data-port-option={key}
 							title={
 								key === "expression" && port.options?.expression
@@ -95,7 +97,7 @@ export function PortLabel({
 									: label
 							}
 						>
-							<Icon size={10} strokeWidth={3} />
+							<Icon size={9} strokeWidth={2.5} />
 						</span>
 					))}
 				</span>
