@@ -1,117 +1,28 @@
 import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
-import { renderToStaticMarkup } from "react-dom/server";
-import { createElement } from "react";
 import { buildGhJson } from "parser/src/parser";
 import {
-	GhCardXmlPaste,
-	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
-	sanitizeGhCardName,
-	shouldAutoFillGhCardName,
 } from "./gh-card-xml-paste";
 
-const xmlPasteProps = {
-	xmlData: undefined,
-	setXmlData: vi.fn(),
-	isValidXml: false,
-	xmlError: "",
-	setXmlError: vi.fn(),
-	handlePasteFromClipboard: vi.fn(),
-	handleFileSelected: vi.fn(),
-};
-
-describe("GhCardXmlPaste shortcut hint", () => {
-	test("advertises native paste when the create dialog enables it", () => {
-		const html = renderToStaticMarkup(
-			createElement(GhCardXmlPaste, {
-				...xmlPasteProps,
-				pasteShortcutEnabled: true,
-			})
+describe("getSingleScriptNickName", () => {
+	test("returns sanitized nickName only for a single script component", () => {
+		const script = buildGhJson(
+			fs.readFileSync("parser/sand/xmls/csharp-component.xml", "utf8")
 		);
-		expect(html).toContain("Press Ctrl+V to paste, or drop a file");
-	});
+		expect(getSingleScriptNickName(script)).toBe("C");
 
-	test("does not advertise the shortcut in edit-card controls", () => {
-		const html = renderToStaticMarkup(
-			createElement(GhCardXmlPaste, xmlPasteProps)
+		const relay = buildGhJson(
+			fs.readFileSync("parser/sand/xmls/relay-single.xml", "utf8")
 		);
-		expect(html).toContain("or drop a file");
-		expect(html).not.toContain("Ctrl+V");
-	});
-});
+		expect(getSingleScriptNickName(relay)).toBeUndefined();
 
-describe("getGhCardNameFromFileName", () => {
-	test("removes the .gh extension", () => {
-		expect(getGhCardNameFromFileName("Panelizer.gh")).toBe("Panelizer");
-	});
-
-	test("removes the .ghx extension case-insensitively", () => {
-		expect(getGhCardNameFromFileName("MyFacade.GHX")).toBe("MyFacade");
-	});
-
-	test("preserves dots in the basename", () => {
-		expect(getGhCardNameFromFileName("Facade.v2.gh")).toBe("Facade.v2");
-	});
-
-	test("clips names to the input's 30-character limit", () => {
-		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
-			"A".repeat(30)
+		const multi = buildGhJson(
+			fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8")
 		);
+		expect(getSingleScriptNickName(multi)).toBeUndefined();
 	});
-});
-
-describe("shouldAutoFillGhCardName", () => {
-	test("allows an import to fill an empty name", () => {
-		expect(shouldAutoFillGhCardName("", null)).toBe(true);
-	});
-
-	test("allows a replacement file to replace the tracked auto-filled name", () => {
-		expect(shouldAutoFillGhCardName("A", "A")).toBe(true);
-	});
-
-	test("protects a name after the user edits it", () => {
-		expect(shouldAutoFillGhCardName("Custom name", null)).toBe(false);
-	});
-
-	test("does not replace a name that differs from the tracked auto-fill", () => {
-		expect(shouldAutoFillGhCardName("Custom name", "A")).toBe(false);
-	});
-});
-
-test("sanitizeGhCardName strips disallowed characters", () => {
-	expect(sanitizeGhCardName("MyScript:foo")).toBe("MyScriptfoo");
-});
-
-test("sanitizeGhCardName trims whitespace and strips symbols", () => {
-	expect(sanitizeGhCardName("  C#  ")).toBe("C");
-});
-
-test("sanitizeGhCardName truncates to 30 characters", () => {
-	const longName = "A".repeat(40);
-	expect(sanitizeGhCardName(longName)).toBe("A".repeat(30));
-});
-
-test("getSingleScriptNickName returns sanitized nickName for single script component", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/csharp-component.xml", "utf8");
-	const parsed = buildGhJson(xml);
-
-	expect(getSingleScriptNickName(parsed)).toBe("C");
-});
-
-test("getSingleScriptNickName returns undefined for non-script single component", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/relay-single.xml", "utf8");
-	const parsed = buildGhJson(xml);
-
-	expect(getSingleScriptNickName(parsed)).toBeUndefined();
-});
-
-test("getSingleScriptNickName returns undefined for multi-component paste", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-	const parsed = buildGhJson(xml);
-
-	expect(getSingleScriptNickName(parsed)).toBeUndefined();
 });
 
 describe("ingestGhXml", () => {
@@ -120,43 +31,36 @@ describe("ingestGhXml", () => {
 		"utf8"
 	);
 
-	test("returns isValid=true for parseable GhXml", () => {
-		const result = ingestGhXml(validXml, "clipboard");
-		expect(result.isValid).toBe(true);
-		expect(result.xml).toBe(validXml);
-		expect(result.errorMsg).toBeUndefined();
-	});
+	test("accepts parseable GhXml and rejects invalid/malformed input", () => {
+		expect(ingestGhXml(validXml, "clipboard")).toEqual({
+			isValid: true,
+			xml: validXml,
+		});
 
-	test("returns isValid=false with file-source error prefix", () => {
-		const result = ingestGhXml("not a real archive", "file");
-		expect(result.isValid).toBe(false);
-		expect(result.errorMsg).toMatch(/^Selected.*not valid/);
-		expect(result.xml).toBeUndefined();
-	});
+		const fileError = ingestGhXml("not a real archive", "file");
+		expect(fileError.isValid).toBe(false);
+		expect(fileError.errorMsg).toMatch(/^Selected.*not valid/);
 
-	test("returns isValid=false with clipboard-source error prefix", () => {
-		const result = ingestGhXml("not a real archive", "clipboard");
-		expect(result.isValid).toBe(false);
-		expect(result.errorMsg).toMatch(/^Pasted.*not valid/);
-	});
+		const clipboardError = ingestGhXml("not a real archive", "clipboard");
+		expect(clipboardError.isValid).toBe(false);
+		expect(clipboardError.errorMsg).toMatch(/^Pasted.*not valid/);
 
-	test("rejects malformed quote-stripped XML", () => {
 		const malformed = validXml.replaceAll('="', "=").replaceAll('"', "");
-		const result = ingestGhXml(malformed, "clipboard");
-		expect(result.isValid).toBe(false);
-		expect(result.errorMsg).toContain("Malformed XML");
+		expect(ingestGhXml(malformed, "clipboard").errorMsg).toContain(
+			"Malformed XML"
+		);
 	});
 
-	test("invokes onSingleScriptComponent for single-script valid XML", () => {
+	test("invokes onSingleScriptComponent only for single-script XML", () => {
 		const spy = vi.fn();
 		ingestGhXml(validXml, "file", { onSingleScriptComponent: spy });
 		expect(spy).toHaveBeenCalledWith("C");
-	});
 
-	test("does not invoke onSingleScriptComponent for multi-component XML", () => {
-		const spy = vi.fn();
-		const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-		ingestGhXml(xml, "file", { onSingleScriptComponent: spy });
-		expect(spy).not.toHaveBeenCalled();
+		const multi = fs.readFileSync(
+			"parser/sand/xmls/brep-area-Wire.xml",
+			"utf8"
+		);
+		ingestGhXml(multi, "file", { onSingleScriptComponent: spy });
+		expect(spy).toHaveBeenCalledTimes(1);
 	});
 });

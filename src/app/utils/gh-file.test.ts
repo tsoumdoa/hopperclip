@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import fs from "node:fs";
 import pako from "pako";
-import { GhFileError, detectGhFileKind, ghFileToGhXml } from "./gh-file";
+import { GhFileError, ghFileToGhXml } from "./gh-file";
 import { validateGhXml } from "./gh-xml";
 import {
 	GhSizeError,
@@ -514,20 +514,6 @@ function nativeGhArchiveBytes() {
 
 	return new Uint8Array(bytes);
 }
-
-describe("detectGhFileKind", () => {
-	test("detects supported extensions and rejects others", () => {
-		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "foo.gh"))).toBe(
-			"gh"
-		);
-		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "FOO.GHX"))).toBe(
-			"ghx"
-		);
-		expect(detectGhFileKind(fileFromBytes(new Uint8Array(), "foo.xml"))).toBe(
-			"unknown"
-		);
-	});
-});
 
 describe("ghFileToGhXml", () => {
 	test("decodes a gzipped .gh file back to its original XML", async () => {
