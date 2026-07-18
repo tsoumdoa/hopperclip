@@ -1,4 +1,10 @@
-import type { Component, InputPort } from "parser/src/types";
+import type {
+	Component,
+	DataMapping,
+	InputPort,
+	OutputPort,
+	PortOptions,
+} from "parser/src/types";
 import type { GHComponentDiff, GHDiffStatus } from "../../types/type";
 import type { DefinitionIndex } from "./definition-index";
 import { deepEqual } from "./deep-equal";
@@ -8,10 +14,16 @@ type ComponentContext = {
 	definition: DefinitionIndex;
 };
 
-type ChangeRule = {
-	label: string;
-	changed: (before: ComponentContext, after: ComponentContext) => boolean;
-};
+type ChangeRule =
+	| {
+			label: string;
+			changed: (before: ComponentContext, after: ComponentContext) => boolean;
+	  }
+	| {
+			describe: (before: ComponentContext, after: ComponentContext) => string[];
+	  };
+
+type DiffablePort = InputPort | OutputPort;
 
 const POSITION_TOLERANCE = 2;
 const COMPONENT_DETAIL_KEYS = [
@@ -24,24 +36,105 @@ const COMPONENT_DETAIL_KEYS = [
 const EXPRESSION_KEYS = ["expression", "internalExpression"] as const;
 const STATE_KEYS = ["hidden", "locked", "frozen"] as const;
 
-const byInstanceGuid = <T extends { instanceGuid: string }>(a: T, b: T) =>
-	a.instanceGuid.localeCompare(b.instanceGuid);
+const PORT_OPTION_LABELS: Record<
+	Exclude<keyof PortOptions, "mapping" | "expression">,
+	string
+> = {
+	simplify: "Simplify",
+	reverse: "Reverse",
+	reparameterize: "Reparameterize",
+	unitize: "Unitize",
+};
 
-function withoutConnections({
-	source: _source,
-	sources: _sources,
-	...settings
-}: InputPort) {
-	return settings;
+function portName(kind: "Input" | "Output", port: DiffablePort) {
+	return `${kind} ${port.nick || port.instanceGuid.slice(0, 8)}`;
 }
 
-function portSettings(component: Component) {
-	return {
-		inputs: Object.values(component.inputs)
-			.map(withoutConnections)
-			.sort(byInstanceGuid),
-		outputs: Object.values(component.outputs).sort(byInstanceGuid),
-	};
+function mappingLabel(mapping: DataMapping | undefined) {
+	if (!mapping) return "default";
+	return mapping[0].toUpperCase() + mapping.slice(1);
+}
+
+function descriptionChange(before?: string, after?: string) {
+	if (before === after) return [];
+	if (!before) return ["Description added"];
+	if (!after) return ["Description removed"];
+	return ["Description changed"];
+}
+
+function expressionChange(before?: string, after?: string) {
+	if (before === after) return [];
+	if (!before) return ["Expression added"];
+	if (!after) return ["Expression removed"];
+	return ["Expression changed"];
+}
+
+function portOptionChanges(before?: PortOptions, after?: PortOptions) {
+	const changes: string[] = [];
+	if (before?.mapping !== after?.mapping) {
+		changes.push(
+			`Mapping ${mappingLabel(before?.mapping)} → ${mappingLabel(after?.mapping)}`
+		);
+	}
+	for (const [key, label] of Object.entries(PORT_OPTION_LABELS) as [
+		keyof typeof PORT_OPTION_LABELS,
+		string,
+	][]) {
+		if (Boolean(before?.[key]) !== Boolean(after?.[key])) {
+			changes.push(`${label} ${after?.[key] ? "on" : "off"}`);
+		}
+	}
+	changes.push(...expressionChange(before?.expression, after?.expression));
+	return changes;
+}
+
+function changedPort(
+	kind: "Input" | "Output",
+	before: DiffablePort,
+	after: DiffablePort
+) {
+	const changes: string[] = [];
+	if (before.nick !== after.nick) {
+		changes.push(`Renamed ${before.nick} → ${after.nick}`);
+	}
+	changes.push(...descriptionChange(before.description, after.description));
+	if (Boolean(before.optional) !== Boolean(after.optional)) {
+		changes.push(after.optional ? "Optional" : "Required");
+	}
+	changes.push(...portOptionChanges(before.options, after.options));
+	return changes.length > 0
+		? [`${portName(kind, after)}: ${changes.join(", ")}`]
+		: [];
+}
+
+function portChangesForKind(
+	kind: "Input" | "Output",
+	beforePorts: Record<string, DiffablePort>,
+	afterPorts: Record<string, DiffablePort>
+) {
+	const beforeById = new Map(
+		Object.values(beforePorts).map((port) => [port.instanceGuid, port])
+	);
+	const afterById = new Map(
+		Object.values(afterPorts).map((port) => [port.instanceGuid, port])
+	);
+	const ids = [...new Set([...beforeById.keys(), ...afterById.keys()])].sort();
+
+	return ids.flatMap((id) => {
+		const before = beforeById.get(id);
+		const after = afterById.get(id);
+		if (!before && after) return [`${portName(kind, after)} added`];
+		if (before && !after) return [`${portName(kind, before)} removed`];
+		if (!before || !after) return [];
+		return changedPort(kind, before, after);
+	});
+}
+
+function portSettingChanges(before: Component, after: Component) {
+	return [
+		...portChangesForKind("Input", before.inputs, after.inputs),
+		...portChangesForKind("Output", before.outputs, after.outputs),
+	];
 }
 
 function memberIdentities({
@@ -94,9 +187,8 @@ const CHANGE_RULES: readonly ChangeRule[] = [
 			),
 	},
 	{
-		label: "Port settings",
-		changed: (before, after) =>
-			!deepEqual(portSettings(before.component), portSettings(after.component)),
+		describe: (before, after) =>
+			portSettingChanges(before.component, after.component),
 	},
 	{
 		label: "Value",
@@ -133,9 +225,10 @@ function changedFacets(
 	before: ComponentContext,
 	after: ComponentContext
 ): string[] {
-	const changes = CHANGE_RULES.filter((rule) =>
-		rule.changed(before, after)
-	).map((rule) => rule.label);
+	const changes = CHANGE_RULES.flatMap((rule) => {
+		if ("describe" in rule) return rule.describe(before, after);
+		return rule.changed(before, after) ? [rule.label] : [];
+	});
 	if (runtimeStateChanged(before.component, after.component)) {
 		changes.push(...runtimeStateChanges(before.component, after.component));
 	}
