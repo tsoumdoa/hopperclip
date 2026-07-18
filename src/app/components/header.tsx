@@ -9,7 +9,7 @@ import { Link } from "@tanstack/react-router";
 
 export default function Header() {
 	return (
-		<header className="flex w-full items-center justify-between pb-8">
+		<header className="flex w-full items-center justify-between pb-3">
 			<Link className="text-2xl font-bold md:text-4xl" to="/">
 				Hopper Clip
 			</Link>

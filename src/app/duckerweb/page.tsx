@@ -105,7 +105,7 @@ export default function DuckerWebPage() {
 			<div className="w-full shrink-0 px-4 pt-4 md:px-6 md:pt-6">
 				<div className={contentWidth}>
 					<Header />
-					<div className="flex items-center justify-between pb-4">
+					<div className="flex items-center justify-between pb-2">
 						<h1 className="text-lg font-medium">DuckerWeb</h1>
 						<a
 							href="https://github.com/tsoumdoa/hopperclip"

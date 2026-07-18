@@ -57,7 +57,7 @@ function GhcardsPageContent() {
 			<div className="min-h-screen bg-black p-4 font-sans text-white md:p-6">
 				<div className="mx-auto max-w-400">
 					<Header />
-					<div className="flex flex-col items-start justify-between gap-2 pb-4 sm:flex-row sm:items-center sm:gap-4">
+					<div className="flex flex-col items-start justify-between gap-2 pb-1 sm:flex-row sm:items-center sm:gap-4">
 						<div className="flex items-center gap-2 text-lg font-medium">
 							<span>{`${username}'s Fav`}</span>
 						</div>
@@ -66,7 +66,7 @@ function GhcardsPageContent() {
 							<AddGHCard />
 						</div>
 					</div>
-					<div className="flex flex-row flex-wrap items-start justify-start gap-2 pb-4">
+					<div className="flex flex-row flex-wrap items-start justify-start gap-2 pb-3">
 						<UserTags tagFilters={sanitizedTagFilter} />
 					</div>
 					<Suspense fallback={<GhCardGridSkeleton />}>
