@@ -5,16 +5,24 @@ import {
 	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import {
+	ArrowRight,
+	GitCompareArrows,
+	MessageSquare,
+	MousePointerClick,
+	Plug,
+} from "lucide-react";
 import { useEffect } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
 import Footer from "@/app/components/footer";
 import Header from "@/app/components/header";
+import { Reveal } from "@/app/components/landing/reveal";
 import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/")({
 	head: () => ({
-		meta: [{ title: "Hopper Clip — Grasshopper script pastebin" }],
+		meta: [{ title: "Hopper Clip — Grasshopper, reviewed" }],
 	}),
 	beforeLoad: async () => {
 		const { userId } = await fetchClerkAuth();
@@ -73,70 +81,170 @@ function SignedInLandingContent() {
 	);
 }
 
+const cases = [
+	{
+		icon: MessageSquare,
+		eyebrow: "Share for review",
+		title: "Send one link instead of an attachment.",
+		body: "Drop a .gh, get a URL. Reviewers open it in any browser — no Rhino, no plugins, no setup. Comments stay in your existing tools.",
+	},
+	{
+		icon: MousePointerClick,
+		eyebrow: "Inspect without Rhino",
+		title: "Read the whole graph at a glance.",
+		body: "Pan and zoom every component, wire, slider, and panel. Switch to a flat list for an inventory, or JSON for the raw structure.",
+	},
+	{
+		icon: GitCompareArrows,
+		eyebrow: "Diff between versions",
+		title: "See what changed, not what's there.",
+		body: "Drop in a second file to compare two versions. Added, removed, modified, and rewired components are highlighted — wire by wire.",
+	},
+];
+
 function LandingPageContent() {
 	return (
-		<div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center py-12 md:py-20">
-			<div className="flex flex-col items-center gap-8 text-center">
-				<h1 className="text-4xl font-bold md:text-6xl">
-					Share a Grasshopper definition in one click.
-				</h1>
-				<p className="text-lg text-neutral-400 md:text-xl">
-					Drop a{" "}
-					<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">
-						.gh
-					</code>{" "}
-					file, paste the XML, or grab a shareable link — no file attachments,
-					no zip-and-upload, no fuss.
-				</p>
-				<SignUpButton mode="modal">
-					<button className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200 md:text-base">
-						<span className="flex items-center gap-2">
-							Get Started Free
-							<ArrowRight className="h-4 w-4" />
-						</span>
-					</button>
-				</SignUpButton>
-				<div className="grid w-full grid-cols-1 gap-6 pt-8 md:grid-cols-3">
-					<FeatureCard
-						title="Drop or paste"
-						description="Import a .gh or .ghx file when adding a definition, or paste the GhXml directly. Either way, you get a clean shareable link."
-					/>
-					<FeatureCard
-						title="Share with a link"
-						description="Send a short URL. Recipients can inspect the definition in their browser and copy its GhXml."
-					/>
-					<FeatureCard
-						title="Stay organized"
-						description="Tag, search, and find every definition you've saved — from one-panel tricks to full design systems."
-					/>
-				</div>
-
-				<div className="mt-12 flex w-full items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-6 py-4">
-					<div className="text-left">
-						<h2 className="text-lg font-semibold">Also try DuckerWeb</h2>
-						<p className="text-sm text-neutral-400">
-							View, understand, and compare Grasshopper
-							definitions—directly in your browser.
+		<>
+			<section className="mx-auto flex w-full max-w-4xl flex-col gap-5 pt-6 pb-4 md:pt-10 md:pb-6">
+				<Reveal>
+					<span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-600">
+						for individuals &amp; teams
+					</span>
+				</Reveal>
+				<Reveal delay={0.05}>
+					<div>
+						<h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
+							Grasshopper, reviewed.
+						</h1>
+						<p className="mt-3 max-w-xl text-base text-neutral-400 md:text-lg">
+							Organize your own Grasshopper definitions. Share them with a team
+							to inspect, compare, and review across versions — without anyone
+							needing Rhino in front of them.
 						</p>
 					</div>
-					<Link
-						to="/duckerweb"
-						className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
-					>
-						Open
-						<ArrowRight className="h-4 w-4" />
-					</Link>
-				</div>
-			</div>
-		</div>
+				</Reveal>
+				<Reveal delay={0.1}>
+					<div className="flex flex-wrap items-center gap-3 pt-1">
+						<SignUpButton mode="modal">
+							<button
+								type="button"
+								className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
+							>
+								Get started
+								<ArrowRight className="h-4 w-4" />
+							</button>
+						</SignUpButton>
+					</div>
+					<p className="mt-3 flex items-center gap-2 text-base text-neutral-400">
+						<Plug className="h-4 w-4 shrink-0" />
+						Nothing to install — no Rhino, no plugins, no setup for whoever
+						opens the link.
+					</p>
+				</Reveal>
+			</section>
+
+			<section className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+				{cases.map((c, i) => (
+					<Reveal key={c.eyebrow} delay={i * 0.08}>
+						<CaseCard {...c} />
+					</Reveal>
+				))}
+			</section>
+
+			<DuckerWebSection />
+			<BottomFade />
+		</>
 	);
 }
 
-function FeatureCard(props: { title: string; description: string }) {
+function BottomFade() {
+	const { scrollYProgress } = useScroll();
+	const opacity = useTransform(scrollYProgress, [0, 0.75, 0.95], [1, 1, 0]);
 	return (
-		<div className="flex flex-col rounded-md bg-neutral-900 p-6 ring-1 ring-neutral-500">
-			<h2 className="pb-2 text-xl font-bold">{props.title}</h2>
-			<p className="text-neutral-400">{props.description}</p>
+		<motion.div
+			style={{ opacity }}
+			aria-hidden
+			className="pointer-events-none fixed inset-x-0 bottom-0 z-30 h-24 bg-gradient-to-b from-transparent to-black"
+		/>
+	);
+}
+
+function DuckerWebSection() {
+	return (
+		<section className="mx-auto mt-10 w-full max-w-5xl pb-4 md:mt-12">
+			<Reveal>
+				<div className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black">
+					<div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+						<div className="max-w-xl">
+							<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
+								// also from hopper clip
+							</div>
+							<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+								Look at a definition without opening Rhino.
+							</h2>
+							<p className="mt-3 text-sm leading-relaxed text-neutral-400 md:text-base">
+								<span className="font-medium text-neutral-200">DuckerWeb</span>{" "}
+								is our free, browser-only viewer. Drop a{" "}
+								<code className="rounded bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-300">
+									.gh
+								</code>
+								, paste GhXml, or compare two versions side-by-side —
+								everything runs locally in your browser, nothing uploaded, no
+								account required.
+							</p>
+							<div className="mt-4 flex flex-wrap gap-2">
+								<Pill>No Rhino</Pill>
+								<Pill>No Grasshopper</Pill>
+								<Pill>No sign-up</Pill>
+								<Pill>Runs locally</Pill>
+							</div>
+						</div>
+						<div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+							<Link
+								to="/duckerweb"
+								className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
+							>
+								Open DuckerWeb
+								<ArrowRight className="h-4 w-4" />
+							</Link>
+							<span className="text-xs text-neutral-500">
+								free · no account needed
+							</span>
+						</div>
+					</div>
+				</div>
+			</Reveal>
+		</section>
+	);
+}
+
+function Pill({ children }: { children: React.ReactNode }) {
+	return (
+		<span className="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs font-medium text-neutral-400">
+			{children}
+		</span>
+	);
+}
+
+function CaseCard({
+	icon: Icon,
+	eyebrow,
+	title,
+	body,
+}: {
+	icon: React.ComponentType<{ className?: string }>;
+	eyebrow: string;
+	title: string;
+	body: string;
+}) {
+	return (
+		<div className="flex h-full flex-col gap-3 rounded-xl border border-neutral-900 bg-neutral-950 p-6 transition-colors hover:border-neutral-700">
+			<Icon className="h-5 w-5 text-neutral-400" />
+			<div className="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+				{eyebrow}
+			</div>
+			<h3 className="text-lg font-semibold leading-snug">{title}</h3>
+			<p className="text-sm text-neutral-400">{body}</p>
 		</div>
 	);
 }
