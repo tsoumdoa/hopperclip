@@ -45,10 +45,18 @@ export function prepareDuckerwebImport(
 	}
 }
 
+export function resolveDuckerwebPasteTarget(
+	viewMode: ViewMode
+): "original" | "comparison" {
+	return viewMode === "diff" ? "comparison" : "original";
+}
+
 export function useDuckerwebState(): DuckerwebState & {
 	handlePasteFromClipboard: () => Promise<void>;
+	handlePastedXml: (text: string) => void;
 	handleFileSelected: (file: File) => Promise<void>;
 	handlePasteComparison: () => Promise<void>;
+	handlePastedComparisonXml: (text: string) => void;
 	handleComparisonFileSelected: (file: File) => Promise<void>;
 	handleClearComparison: () => void;
 	handleClear: () => void;
@@ -154,6 +162,26 @@ export function useDuckerwebState(): DuckerwebState & {
 		},
 		[parsedData]
 	);
+	const applyPastedXml = useCallback(
+		(text: string, requestId: number) => {
+			if (requestId !== activeRequest.current) return;
+			if (text.length === 0) {
+				setXmlError("Clipboard is empty");
+				return;
+			}
+			ingestXml(text, "clipboard");
+		},
+		[ingestXml]
+	);
+	const handlePastedXml = useCallback(
+		(text: string) => {
+			const requestId = ++activeRequest.current;
+			setXmlError("");
+			setError("");
+			applyPastedXml(text, requestId);
+		},
+		[applyPastedXml]
+	);
 
 	const handlePasteFromClipboard = useCallback(async () => {
 		const requestId = ++activeRequest.current;
@@ -162,17 +190,12 @@ export function useDuckerwebState(): DuckerwebState & {
 
 		try {
 			const text = await navigator.clipboard.readText();
-			if (requestId !== activeRequest.current) return;
-			if (text.length === 0) {
-				setXmlError("Clipboard is empty");
-				return;
-			}
-			ingestXml(text, "clipboard");
+			applyPastedXml(text, requestId);
 		} catch (err) {
 			if (requestId !== activeRequest.current) return;
 			setXmlError("Failed to read clipboard contents: \n" + String(err));
 		}
-	}, [ingestXml]);
+	}, [applyPastedXml]);
 
 	const handleFileSelected = useCallback(
 		async (file: File) => {
@@ -204,6 +227,26 @@ export function useDuckerwebState(): DuckerwebState & {
 		activeComparisonRequest.current += 1;
 		resetFlowState();
 	}, [resetFlowState]);
+	const applyPastedComparisonXml = useCallback(
+		(text: string, requestId: number) => {
+			if (requestId !== activeComparisonRequest.current) return;
+			if (text.length === 0) {
+				setDiffError("Clipboard is empty");
+				return;
+			}
+			ingestComparisonXml(text, "clipboard");
+		},
+		[ingestComparisonXml]
+	);
+	const handlePastedComparisonXml = useCallback(
+		(text: string) => {
+			const requestId = ++activeComparisonRequest.current;
+			setDiffError("");
+			setComparisonRejected(false);
+			applyPastedComparisonXml(text, requestId);
+		},
+		[applyPastedComparisonXml]
+	);
 
 	const handlePasteComparison = useCallback(async () => {
 		const requestId = ++activeComparisonRequest.current;
@@ -212,17 +255,12 @@ export function useDuckerwebState(): DuckerwebState & {
 
 		try {
 			const text = await navigator.clipboard.readText();
-			if (requestId !== activeComparisonRequest.current) return;
-			if (text.length === 0) {
-				setDiffError("Clipboard is empty");
-				return;
-			}
-			ingestComparisonXml(text, "clipboard");
+			applyPastedComparisonXml(text, requestId);
 		} catch (err) {
 			if (requestId !== activeComparisonRequest.current) return;
 			setDiffError("Failed to read clipboard contents: \n" + String(err));
 		}
-	}, [ingestComparisonXml]);
+	}, [applyPastedComparisonXml]);
 
 	const handleComparisonFileSelected = useCallback(
 		async (file: File) => {
@@ -272,8 +310,10 @@ export function useDuckerwebState(): DuckerwebState & {
 		comparisonFileName,
 		comparisonRejected,
 		handlePasteFromClipboard,
+		handlePastedXml,
 		handleFileSelected,
 		handlePasteComparison,
+		handlePastedComparisonXml,
 		handleComparisonFileSelected,
 		handleClearComparison,
 		handleClear,

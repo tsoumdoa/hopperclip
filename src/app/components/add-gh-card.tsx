@@ -6,13 +6,25 @@ import {
 	useGhCardsPageActions,
 	useGhCardsPageState,
 } from "@/app/ghcards/contexts/gh-cards-page-context";
+import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
 import { AddGhDialog } from "./add-gh-dialog";
 
 export default function AddGHCard() {
 	const navigate = useNavigate();
 	const [adding, setAdding] = useState(false);
-	const { addDialogOpen, pendingFile } = useGhCardsPageState();
-	const { setAddDialogOpen, consumePendingFile } = useGhCardsPageActions();
+	const { addDialogOpen, pendingFile, pendingXml, hasEditingCards } =
+		useGhCardsPageState();
+	const {
+		setAddDialogOpen,
+		openAddDialogFromPaste,
+		consumePendingFile,
+		consumePendingXml,
+	} = useGhCardsPageActions();
+
+	useNativeGhXmlPaste({
+		enabled: !addDialogOpen && !hasEditingCards,
+		onPasteText: openAddDialogFromPaste,
+	});
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -52,6 +64,8 @@ export default function AddGHCard() {
 				adding={adding}
 				initialFile={pendingFile}
 				onInitialFileConsumed={consumePendingFile}
+				initialXml={pendingXml}
+				onInitialXmlConsumed={consumePendingXml}
 			/>
 			<button
 				className="h-8 rounded-md bg-black px-3 py-1 text-sm font-bold ring-2 ring-neutral-300 transition-all hover:translate-x-0.5 hover:translate-y-0.5"

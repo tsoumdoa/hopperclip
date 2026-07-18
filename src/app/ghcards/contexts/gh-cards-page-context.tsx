@@ -12,16 +12,32 @@ import {
 } from "react";
 import { updateEditingCardIds } from "@/app/utils/gh-card-edit-state";
 
+export type PendingGhCardImportState = {
+	pendingFile: File | null;
+	pendingXml: string | null;
+};
+
+export function pendingGhCardFileImport(file?: File): PendingGhCardImportState {
+	return { pendingFile: file ?? null, pendingXml: null };
+}
+
+export function pendingGhCardXmlImport(xml: string): PendingGhCardImportState {
+	return { pendingFile: null, pendingXml: xml };
+}
+
 type GhCardsPageState = {
 	addDialogOpen: boolean;
 	pendingFile: File | null;
+	pendingXml: string | null;
 	hasEditingCards: boolean;
 };
 
 type GhCardsPageActions = {
 	setAddDialogOpen: Dispatch<SetStateAction<boolean>>;
 	openAddDialog: (file?: File) => void;
+	openAddDialogFromPaste: (xml: string) => void;
 	consumePendingFile: () => void;
+	consumePendingXml: () => void;
 	setCardEditing: (cardId: string, editMode: boolean) => void;
 };
 
@@ -33,17 +49,29 @@ const GhCardsPageActionsContext = createContext<GhCardsPageActions | null>(
 export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 	const [addDialogOpen, setAddDialogOpen] = useState(false);
 	const [pendingFile, setPendingFile] = useState<File | null>(null);
+	const [pendingXml, setPendingXml] = useState<string | null>(null);
 	const [editingCardIds, setEditingCardIds] = useState<Set<string>>(
 		() => new Set()
 	);
 
 	const openAddDialog = useCallback((file?: File) => {
-		setPendingFile(file ?? null);
+		const pending = pendingGhCardFileImport(file);
+		setPendingFile(pending.pendingFile);
+		setPendingXml(pending.pendingXml);
+		setAddDialogOpen(true);
+	}, []);
+	const openAddDialogFromPaste = useCallback((xml: string) => {
+		const pending = pendingGhCardXmlImport(xml);
+		setPendingFile(pending.pendingFile);
+		setPendingXml(pending.pendingXml);
 		setAddDialogOpen(true);
 	}, []);
 
 	const consumePendingFile = useCallback(() => {
 		setPendingFile(null);
+	}, []);
+	const consumePendingXml = useCallback(() => {
+		setPendingXml(null);
 	}, []);
 
 	const setCardEditing = useCallback((cardId: string, editMode: boolean) => {
@@ -56,18 +84,27 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 		() => ({
 			addDialogOpen,
 			pendingFile,
+			pendingXml,
 			hasEditingCards: editingCardIds.size > 0,
 		}),
-		[addDialogOpen, pendingFile, editingCardIds]
+		[addDialogOpen, pendingFile, pendingXml, editingCardIds]
 	);
 	const actions = useMemo(
 		() => ({
 			setAddDialogOpen,
 			openAddDialog,
+			openAddDialogFromPaste,
 			consumePendingFile,
+			consumePendingXml,
 			setCardEditing,
 		}),
-		[openAddDialog, consumePendingFile, setCardEditing]
+		[
+			openAddDialog,
+			openAddDialogFromPaste,
+			consumePendingFile,
+			consumePendingXml,
+			setCardEditing,
+		]
 	);
 
 	return (

@@ -5,6 +5,7 @@ import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
+import { useModifierKeyLabel } from "../hooks/use-modifier-key-label";
 import { cn } from "@/lib/utils";
 import type {
 	GhCardXmlPasteProps,
@@ -80,6 +81,7 @@ export function ingestGhXml(
 export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 	const { xmlData, isValidXml, setXmlError } = props;
 	const inputRef = useRef<HTMLInputElement>(null);
+	const modifier = useModifierKeyLabel();
 
 	useEffect(() => {
 		if (xmlData && isValidXml) {
@@ -167,7 +169,13 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 							<span>Browse</span>
 						</button>
 					</div>
-					<p className={hintClass}>or drop a file</p>
+					<p className={hintClass}>
+						{props.pasteShortcutEnabled ? (
+							<>Press {modifier}+V to paste, or drop a file</>
+						) : (
+							"or drop a file"
+						)}
+					</p>
 					<input
 						ref={inputRef}
 						type="file"
@@ -204,29 +212,40 @@ export function useXmlPasteHandler(
 	const invalidatePendingImport = useCallback(() => {
 		activeRequest.current += 1;
 	}, []);
-
-	const handlePasteFromClipboard = async () => {
+	const beginClipboardImport = (trigger: "button" | "shortcut") => {
 		const requestId = ++activeRequest.current;
 		setXmlError("");
 		setXmlData("");
 		setIsValidXml(false);
+		posthog.capture("user_pasted", { source: "clipboard", trigger });
+		return requestId;
+	};
+	const applyPastedText = (text: string, requestId: number) => {
+		if (requestId !== activeRequest.current) return;
+		if (text.length === 0) {
+			setXmlError("Clipboard is empty");
+			return;
+		}
+		const result = ingestGhXml(text, "clipboard", options);
+		if (result.isValid) {
+			setIsValidXml(true);
+			setXmlData(text);
+		} else {
+			setXmlError(result.errorMsg ?? "Pasted GhXml is not valid");
+		}
+	};
 
-		posthog.capture("user_pasted", { source: "clipboard" });
+	const handlePastedText = (text: string) => {
+		const requestId = beginClipboardImport("shortcut");
+		applyPastedText(text, requestId);
+	};
+
+	const handlePasteFromClipboard = async () => {
+		const requestId = beginClipboardImport("button");
 
 		try {
 			const text = await navigator.clipboard.readText();
-			if (requestId !== activeRequest.current) return;
-			if (text.length === 0) {
-				setXmlError("Clipboard is empty");
-				return;
-			}
-			const result = ingestGhXml(text, "clipboard", options);
-			if (result.isValid) {
-				setIsValidXml(true);
-				setXmlData(text);
-			} else {
-				setXmlError(result.errorMsg ?? "Pasted GhXml is not valid");
-			}
+			applyPastedText(text, requestId);
 		} catch (err) {
 			if (requestId !== activeRequest.current) return;
 			setXmlError("Failed to read clipboard contents: \n" + String(err));
@@ -281,6 +300,7 @@ export function useXmlPasteHandler(
 
 	return {
 		handlePasteFromClipboard,
+		handlePastedText,
 		handleFileSelected,
 		invalidatePendingImport,
 	};

@@ -14,6 +14,7 @@ import type {
 	GHFlowCanvasFocus,
 } from "../types/type";
 import { GHFlowCanvas } from "./GHFlowCanvas";
+import { useModifierKeyLabel } from "../../hooks/use-modifier-key-label";
 
 type GHDiffViewProps = {
 	diff: GHDiffResult | null;
@@ -55,7 +56,7 @@ const statusStyles: Record<
 	},
 };
 
-function ComparisonActions({
+export function ComparisonActions({
 	onPaste,
 	onFileSelected,
 	compact = false,
@@ -65,6 +66,7 @@ function ComparisonActions({
 	compact?: boolean;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
+	const modifier = useModifierKeyLabel();
 	const buttonClass = cn(
 		"inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900 font-medium text-neutral-200 transition-colors hover:border-neutral-500 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500",
 		compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
@@ -75,6 +77,9 @@ function ComparisonActions({
 			<button type="button" onClick={onPaste} className={buttonClass}>
 				<Clipboard className="h-4 w-4 text-neutral-400" />
 				Paste changed GhXml
+				<span className="rounded border border-neutral-700 px-1 py-0.5 font-mono text-[10px] text-neutral-500">
+					{modifier}+V
+				</span>
 			</button>
 			<button
 				type="button"
@@ -113,6 +118,7 @@ export function GHDiffView({
 }: GHDiffViewProps) {
 	const [focus, setFocus] = useState<GHFlowCanvasFocus | null>(null);
 	const [filter, setFilter] = useState<DiffFilter | null>(null);
+	const modifier = useModifierKeyLabel();
 	// Remounting the canvas when a new comparison arrives re-runs fitView, so
 	// the viewport never shows a stale framing from the previous diff.
 	const canvasKey = useMemo(() => ++canvasRemountSeq, [diff]);
@@ -162,7 +168,8 @@ export function GHDiffView({
 						/>
 					</div>
 					<p className="mt-4 text-xs text-neutral-600">
-						Tip: you can also drop the changed .gh or .ghx file anywhere here.
+						Tip: press {modifier}+V to paste or drop the changed .gh or .ghx
+						file anywhere here.
 					</p>
 					{error && !comparisonRejected && (
 						<p className="mt-5 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-left text-sm font-medium text-red-300">

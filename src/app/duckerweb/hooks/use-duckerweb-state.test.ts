@@ -1,6 +1,22 @@
 import fs from "node:fs";
 import { describe, expect, test } from "vitest";
-import { prepareDuckerwebImport } from "./use-duckerweb-state";
+import {
+	prepareDuckerwebImport,
+	resolveDuckerwebPasteTarget,
+} from "./use-duckerweb-state";
+
+describe("resolveDuckerwebPasteTarget", () => {
+	test("routes Diff pastes to the comparison definition", () => {
+		expect(resolveDuckerwebPasteTarget("diff")).toBe("comparison");
+	});
+
+	test.each(["list", "flow", "json"] as const)(
+		"routes %s pastes to the original definition",
+		(viewMode) => {
+			expect(resolveDuckerwebPasteTarget(viewMode)).toBe("original");
+		}
+	);
+});
 
 describe("prepareDuckerwebImport", () => {
 	test("prepares parsed data and flow state for a valid definition", () => {

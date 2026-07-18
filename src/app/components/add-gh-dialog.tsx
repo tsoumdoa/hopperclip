@@ -32,6 +32,7 @@ import type { AddGhDialogProps } from "@/types/gh-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFlowPreview } from "../duckerweb/gh-flow-generator";
 import { GhFlowView } from "./gh-flow-view";
+import { useNativeGhXmlPaste } from "../hooks/use-native-gh-xml-paste";
 
 type AddDialogTab = "details" | "flow";
 
@@ -82,11 +83,17 @@ export function AddGhDialog(props: AddGhDialogProps) {
 
 	const {
 		handlePasteFromClipboard,
+		handlePastedText,
 		handleFileSelected,
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
 		onSingleScriptComponent: autoFillName,
 		onFilePicked: autoFillName,
+	});
+	useNativeGhXmlPaste({
+		enabled: props.open && !props.adding,
+		onPasteText: handlePastedText,
+		allowValidGhXmlInEditable: true,
 	});
 
 	const { isDragging, dragHandlers } = useDropZone(
@@ -95,10 +102,12 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	);
 
 	const consumedInitialFileRef = useRef<File | null>(null);
+	const consumedInitialXmlRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (!props.open) {
 			consumedInitialFileRef.current = null;
+			consumedInitialXmlRef.current = null;
 			setActiveTab("details");
 			currentNameRef.current = "";
 			autoFilledNameRef.current = null;
@@ -123,6 +132,20 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		props.initialFile,
 		props.onInitialFileConsumed,
 		handleFileSelected,
+	]);
+
+	useEffect(() => {
+		if (!props.open || props.initialXml == null) return;
+		if (consumedInitialXmlRef.current === props.initialXml) return;
+
+		consumedInitialXmlRef.current = props.initialXml;
+		handlePastedText(props.initialXml);
+		props.onInitialXmlConsumed?.();
+	}, [
+		props.open,
+		props.initialXml,
+		props.onInitialXmlConsumed,
+		handlePastedText,
 	]);
 
 	const handleClearPastedXml = () => {
@@ -240,6 +263,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 									handlePasteFromClipboard={handlePasteFromClipboard}
 									handleFileSelected={handleFileSelected}
 									onClearPastedXml={handleClearPastedXml}
+									pasteShortcutEnabled
 								/>
 								<div className="flex flex-col gap-y-1.5">
 									<Input

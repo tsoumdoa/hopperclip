@@ -7,6 +7,8 @@ export type AddGhDialogProps = {
 	setAdding: (adding: boolean) => void;
 	initialFile?: File | null;
 	onInitialFileConsumed?: () => void;
+	initialXml?: string | null;
+	onInitialXmlConsumed?: () => void;
 };
 
 export type GhPageFileDropLayerProps = {
@@ -25,6 +27,7 @@ export type GhCardXmlPasteProps = {
 	handleFileSelected: (file: File) => void;
 	onClearPastedXml?: () => void;
 	isEditMode?: boolean;
+	pasteShortcutEnabled?: boolean;
 };
 
 export type IngestResult = {
