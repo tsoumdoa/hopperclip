@@ -9,12 +9,15 @@ import {
 import type { PortOptions as ParsedPortOptions } from "parser/src/types";
 import type { CSSProperties } from "react";
 import type { Port } from "../types/type";
+import { ExpressionInspector } from "./ExpressionInspector";
 
 type OptionBadge = {
 	key: string;
 	label: string;
 	Icon: LucideIcon;
 	appearance?: "grasshopper";
+	/** Rendered via ExpressionInspector instead of a static chip. */
+	interactiveExpression?: boolean;
 };
 
 // Grasshopper's simplify glyph: the zipper "Y" — two branches merging
@@ -94,7 +97,12 @@ function getOptionBadges(options?: ParsedPortOptions): OptionBadge[] {
 		badges.push({ key: "reverse", label: "Reverse", Icon: Undo2 });
 	}
 	if (options.expression) {
-		badges.push({ key: "expression", label: "Expression", Icon: Asterisk });
+		badges.push({
+			key: "expression",
+			label: "Expression",
+			Icon: Asterisk,
+			interactiveExpression: true,
+		});
 	}
 
 	return badges;
@@ -129,6 +137,7 @@ export function PortLabel({
 }) {
 	const badges = getOptionBadges(port.options);
 	const summary = optionSummary(port, badges);
+	const expression = port.options?.expression;
 
 	return (
 		<span
@@ -142,24 +151,26 @@ export function PortLabel({
 			}
 		>
 			{badges.length > 0 && (
-				<span className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
-					{badges.map(({ key, label, Icon, appearance }) => (
-						<span
-							key={key}
-							className="flex size-3.5 items-center justify-center rounded-[3px] bg-[#444] text-[#f2f2f2]"
-							data-port-option={key}
-							title={
-								key === "expression" && port.options?.expression
-									? `Expression: ${port.options.expression}`
-									: label
-							}
-						>
-							<Icon
-								size={appearance === "grasshopper" ? 10 : 9}
-								strokeWidth={appearance === "grasshopper" ? 1.5 : 2.5}
-							/>
-						</span>
-					))}
+				<span className="flex shrink-0 items-center gap-0.5">
+					{badges.map(
+						({ key, label, Icon, appearance, interactiveExpression }) =>
+							interactiveExpression && expression ? (
+								<ExpressionInspector key={key} expression={expression} />
+							) : (
+								<span
+									key={key}
+									className="flex size-3.5 items-center justify-center rounded-[3px] bg-[#444] text-[#f2f2f2]"
+									data-port-option={key}
+									title={label}
+									aria-hidden="true"
+								>
+									<Icon
+										size={appearance === "grasshopper" ? 10 : 9}
+										strokeWidth={appearance === "grasshopper" ? 1.5 : 2.5}
+									/>
+								</span>
+							)
+					)}
 				</span>
 			)}
 			<span className="min-w-0">{port.label}</span>

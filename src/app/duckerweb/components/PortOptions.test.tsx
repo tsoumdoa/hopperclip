@@ -1,6 +1,18 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { PortLabel } from "./PortOptions";
+
+vi.mock("./ExpressionInspector", () => ({
+	ExpressionInspector: ({ expression }: { expression: string }) => (
+		<span
+			data-port-option="expression"
+			data-expression-trigger=""
+			title={`Expression: ${expression}`}
+		>
+			*
+		</span>
+	),
+}));
 
 describe("PortLabel", () => {
 	test("renders combinable mapping, simplify, reverse, and expression badges", () => {

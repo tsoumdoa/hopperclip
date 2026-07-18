@@ -74,6 +74,7 @@ export default defineConfig(({ mode }) => {
 			nitro(),
 		],
 		resolve: {
+			dedupe: ["react", "react-dom"],
 			alias: [
 				{
 					find: "use-sync-external-store/shim/index.js",

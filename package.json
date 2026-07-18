@@ -60,6 +60,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.3",
 		"eslint": "^9.39.4",
+		"happy-dom": "^20.10.6",
 		"nitro": "3.0.260311-beta",
 		"prettier": "^3.6.2",
 		"prettier-plugin-tailwindcss": "^0.6.14",

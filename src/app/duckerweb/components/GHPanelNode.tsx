@@ -1,10 +1,13 @@
 import type { GHNodeProps } from "../types/type";
+import { resolveInspectableExpression } from "../lib/component-expression";
+import { ExpressionInspector } from "./ExpressionInspector";
 import { GHHandle } from "./Handle";
 import { HandlePosition } from "./HandlePosition";
 
 export function GHPanelNode({ data, selected }: GHNodeProps) {
 	const inputs = data.inputs ?? [];
 	const outputs = data.outputs ?? [];
+	const componentExpression = resolveInspectableExpression(data);
 
 	return (
 		<div className="relative overflow-visible">
@@ -16,6 +19,11 @@ export function GHPanelNode({ data, selected }: GHNodeProps) {
 					backgroundColor: "#fff",
 				}}
 			>
+				{componentExpression && (
+					<div className="pointer-events-auto flex items-center pl-1.5">
+						<ExpressionInspector expression={componentExpression} />
+					</div>
+				)}
 				{data.value !== undefined && data.value !== "" && (
 					<span className="px-2 font-mono text-[10px] text-[#444]">
 						{data.value}

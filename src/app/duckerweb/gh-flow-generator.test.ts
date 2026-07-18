@@ -124,6 +124,8 @@ test("generateFlowData exposes standalone parameter internal expressions", () =>
 	expect(node?.data.outputs[0]?.options?.expression).toBe(
 		component.internalExpression
 	);
+	expect(node?.data.componentExpression).toBe(component.internalExpression);
+	expect(node?.data.internalExpression).toBe(component.internalExpression);
 
 	const mappedParameter = Object.values(parsed.components).find(
 		(candidate) =>

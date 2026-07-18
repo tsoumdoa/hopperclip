@@ -1,8 +1,11 @@
 import type { GHNodeProps, Port } from "../types/type";
-import { HANDLE_SIZE } from "./constants";
-import { GHHandle } from "./Handle";
+import { resolveComponentExpression } from "../lib/component-expression";
 import { runtimePalette } from "../lib/runtime-palette";
+import { HANDLE_SIZE } from "./constants";
+import { ExpressionInspector } from "./ExpressionInspector";
+import { GHHandle } from "./Handle";
 import { getPortContentWidth, PortLabel } from "./PortOptions";
+
 const SIDE_PADDING_X = 8;
 const LABEL_GAP = 4;
 const APPROX_CHAR_WIDTH = 5.5;
@@ -42,6 +45,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 		data.runtimeState ?? "normal",
 		data.accentColor
 	);
+	const componentExpression = resolveComponentExpression(data);
 
 	return (
 		<div className="relative overflow-visible">
@@ -63,7 +67,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 				</div>
 
 				<div
-					className="flex items-center justify-center px-2 py-2"
+					className="relative flex items-center justify-center px-2 py-2"
 					style={{ backgroundColor: palette.center }}
 				>
 					<span
@@ -75,6 +79,14 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 					>
 						{data.label}
 					</span>
+					{componentExpression && (
+						<div className="pointer-events-auto absolute top-1 right-1">
+							<ExpressionInspector
+								expression={componentExpression}
+								side="right"
+							/>
+						</div>
+					)}
 				</div>
 
 				<div

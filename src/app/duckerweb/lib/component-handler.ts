@@ -53,6 +53,14 @@ export function handleComponent(
 		value: extractValue(component),
 		height: position.height,
 	};
+
+	const componentExpression =
+		component.internalExpression ?? component.expression;
+	if (componentExpression) {
+		nodeData.internalExpression = component.internalExpression;
+		nodeData.expression = component.expression;
+		nodeData.componentExpression = componentExpression;
+	}
 	const runtimeClasses = [
 		component.state?.hidden && "gh-runtime-node--hidden",
 		(component.state?.locked || component.state?.frozen) &&
