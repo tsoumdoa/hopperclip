@@ -46,3 +46,54 @@ export function SecondaryDuckerLink({
 		</Link>
 	);
 }
+
+/** Shared product framing used across review variants */
+export function ProductContrast({
+	emphasis = "clip",
+}: {
+	emphasis?: "clip" | "ducker" | "equal";
+}) {
+	return (
+		<div className="grid gap-4 md:grid-cols-2">
+			<div
+				className={cn(
+					"rounded-xl border p-5 transition-colors",
+					emphasis === "ducker"
+						? "border-neutral-800 bg-neutral-950/60"
+						: "border-neutral-600 bg-neutral-900"
+				)}
+			>
+				<p className="text-[11px] tracking-[0.16em] text-neutral-500 uppercase">
+					Hopper Clip
+				</p>
+				<p className="mt-2 text-lg font-semibold text-white">
+					Online pastebin for Grasshopper
+				</p>
+				<p className="mt-2 text-sm leading-relaxed text-neutral-400">
+					Save definitions to your account, organize with tags, and share a link
+					— so scripts live online instead of in file attachments.
+				</p>
+			</div>
+			<div
+				className={cn(
+					"rounded-xl border p-5 transition-colors",
+					emphasis === "clip"
+						? "border-neutral-800 bg-neutral-950/60"
+						: "border-neutral-600 bg-neutral-900"
+				)}
+			>
+				<p className="text-[11px] tracking-[0.16em] text-neutral-500 uppercase">
+					DuckerWeb
+				</p>
+				<p className="mt-2 text-lg font-semibold text-white">
+					Local-first .gh file inspector
+				</p>
+				<p className="mt-2 text-sm leading-relaxed text-neutral-400">
+					Open a file in your browser to see the graph, list components, diff
+					two versions, and inspect expressions — nothing is uploaded unless you
+					choose to save a card.
+				</p>
+			</div>
+		</div>
+	);
+}

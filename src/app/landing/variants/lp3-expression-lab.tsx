@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { PrimarySignUp, SecondaryDuckerLink } from "../ctas";
+import { PrimarySignUp, SecondaryDuckerLink, ProductContrast } from "../ctas";
 
 type ExprNode = {
 	id: string;
@@ -65,28 +65,30 @@ export function Lp3ExpressionLab() {
 
 	return (
 		<div className="pb-16">
-			<section className="grid min-h-[72vh] items-center gap-10 pt-6 lg:grid-cols-2">
+			<section className="grid min-h-[68vh] items-center gap-10 pt-6 lg:grid-cols-2">
 				<div>
 					<p className="text-5xl font-bold tracking-tight md:text-6xl">
 						Hopper Clip
 					</p>
 					<h1 className="mt-4 text-2xl font-semibold md:text-3xl">
-						Formulas you can hover, pin, and copy.
+						Save Grasshopper scripts online — inspect what&apos;s inside
+						locally.
 					</h1>
 					<p className="mt-4 max-w-md text-neutral-400 md:text-lg">
-						Expression badges on DuckerWeb nodes open a click-to-pin inspector —
-						no tiny native tooltips. Escape or click outside to dismiss.
+						Hopper Clip is your pastebin: account, tags, shareable links.
+						DuckerWeb is the local-first companion that opens .gh files in the
+						browser so you can read graphs and expressions without uploading.
 					</p>
 					<div className="mt-8 flex flex-wrap gap-3">
 						<PrimarySignUp />
-						<SecondaryDuckerLink label="Inspect in DuckerWeb" />
+						<SecondaryDuckerLink label="Inspect locally" />
 					</div>
 					<p className="mt-6 text-xs text-neutral-600">
-						Tip: hover a{" "}
+						Try the inspector: hover a{" "}
 						<span className="rounded bg-neutral-800 px-1 font-mono text-neutral-300">
 							*
 						</span>{" "}
-						badge, then click to pin.
+						badge, click to pin.
 					</p>
 				</div>
 
@@ -95,6 +97,9 @@ export function Lp3ExpressionLab() {
 					className="relative aspect-square max-h-[420px] w-full overflow-visible rounded-2xl border border-neutral-700 md:aspect-[5/4]"
 					style={{ backgroundColor: "#ccc9c0" }}
 				>
+					<p className="absolute top-3 left-3 z-10 rounded bg-black/60 px-2 py-1 text-[10px] tracking-wide text-neutral-300 uppercase">
+						DuckerWeb · local canvas
+					</p>
 					<div
 						aria-hidden
 						className="absolute inset-0 rounded-2xl"
@@ -171,7 +176,7 @@ export function Lp3ExpressionLab() {
 										<p className="text-[10px] tracking-wide text-neutral-500 uppercase">
 											{pinned === node.id ? "Pinned expression" : "Expression"}
 										</p>
-										<p className="mt-1 select-text font-mono text-xs leading-relaxed text-amber-100 break-words">
+										<p className="mt-1 font-mono text-xs leading-relaxed break-words text-amber-100 select-text">
 											{node.expression}
 										</p>
 										{pinned === node.id ? (
@@ -187,13 +192,17 @@ export function Lp3ExpressionLab() {
 				</div>
 			</section>
 
-			<section className="mt-12 max-w-2xl">
-				<h2 className="text-xl font-semibold">Built for reading logic, not guessing</h2>
-				<p className="mt-2 text-neutral-400">
-					Component-level expressions and internal expressions surface on flow
-					nodes — not buried only inside folded port options. Pair with Diff to
-					see when a formula actually changed.
-				</p>
+			<section className="mt-16">
+				<h2 className="mb-4 text-xl font-semibold">Two tools, one product</h2>
+				<ProductContrast emphasis="ducker" />
+				{active ? (
+					<p className="mt-4 text-sm text-neutral-500">
+						Active demo formula:{" "}
+						<span className="font-mono text-neutral-300">
+							{active.expression}
+						</span>
+					</p>
+				) : null}
 			</section>
 		</div>
 	);

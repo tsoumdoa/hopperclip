@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FileUp, Link2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
-import { PrimarySignUp, SecondaryDuckerLink } from "../ctas";
+import { PrimarySignUp, SecondaryDuckerLink, ProductContrast } from "../ctas";
 
 type Phase = "idle" | "catching" | "validating" | "ready";
 
@@ -45,7 +45,7 @@ export function Lp2PasteLab() {
 
 	return (
 		<div className="pb-16">
-			<section className="relative flex min-h-[72vh] flex-col justify-center pt-4">
+			<section className="relative flex min-h-[68vh] flex-col justify-center pt-4">
 				<div
 					aria-hidden
 					className={cn(
@@ -63,19 +63,15 @@ export function Lp2PasteLab() {
 						Hopper Clip
 					</p>
 					<h1 className="mt-4 text-2xl font-semibold text-neutral-100 md:text-3xl">
-						Paste a definition. Skip the zip.
+						Pastebin for Grasshopper — save online, or inspect locally first.
 					</h1>
 					<p className="mx-auto mt-4 max-w-xl text-base text-neutral-400 md:text-lg">
-						Native {modifier}+V imports GhXml without clipboard permission
-						prompts. Or drop a{" "}
+						{modifier}+V or drop a{" "}
 						<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">
 							.gh
 						</code>{" "}
-						/{" "}
-						<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">
-							.ghx
-						</code>{" "}
-						file — same pipeline.
+						file. Save it as a card with a shareable link, or open it in
+						DuckerWeb to browse the graph without uploading.
 					</p>
 				</div>
 
@@ -83,7 +79,7 @@ export function Lp2PasteLab() {
 					className={cn(
 						"relative z-10 mx-auto mt-10 w-full max-w-2xl overflow-hidden rounded-2xl border transition-all duration-300",
 						dragOver
-							? "border-white bg-neutral-900 scale-[1.01]"
+							? "scale-[1.01] border-white bg-neutral-900"
 							: "border-neutral-700 bg-neutral-950",
 						phase === "ready" && "border-emerald-500/40"
 					)}
@@ -102,7 +98,7 @@ export function Lp2PasteLab() {
 					<div className="flex min-h-56 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
 						{phase === "idle" || phase === "catching" ? (
 							<>
-								<div className="flex items-center gap-3 text-neutral-300">
+								<div className="flex flex-wrap items-center justify-center gap-3 text-neutral-300">
 									<span className="inline-flex items-center gap-2 rounded-md border border-neutral-600 px-3 py-1.5 font-mono text-sm">
 										{modifier}+V
 									</span>
@@ -113,8 +109,8 @@ export function Lp2PasteLab() {
 									</span>
 								</div>
 								<p className="max-w-sm text-sm text-neutral-500">
-									Press {modifier}+V anywhere on this page, click Simulate paste,
-									or drop a file on this zone.
+									Try it here: press {modifier}+V, click Simulate paste, or drop
+									any file on this zone.
 								</p>
 								<button
 									type="button"
@@ -130,31 +126,44 @@ export function Lp2PasteLab() {
 							<div className="flex flex-col items-center gap-3">
 								<div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-600 border-t-white" />
 								<p className="text-sm text-neutral-300">
-									Validating GhXml from {source === "drop" ? "file" : "clipboard"}…
+									Validating GhXml from{" "}
+									{source === "drop" ? "file" : "clipboard"}…
 								</p>
 							</div>
 						) : null}
 
 						{phase === "ready" ? (
-							<div className="flex w-full max-w-md flex-col items-stretch gap-4 animate-in fade-in duration-500">
+							<div className="flex w-full max-w-md flex-col items-stretch gap-4">
 								<div className="flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-left">
-									<Sparkles className="mt-0.5 h-4 w-4 text-emerald-300" />
+									<Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
 									<div>
 										<p className="text-sm font-medium text-emerald-100">
 											Definition ready
 										</p>
 										<p className="mt-1 text-xs text-emerald-200/70">
-											Sun path · 12 components · imported via{" "}
+											Sun path · 12 components · via{" "}
 											{source === "drop" ? "file drop" : `${modifier}+V`}
 										</p>
 									</div>
 								</div>
-								<div className="flex items-center justify-between rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-3">
-									<div className="flex items-center gap-2 text-sm text-neutral-300">
-										<Link2 className="h-4 w-4 text-neutral-500" />
-										hopperclip.com/s/sun-path
+								<div className="grid gap-2 sm:grid-cols-2">
+									<div className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-3 text-left">
+										<p className="text-[11px] text-neutral-500 uppercase">
+											Save online
+										</p>
+										<p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-200">
+											<Link2 className="h-3.5 w-3.5 text-neutral-500" />
+											hopperclip.com/s/…
+										</p>
 									</div>
-									<span className="text-xs text-neutral-500">shareable</span>
+									<div className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-3 text-left">
+										<p className="text-[11px] text-neutral-500 uppercase">
+											Or inspect locally
+										</p>
+										<p className="mt-1 text-sm text-neutral-200">
+											DuckerWeb · no upload
+										</p>
+									</div>
 								</div>
 								<button
 									type="button"
@@ -176,28 +185,11 @@ export function Lp2PasteLab() {
 						</div>
 					) : null}
 				</div>
-
-				<div className="relative z-10 mt-8 flex flex-wrap justify-center gap-3">
-					<PrimarySignUp label="Start clipping" />
-					<SecondaryDuckerLink label="Paste into DuckerWeb" />
-				</div>
 			</section>
 
-			<section className="mx-auto mt-8 grid max-w-3xl gap-6 md:grid-cols-2">
-				<div>
-					<h2 className="text-lg font-semibold">Cards & Diff share the same paste</h2>
-					<p className="mt-2 text-sm text-neutral-400">
-						On /ghcards, paste opens create-card. In DuckerWeb Diff, paste targets
-						the comparison definition. Field pastes stay normal.
-					</p>
-				</div>
-				<div>
-					<h2 className="text-lg font-semibold">Native .gh decoding</h2>
-					<p className="mt-2 text-sm text-neutral-400">
-						Saved Grasshopper binaries inflate client-side into GhXml — no
-						server round-trip for the import path.
-					</p>
-				</div>
+			<section className="mx-auto mt-16 max-w-4xl">
+				<h2 className="mb-4 text-xl font-semibold">Two tools, one product</h2>
+				<ProductContrast emphasis="equal" />
 			</section>
 		</div>
 	);

@@ -28,7 +28,9 @@ export function LandingShell({
 			: VARIANTS.find((v) => v.path === active);
 
 	return (
-		<div className={cn("min-h-screen bg-black font-sans text-white", className)}>
+		<div
+			className={cn("min-h-screen bg-black font-sans text-white", className)}
+		>
 			<div className="mx-auto flex min-h-screen max-w-400 flex-col p-4 md:px-6 md:pt-6 md:pb-2">
 				<Header />
 				<div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-800 pb-3">
@@ -41,7 +43,10 @@ export function LandingShell({
 							<span className="text-neutral-600">· pick a version</span>
 						</p>
 					</div>
-					<nav className="flex items-center gap-1.5" aria-label="Landing variants">
+					<nav
+						className="flex items-center gap-1.5"
+						aria-label="Landing variants"
+					>
 						<Link
 							to="/lp"
 							className={cn(

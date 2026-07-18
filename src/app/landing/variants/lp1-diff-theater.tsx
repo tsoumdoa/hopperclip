@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { PrimarySignUp, SecondaryDuckerLink } from "../ctas";
+import { PrimarySignUp, SecondaryDuckerLink, ProductContrast } from "../ctas";
 
 type Stage = "original" | "changed" | "diff";
 
@@ -15,10 +15,40 @@ type DemoNode = {
 };
 
 const NODES: DemoNode[] = [
-	{ id: "a", label: "Point", x: 8, y: 28, kind: "component", status: "unchanged" },
-	{ id: "b", label: "Number", x: 8, y: 58, kind: "value", status: "modified", change: "Value 2.0 → 3.5" },
-	{ id: "c", label: "Move", x: 38, y: 42, kind: "component", status: "modified", change: "Input G: Expression added" },
-	{ id: "d", label: "Panel", x: 68, y: 28, kind: "component", status: "removed" },
+	{
+		id: "a",
+		label: "Point",
+		x: 8,
+		y: 28,
+		kind: "component",
+		status: "unchanged",
+	},
+	{
+		id: "b",
+		label: "Number",
+		x: 8,
+		y: 58,
+		kind: "value",
+		status: "modified",
+		change: "Value 2.0 → 3.5",
+	},
+	{
+		id: "c",
+		label: "Move",
+		x: 38,
+		y: 42,
+		kind: "component",
+		status: "modified",
+		change: "Input G: Expression added",
+	},
+	{
+		id: "d",
+		label: "Panel",
+		x: 68,
+		y: 28,
+		kind: "component",
+		status: "removed",
+	},
 	{ id: "e", label: "Cull", x: 68, y: 58, kind: "component", status: "added" },
 ];
 
@@ -61,31 +91,34 @@ export function Lp1DiffTheater() {
 						"linear-gradient(#2a2a28 1px, transparent 1px), linear-gradient(90deg, #2a2a28 1px, transparent 1px)",
 					backgroundSize: "40px 40px",
 					backgroundColor: "#121210",
-					maskImage:
-						"linear-gradient(to bottom, black 40%, transparent 95%)",
+					maskImage: "linear-gradient(to bottom, black 40%, transparent 95%)",
 				}}
 			/>
 
-			<section className="relative grid min-h-[70vh] items-center gap-10 pt-6 lg:grid-cols-[1.05fr_0.95fr]">
+			<section className="relative grid min-h-[68vh] items-center gap-10 pt-6 lg:grid-cols-[1.05fr_0.95fr]">
 				<div className="max-w-xl">
 					<p className="mb-3 text-5xl font-bold tracking-tight md:text-6xl">
 						Hopper Clip
 					</p>
 					<h1 className="text-2xl font-semibold text-neutral-100 md:text-3xl">
-						See what actually changed in a Grasshopper definition.
+						Online pastebin for Grasshopper — and a local-first way to look
+						inside .gh files.
 					</h1>
 					<p className="mt-4 text-base text-neutral-400 md:text-lg">
-						DuckerWeb Diff matches components by instance GUID, then paints
-						adds, edits, and removals — including port mapping and expression
-						details.
+						Save scripts to your account and share a link. Need to peek or Diff
+						two versions? Open them in DuckerWeb — nothing uploads unless you
+						save a card.
 					</p>
 					<div className="mt-8 flex flex-wrap gap-3">
 						<PrimarySignUp />
-						<SecondaryDuckerLink label="Try Diff in DuckerWeb" />
+						<SecondaryDuckerLink label="Try Diff locally" />
 					</div>
 				</div>
 
 				<div className="relative">
+					<p className="mb-2 text-xs tracking-[0.14em] text-neutral-500 uppercase">
+						DuckerWeb · interactive Diff demo
+					</p>
 					<div className="mb-3 flex gap-1 rounded-lg border border-neutral-800 bg-neutral-950/80 p-1">
 						{(
 							[
@@ -128,7 +161,7 @@ export function Lp1DiffTheater() {
 							<path
 								d="M 18% 35% C 30% 35%, 30% 48%, 40% 48%"
 								fill="none"
-								stroke={stage === "diff" ? "#5a5a5a" : "#5a5a5a"}
+								stroke="#5a5a5a"
 								strokeWidth="2"
 							/>
 							<path
@@ -179,7 +212,9 @@ export function Lp1DiffTheater() {
 								className={cn(
 									"absolute -translate-x-1/2 -translate-y-1/2 rounded-sm px-2.5 py-1.5 text-[11px] font-medium text-neutral-900 shadow-sm ring-2 transition-all duration-300",
 									node.kind === "value" ? "bg-[#f5f07a]" : "bg-[#b8b5ae]",
-									stage === "diff" ? statusRing[node.status] : "ring-transparent",
+									stage === "diff"
+										? statusRing[node.status]
+										: "ring-transparent",
 									focusId === node.id && stage === "diff"
 										? "scale-105 ring-offset-1 ring-offset-[#ccc9c0]"
 										: ""
@@ -211,7 +246,9 @@ export function Lp1DiffTheater() {
 								<p className="text-xs text-neutral-500">
 									Changed component · {focused.label}
 								</p>
-								<p className="mt-1 text-sm text-neutral-200">{focused.change}</p>
+								<p className="mt-1 text-sm text-neutral-200">
+									{focused.change}
+								</p>
 							</>
 						) : (
 							<p className="text-sm text-neutral-500">
@@ -224,12 +261,9 @@ export function Lp1DiffTheater() {
 				</div>
 			</section>
 
-			<section className="relative mt-16 max-w-3xl">
-				<h2 className="text-xl font-semibold">Share the definition. Inspect the delta.</h2>
-				<p className="mt-2 text-neutral-400">
-					Hopper Clip stores and shares your scripts. DuckerWeb Diff tells you
-					exactly what logic moved — not just that the canvas was rearranged.
-				</p>
+			<section className="relative mt-16">
+				<h2 className="mb-4 text-xl font-semibold">Two tools, one product</h2>
+				<ProductContrast emphasis="ducker" />
 			</section>
 		</div>
 	);

@@ -5,25 +5,45 @@ import {
 	GitCompareArrows,
 	Asterisk,
 	Share2,
+	Cloud,
+	HardDrive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
-import { PrimarySignUp, SecondaryDuckerLink } from "../ctas";
+import { PrimarySignUp, SecondaryDuckerLink, ProductContrast } from "../ctas";
 
 const STEPS = [
+	{
+		id: "what",
+		title: "What it is",
+		icon: Share2,
+		headline: "A pastebin for Grasshopper scripts",
+		body: "Hopper Clip is the main product: save definitions to your account, organize with tags, and share a link — online, like a snippet manager for GH.",
+		where: "online" as const,
+	},
 	{
 		id: "import",
 		title: "Import",
 		icon: FileUp,
 		headline: "Drop .gh or paste GhXml",
-		body: "Native binary .gh decoding and clipboard paste feed the same validation path — cards and DuckerWeb alike.",
+		body: "Native binary .gh decoding and clipboard paste feed the same validation path — whether you're about to save a card or just peek locally.",
+		where: "both" as const,
 	},
 	{
 		id: "share",
-		title: "Share",
-		icon: Share2,
+		title: "Save & share",
+		icon: Cloud,
 		headline: "Ship a link, not a zip",
-		body: "Tag it, save it, send a short URL. Recipients open the definition in-browser and copy XML when they need it.",
+		body: "Once saved, send a short URL. Recipients open the definition in-browser and copy XML when they need it. That's the pastebin job.",
+		where: "online" as const,
+	},
+	{
+		id: "ducker",
+		title: "DuckerWeb",
+		icon: HardDrive,
+		headline: "Local-first .gh inspector",
+		body: "Don't want to upload yet? Open the file in DuckerWeb: browse the graph, Diff two versions, inspect expressions — stays in your browser.",
+		where: "local" as const,
 	},
 	{
 		id: "diff",
@@ -31,13 +51,15 @@ const STEPS = [
 		icon: GitCompareArrows,
 		headline: "Compare logic, not layout",
 		body: "Match by instance GUID. Overlay added / modified / removed. Port changes get readable summaries; layout-only moves stay quiet.",
+		where: "local" as const,
 	},
 	{
 		id: "inspect",
 		title: "Inspect",
 		icon: Asterisk,
 		headline: "Pin the expression",
-		body: "Hover the * badge, click to pin, select and copy the formula. Escape dismisses — built for reading, not guessing.",
+		body: "Hover the * badge, click to pin, select and copy the formula. Escape dismisses — built for reading what's inside the file.",
+		where: "local" as const,
 	},
 ] as const;
 
@@ -64,10 +86,11 @@ export function Lp5ProductTour() {
 					Hopper Clip
 				</p>
 				<h1 className="mx-auto mt-4 max-w-2xl text-2xl font-semibold md:text-3xl">
-					From clipboard to Diff in four beats.
+					Pastebin online. Inspector local. Same Grasshopper files.
 				</h1>
 				<p className="mx-auto mt-3 max-w-lg text-neutral-400">
-					A guided tour of what just shipped — pause anytime and click a step.
+					Walk through what the product is — then the new Diff, paste, and
+					inspect features. Pause anytime and click a step.
 				</p>
 			</section>
 
@@ -122,18 +145,31 @@ export function Lp5ProductTour() {
 
 					<div className="grid gap-0 md:grid-cols-2">
 						<div className="flex flex-col justify-center p-8 md:p-10">
-							<p className="font-mono text-xs text-neutral-500">
-								Step {step + 1} / {STEPS.length}
-							</p>
-							<h2 className="mt-3 text-2xl font-semibold">{current.headline}</h2>
+							<div className="flex items-center gap-2">
+								<p className="font-mono text-xs text-neutral-500">
+									Step {step + 1} / {STEPS.length}
+								</p>
+								{current.where === "online" ? (
+									<span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300 ring-1 ring-emerald-500/30">
+										Online
+									</span>
+								) : current.where === "local" ? (
+									<span className="rounded bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium text-sky-300 ring-1 ring-sky-500/30">
+										Local-first
+									</span>
+								) : (
+									<span className="rounded bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-400 ring-1 ring-neutral-600">
+										Both
+									</span>
+								)}
+							</div>
+							<h2 className="mt-3 text-2xl font-semibold">
+								{current.headline}
+							</h2>
 							<p className="mt-3 text-neutral-400">{current.body}</p>
 							<div className="mt-8 flex flex-wrap gap-3">
 								<PrimarySignUp label="Get Started Free" />
-								{current.id === "diff" || current.id === "inspect" ? (
-									<SecondaryDuckerLink />
-								) : (
-									<SecondaryDuckerLink label="Open DuckerWeb" />
-								)}
+								<SecondaryDuckerLink />
 							</div>
 						</div>
 
@@ -143,21 +179,34 @@ export function Lp5ProductTour() {
 					</div>
 				</div>
 			</section>
+
+			<section className="mx-auto mt-14 max-w-4xl">
+				<h2 className="mb-4 text-center text-xl font-semibold">
+					Remember the split
+				</h2>
+				<ProductContrast emphasis="equal" />
+			</section>
 		</div>
 	);
 }
 
-function StepStage({
-	stepId,
-	modifier,
-}: {
-	stepId: StepId;
-	modifier: string;
-}) {
+function StepStage({ stepId, modifier }: { stepId: StepId; modifier: string }) {
+	if (stepId === "what") {
+		return (
+			<div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-neutral-900 p-8">
+				<p className="text-3xl font-bold">Hopper Clip</p>
+				<p className="max-w-xs text-center text-sm text-neutral-400">
+					Think GitHub Gist — but for Grasshopper definitions you actually use
+					in Rhino.
+				</p>
+			</div>
+		);
+	}
+
 	if (stepId === "import") {
 		return (
 			<div className="flex h-full min-h-64 flex-col items-center justify-center gap-4 bg-[#141412] p-8">
-				<div className="flex items-center gap-3">
+				<div className="flex flex-wrap items-center justify-center gap-3">
 					<span className="inline-flex items-center gap-2 rounded-md border border-neutral-600 px-3 py-2 font-mono text-sm text-neutral-200">
 						<ClipboardPaste className="h-4 w-4" />
 						{modifier}+V
@@ -178,14 +227,43 @@ function StepStage({
 	if (stepId === "share") {
 		return (
 			<div className="flex h-full min-h-64 flex-col items-center justify-center gap-3 bg-neutral-900 p-8">
-				<div className="w-full max-w-xs rounded-lg border border-neutral-700 bg-black px-4 py-3">
-					<p className="text-sm font-medium">Sun path utility</p>
+				<div className="w-full max-w-xs rounded-lg border border-emerald-500/30 bg-black px-4 py-3">
+					<p className="text-[10px] tracking-wide text-emerald-400/80 uppercase">
+						Saved online
+					</p>
+					<p className="mt-1 text-sm font-medium">Sun path utility</p>
 					<p className="mt-1 text-xs text-neutral-500">#solar · #analysis</p>
 					<p className="mt-3 font-mono text-xs text-neutral-400">
 						hopperclip.com/s/a7k2
 					</p>
 				</div>
-				<p className="text-xs text-neutral-500">Shareable in one click</p>
+			</div>
+		);
+	}
+
+	if (stepId === "ducker") {
+		return (
+			<div
+				className="relative flex h-full min-h-64 flex-col items-center justify-center gap-3 p-6"
+				style={{ backgroundColor: "#ccc9c0" }}
+			>
+				<p className="absolute top-3 left-3 rounded bg-black/60 px-2 py-1 text-[10px] text-sky-200 uppercase">
+					Stays in browser
+				</p>
+				<div className="flex gap-3">
+					<div className="rounded-sm bg-[#b8b5ae] px-3 py-2 text-xs text-neutral-900">
+						Point
+					</div>
+					<div className="rounded-sm bg-[#f5f07a] px-3 py-2 text-xs text-neutral-900">
+						Number
+					</div>
+					<div className="rounded-sm bg-[#b8b5ae] px-3 py-2 text-xs text-neutral-900">
+						Move
+					</div>
+				</div>
+				<p className="text-xs text-neutral-700">
+					Graph · list · Diff · inspect
+				</p>
 			</div>
 		);
 	}
@@ -237,7 +315,9 @@ function StepStage({
 				</span>
 			</div>
 			<div className="absolute top-1/2 left-1/2 mt-10 w-52 -translate-x-1/2 rounded-md border border-neutral-600 bg-neutral-950 p-3 shadow-xl">
-				<p className="text-[10px] text-neutral-500 uppercase">Pinned expression</p>
+				<p className="text-[10px] text-neutral-500 uppercase">
+					Pinned expression
+				</p>
 				<p className="mt-1 font-mono text-xs text-amber-100">Sin(t) * Radius</p>
 			</div>
 		</div>

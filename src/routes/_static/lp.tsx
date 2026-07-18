@@ -17,9 +17,12 @@ function LandingGallery() {
 				</p>
 				<h1 className="mt-4 text-2xl font-semibold">Landing variant gallery</h1>
 				<p className="mt-3 text-neutral-400">
-					Five interactive proposals reflecting Diff, native paste, .gh import,
-					and expression inspect. Pick one to promote to{" "}
-					<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">/</code>{" "}
+					Five interactive proposals. Each explains Hopper Clip (online
+					pastebin) vs DuckerWeb (local-first .gh inspector), then demos Diff,
+					paste, and expression inspect. Pick one to promote to{" "}
+					<code className="rounded bg-neutral-800 px-1.5 py-0.5 text-sm">
+						/
+					</code>{" "}
 					later.
 				</p>
 				<ul className="mt-10 space-y-3">
