@@ -115,7 +115,8 @@ function LandingPageContent() {
 					<div className="text-left">
 						<h2 className="text-lg font-semibold">Also try DuckerWeb</h2>
 						<p className="text-sm text-neutral-400">
-							Auto-generate plugin reference docs from a GhXml.
+							View, understand, and compare Grasshopper
+							definitions—directly in your browser.
 						</p>
 					</div>
 					<Link
