@@ -10,7 +10,22 @@ import { ComponentList } from "./components/ComponentList";
 import { GHFlowCanvas } from "./components/GHFlowCanvas";
 import { GHJsonView } from "./components/GHJsonView";
 import { GHDiffView } from "./components/GHDiffView";
+import type { ViewMode } from "./types/type";
 import { cn } from "@/lib/utils";
+
+const contentWidth =
+	"mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]";
+
+const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
+	flow: { outer: "min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6", inner: "h-full" },
+	diff: {
+		outer:
+			"px-4 pb-6 md:px-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0",
+		inner: "flex h-full flex-col",
+	},
+	list: { outer: "min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6" },
+	json: { outer: "min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6" },
+};
 
 export default function DuckerWebPage() {
 	const {
@@ -38,21 +53,40 @@ export default function DuckerWebPage() {
 
 	const { handleCopyAll, isCopied } = useMarkdownExport(parsedData);
 
+	const isDiff = viewMode === "diff";
+	const layout = viewLayouts[viewMode];
+
+	const views: Record<ViewMode, React.ReactNode> = {
+		flow: <GHFlowCanvas nodes={nodes} edges={edges} />,
+		diff: (
+			<GHDiffView
+				diff={diffResult}
+				error={diffError}
+				onPasteComparison={handlePasteComparison}
+				onFileSelected={handleComparisonFileSelected}
+				onClearComparison={handleClearComparison}
+				originalFileName={fileName}
+				comparisonFileName={comparisonFileName}
+				comparisonRejected={comparisonRejected}
+			/>
+		),
+		list: parsedData && <ComponentList parsedData={parsedData} />,
+		json: parsedData && <GHJsonView data={parsedData} />,
+	};
+
 	return (
 		<DuckerwebMainZone
 			onFileSelected={
-				viewMode === "diff" ? handleComparisonFileSelected : handleFileSelected
+				isDiff ? handleComparisonFileSelected : handleFileSelected
 			}
-			dropTitle={
-				viewMode === "diff" ? "Drop changed .gh or .ghx definition" : undefined
-			}
+			dropTitle={isDiff ? "Drop changed .gh or .ghx definition" : undefined}
 			className={cn(
 				"flex flex-col bg-black font-sans text-white",
-				viewMode === "diff" ? "min-h-dvh" : "h-dvh overflow-hidden"
+				isDiff ? "min-h-dvh" : "h-dvh overflow-hidden"
 			)}
 		>
 			<div className="w-full shrink-0 px-4 pt-4 md:px-6 md:pt-6">
-				<div className="mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
+				<div className={contentWidth}>
 					<Header />
 					<div className="flex items-center justify-between pb-4">
 						<h1 className="text-lg font-medium">DuckerWeb</h1>
@@ -102,37 +136,10 @@ export default function DuckerWebPage() {
 				</div>
 			</div>
 
-			{parsedData && viewMode === "flow" && (
-				<div className="min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto h-full w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
-						<GHFlowCanvas nodes={nodes} edges={edges} />
-					</div>
-				</div>
-			)}
-
-			{parsedData && viewMode !== "flow" && viewMode !== "diff" && (
-				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6">
-					<div className="mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
-						{viewMode === "list" && <ComponentList parsedData={parsedData} />}
-
-						{viewMode === "json" && <GHJsonView data={parsedData} />}
-					</div>
-				</div>
-			)}
-
-			{parsedData && viewMode === "diff" && (
-				<div className="px-4 pb-6 md:px-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0">
-					<div className="mx-auto flex h-full w-full max-w-6xl flex-col min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
-						<GHDiffView
-							diff={diffResult}
-							error={diffError}
-							onPasteComparison={handlePasteComparison}
-							onFileSelected={handleComparisonFileSelected}
-							onClearComparison={handleClearComparison}
-							originalFileName={fileName}
-							comparisonFileName={comparisonFileName}
-							comparisonRejected={comparisonRejected}
-						/>
+			{parsedData && (
+				<div className={layout.outer}>
+					<div className={cn(contentWidth, layout.inner)}>
+						{views[viewMode]}
 					</div>
 				</div>
 			)}

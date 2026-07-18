@@ -2,7 +2,7 @@ import {
 	ArrowDownToLine,
 	ArrowUpToLine,
 	Asterisk,
-	GitMerge,
+	createLucideIcon,
 	Undo2,
 	type LucideIcon,
 } from "lucide-react";
@@ -14,7 +14,44 @@ type OptionBadge = {
 	key: string;
 	label: string;
 	Icon: LucideIcon;
+	appearance?: "grasshopper";
 };
+
+// Grasshopper's simplify glyph: the zipper "Y" — two branches merging
+// into a single stem.
+const GrasshopperSimplifyIcon = createLucideIcon("GrasshopperSimplify", [
+	[
+		"path",
+		{
+			d: "M6.5 4.5 12 11m5.5-6.5L12 11m0 0v8.5",
+			key: "simplify-y",
+		},
+	],
+]);
+
+// Grasshopper's reparameterize/unitize glyph: a bell curve sitting on a
+// baseline, drawn white on the standard dark chip.
+const GrasshopperTransformIcon = createLucideIcon("GrasshopperTransform", [
+	[
+		"path",
+		{
+			d: "M3 18.5c2.4 0 3.2-2.85 4.35-6.98C8.33 7.93 9.38 4.88 12 4.88s3.67 3.05 4.65 6.64C17.8 15.65 18.6 18.5 21 18.5H3Z",
+			fill: "currentColor",
+			stroke: "none",
+			key: "domain-profile",
+		},
+	],
+	[
+		// Baseline runs through the hump's base so the combined mark is
+		// vertically centered in the 24px viewBox (bbox ≈ 4.9–19.25).
+		"path",
+		{
+			d: "M2.75 18.5h18.5",
+			strokeWidth: "1.5",
+			key: "domain-baseline",
+		},
+	],
+]);
 
 // 14px chip + 2px inter-badge gap; the flat +2 covers the wider 4px gap
 // between the badge group and the label.
@@ -31,7 +68,27 @@ function getOptionBadges(options?: ParsedPortOptions): OptionBadge[] {
 		badges.push({ key: "graft", label: "Graft", Icon: ArrowUpToLine });
 	}
 	if (options.mapping === "simplify" || options.simplify) {
-		badges.push({ key: "simplify", label: "Simplify", Icon: GitMerge });
+		badges.push({
+			key: "simplify",
+			label: "Simplify",
+			Icon: GrasshopperSimplifyIcon,
+		});
+	}
+	if (options.mapping === "reparametrize" || options.reparameterize) {
+		badges.push({
+			key: "reparameterize",
+			label: "Reparameterize",
+			Icon: GrasshopperTransformIcon,
+			appearance: "grasshopper",
+		});
+	}
+	if (options.unitize) {
+		badges.push({
+			key: "unitize",
+			label: "Unitize",
+			Icon: GrasshopperTransformIcon,
+			appearance: "grasshopper",
+		});
 	}
 	if (options.reverse) {
 		badges.push({ key: "reverse", label: "Reverse", Icon: Undo2 });
@@ -86,7 +143,7 @@ export function PortLabel({
 		>
 			{badges.length > 0 && (
 				<span className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
-					{badges.map(({ key, label, Icon }) => (
+					{badges.map(({ key, label, Icon, appearance }) => (
 						<span
 							key={key}
 							className="flex size-3.5 items-center justify-center rounded-[3px] bg-[#444] text-[#f2f2f2]"
@@ -97,7 +154,10 @@ export function PortLabel({
 									: label
 							}
 						>
-							<Icon size={9} strokeWidth={2.5} />
+							<Icon
+								size={appearance === "grasshopper" ? 10 : 9}
+								strokeWidth={appearance === "grasshopper" ? 1.5 : 2.5}
+							/>
 						</span>
 					))}
 				</span>

@@ -22,6 +22,7 @@ describe("PortLabel", () => {
 
 		expect(html).toContain('data-port-option="flatten"');
 		expect(html).toContain('data-port-option="simplify"');
+		expect(html).toContain("lucide-grasshopper-simplify");
 		expect(html).toContain('data-port-option="reverse"');
 		expect(html).toContain('data-port-option="expression"');
 		expect(html).toContain("Expression: x * 2");
@@ -44,5 +45,41 @@ describe("PortLabel", () => {
 		expect(html).not.toContain('data-port-option="flatten"');
 		expect(html).toContain("w-full");
 		expect(html).toContain("justify-end");
+	});
+
+	test("renders reparameterize and unitize badges", () => {
+		const html = renderToStaticMarkup(
+			<PortLabel
+				port={{
+					id: "component.output",
+					label: "V",
+					options: { reparameterize: true, unitize: true },
+				}}
+				align="right"
+			/>
+		);
+
+		expect(html).toContain('data-port-option="reparameterize"');
+		expect(html).toContain('data-port-option="unitize"');
+		expect(html).toContain("Reparameterize · Unitize");
+		expect(html).toContain("lucide-grasshopper-transform");
+		expect(html).not.toContain("linear-gradient");
+		expect(html).not.toContain("shadow-");
+	});
+
+	test("renders legacy reparametrize mapping as a reparameterize badge", () => {
+		const html = renderToStaticMarkup(
+			<PortLabel
+				port={{
+					id: "component.input",
+					label: "C",
+					options: { mapping: "reparametrize" },
+				}}
+				align="left"
+			/>
+		);
+
+		expect(html).toContain('data-port-option="reparameterize"');
+		expect(html).toContain('title="Reparameterize"');
 	});
 });

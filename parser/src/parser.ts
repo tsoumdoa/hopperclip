@@ -180,6 +180,16 @@ function parsePortOptions(
 		hasOptions = true;
 	}
 
+	if (items.Reparameterize === true) {
+		options.reparameterize = true;
+		hasOptions = true;
+	}
+
+	if (items.Unitize === true) {
+		options.unitize = true;
+		hasOptions = true;
+	}
+
 	if (items.Expression && typeof items.Expression === "string") {
 		options.expression = items.Expression;
 		hasOptions = true;

@@ -15,6 +15,8 @@ export interface PortOptions {
 	mapping?: DataMapping; // Tree mapping: flatten, graft, etc.
 	simplify?: boolean; // Simplify data option
 	reverse?: boolean; // Reverse list option
+	reparameterize?: boolean; // Reparameterize curve/surface domains
+	unitize?: boolean; // Unitize vector data
 	expression?: string; // Expression applied to this port
 }
 

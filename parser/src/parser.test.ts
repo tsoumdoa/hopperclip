@@ -55,4 +55,51 @@ describe("buildGhJson parameter options", () => {
 			reverse: true,
 		});
 	});
+
+	it("parses Reparameterize on a standalone parameter container", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">curve-type-guid</item><item name="Name">Curve</item></items>
+						<chunks><chunk name="Container"><items>
+							<item name="InstanceGuid">curve-instance-guid</item>
+							<item name="NickName">Crv</item>
+							<item name="Reparameterize" type_name="gh_bool">true</item>
+						</items></chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml);
+
+		expect(parsed.components.Crv.outputs.value.options).toEqual({
+			reparameterize: true,
+		});
+	});
+
+	it("parses Unitize on a component output parameter", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">eval-type-guid</item><item name="Name">Evaluate Surface</item></items>
+						<chunks><chunk name="Container">
+							<items><item name="InstanceGuid">eval-instance-guid</item><item name="NickName">EvalSrf</item></items>
+							<chunks><chunk name="param_output" index="3"><items>
+								<item name="NickName">V</item>
+								<item name="InstanceGuid">v-output-guid</item>
+								<item name="Unitize" type_name="gh_bool">true</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml);
+
+		expect(parsed.components.EvalSrf.outputs.v.options).toEqual({
+			unitize: true,
+		});
+	});
 });
