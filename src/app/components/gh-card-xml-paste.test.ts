@@ -2,40 +2,9 @@ import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import {
-	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
-	sanitizeGhCardName,
-	shouldAutoFillGhCardName,
 } from "./gh-card-xml-paste";
-
-describe("getGhCardNameFromFileName", () => {
-	test("strips .gh/.ghx and clips to 30 characters", () => {
-		expect(getGhCardNameFromFileName("Panelizer.gh")).toBe("Panelizer");
-		expect(getGhCardNameFromFileName("MyFacade.GHX")).toBe("MyFacade");
-		expect(getGhCardNameFromFileName("Facade.v2.gh")).toBe("Facade.v2");
-		expect(getGhCardNameFromFileName(`${"A".repeat(40)}.gh`)).toBe(
-			"A".repeat(30)
-		);
-	});
-});
-
-describe("shouldAutoFillGhCardName", () => {
-	test("fills empty or previously auto-filled names only", () => {
-		expect(shouldAutoFillGhCardName("", null)).toBe(true);
-		expect(shouldAutoFillGhCardName("A", "A")).toBe(true);
-		expect(shouldAutoFillGhCardName("Custom name", null)).toBe(false);
-		expect(shouldAutoFillGhCardName("Custom name", "A")).toBe(false);
-	});
-});
-
-describe("sanitizeGhCardName", () => {
-	test("strips symbols, trims, and truncates", () => {
-		expect(sanitizeGhCardName("MyScript:foo")).toBe("MyScriptfoo");
-		expect(sanitizeGhCardName("  C#  ")).toBe("C");
-		expect(sanitizeGhCardName("A".repeat(40))).toBe("A".repeat(30));
-	});
-});
 
 describe("getSingleScriptNickName", () => {
 	test("returns sanitized nickName only for a single script component", () => {
