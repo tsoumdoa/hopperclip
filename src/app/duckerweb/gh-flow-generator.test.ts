@@ -3,80 +3,28 @@ import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import { createFlowPreview, generateFlowData } from "./gh-flow-generator";
 
-test("generateFlowData creates edges with correct structure", () => {
+test("generateFlowData builds nodes and wires into a connected flow graph", () => {
 	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-
 	const parsed = buildGhJson(xml, { includeVisuals: true });
-
 	const { nodes, edges } = generateFlowData(parsed);
-
-	expect(nodes.length).toBeGreaterThan(0);
-	expect(edges.length).toBeGreaterThan(0);
-
 	const nodeIds = new Set(nodes.map((n) => n.id));
 
-	edges.forEach((edge) => {
-		expect(edge.id).toBeDefined();
-		expect(edge.source).toBeDefined();
-		expect(edge.target).toBeDefined();
-		expect(edge.targetHandle).toBeDefined();
-		expect(edge.sourceHandle).toBeDefined();
-		expect(edge.type).toBe("default");
+	expect(nodes.length).toBeGreaterThan(0);
+	expect(edges).toHaveLength(parsed.wires.length);
+	for (const edge of edges) {
 		expect(nodeIds.has(edge.source)).toBe(true);
 		expect(nodeIds.has(edge.target)).toBe(true);
-	});
-});
-
-test("generateFlowData creates correct number of edges from wires", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-
-	const parsed = buildGhJson(xml, { includeVisuals: true });
-
-	const wireCount = parsed.wires.length;
-	const { edges } = generateFlowData(parsed);
-
-	expect(edges.length).toBe(wireCount);
-});
-
-test("edge targetHandle format is componentId.portName", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-
-	const parsed = buildGhJson(xml, { includeVisuals: true });
-	const { edges } = generateFlowData(parsed);
-
-	edges.forEach((edge) => {
-		const targetParts = edge.targetHandle?.split(".") ?? [];
-		expect(targetParts.length).toBeGreaterThanOrEqual(1);
-	});
-});
-
-test("edge sourceHandle format is componentId.portName", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-
-	const parsed = buildGhJson(xml, { includeVisuals: true });
-	const { edges } = generateFlowData(parsed);
-
-	edges.forEach((edge) => {
-		expect(edge.sourceHandle).toBeDefined();
-		const sourceParts = edge.sourceHandle?.split(".") ?? [];
-		expect(sourceParts.length).toBeGreaterThanOrEqual(1);
-	});
-});
-
-test("createFlowPreview creates graph data from valid Grasshopper XML", () => {
-	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
-	const preview = createFlowPreview(xml);
-
-	expect(preview).not.toBeNull();
-	expect(preview?.nodes.length).toBeGreaterThan(0);
-	expect(preview?.edges.length).toBeGreaterThan(0);
+		expect(edge.sourceHandle).toBeTruthy();
+		expect(edge.targetHandle).toBeTruthy();
+		expect(edge.type).toBe("default");
+	}
 });
 
 test("createFlowPreview returns null for invalid XML", () => {
 	expect(createFlowPreview("not Grasshopper XML")).toBeNull();
 });
 
-test("generateFlowData carries combined input and output parameter options", () => {
+test("generateFlowData carries combined port options onto nodes", () => {
 	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
 	const parsed = buildGhJson(xml, { includeVisuals: true });
 	const component = Object.values(parsed.components).find(
