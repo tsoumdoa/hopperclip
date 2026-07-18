@@ -15,11 +15,6 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms-of-service'
 import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
-import { Route as StaticLp5RouteImport } from './routes/_static/lp5'
-import { Route as StaticLp3RouteImport } from './routes/_static/lp3'
-import { Route as StaticLp2RouteImport } from './routes/_static/lp2'
-import { Route as StaticLp1RouteImport } from './routes/_static/lp1'
-import { Route as StaticLpRouteImport } from './routes/_static/lp'
 import { Route as StaticDuckerwebRouteImport } from './routes/_static/duckerweb'
 import { Route as AuthedGhcardsRouteImport } from './routes/_authed/ghcards'
 
@@ -51,31 +46,6 @@ const StaticPrivacyRoute = StaticPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => StaticRoute,
 } as any)
-const StaticLp5Route = StaticLp5RouteImport.update({
-  id: '/lp5',
-  path: '/lp5',
-  getParentRoute: () => StaticRoute,
-} as any)
-const StaticLp3Route = StaticLp3RouteImport.update({
-  id: '/lp3',
-  path: '/lp3',
-  getParentRoute: () => StaticRoute,
-} as any)
-const StaticLp2Route = StaticLp2RouteImport.update({
-  id: '/lp2',
-  path: '/lp2',
-  getParentRoute: () => StaticRoute,
-} as any)
-const StaticLp1Route = StaticLp1RouteImport.update({
-  id: '/lp1',
-  path: '/lp1',
-  getParentRoute: () => StaticRoute,
-} as any)
-const StaticLpRoute = StaticLpRouteImport.update({
-  id: '/lp',
-  path: '/lp',
-  getParentRoute: () => StaticRoute,
-} as any)
 const StaticDuckerwebRoute = StaticDuckerwebRouteImport.update({
   id: '/duckerweb',
   path: '/duckerweb',
@@ -92,11 +62,6 @@ export interface FileRoutesByFullPath {
   '/share': typeof ShareRoute
   '/ghcards': typeof AuthedGhcardsRoute
   '/duckerweb': typeof StaticDuckerwebRoute
-  '/lp': typeof StaticLpRoute
-  '/lp1': typeof StaticLp1Route
-  '/lp2': typeof StaticLp2Route
-  '/lp3': typeof StaticLp3Route
-  '/lp5': typeof StaticLp5Route
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
 }
@@ -105,11 +70,6 @@ export interface FileRoutesByTo {
   '/share': typeof ShareRoute
   '/ghcards': typeof AuthedGhcardsRoute
   '/duckerweb': typeof StaticDuckerwebRoute
-  '/lp': typeof StaticLpRoute
-  '/lp1': typeof StaticLp1Route
-  '/lp2': typeof StaticLp2Route
-  '/lp3': typeof StaticLp3Route
-  '/lp5': typeof StaticLp5Route
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
 }
@@ -121,11 +81,6 @@ export interface FileRoutesById {
   '/share': typeof ShareRoute
   '/_authed/ghcards': typeof AuthedGhcardsRoute
   '/_static/duckerweb': typeof StaticDuckerwebRoute
-  '/_static/lp': typeof StaticLpRoute
-  '/_static/lp1': typeof StaticLp1Route
-  '/_static/lp2': typeof StaticLp2Route
-  '/_static/lp3': typeof StaticLp3Route
-  '/_static/lp5': typeof StaticLp5Route
   '/_static/privacy': typeof StaticPrivacyRoute
   '/_static/terms-of-service': typeof StaticTermsOfServiceRoute
 }
@@ -136,11 +91,6 @@ export interface FileRouteTypes {
     | '/share'
     | '/ghcards'
     | '/duckerweb'
-    | '/lp'
-    | '/lp1'
-    | '/lp2'
-    | '/lp3'
-    | '/lp5'
     | '/privacy'
     | '/terms-of-service'
   fileRoutesByTo: FileRoutesByTo
@@ -149,11 +99,6 @@ export interface FileRouteTypes {
     | '/share'
     | '/ghcards'
     | '/duckerweb'
-    | '/lp'
-    | '/lp1'
-    | '/lp2'
-    | '/lp3'
-    | '/lp5'
     | '/privacy'
     | '/terms-of-service'
   id:
@@ -164,11 +109,6 @@ export interface FileRouteTypes {
     | '/share'
     | '/_authed/ghcards'
     | '/_static/duckerweb'
-    | '/_static/lp'
-    | '/_static/lp1'
-    | '/_static/lp2'
-    | '/_static/lp3'
-    | '/_static/lp5'
     | '/_static/privacy'
     | '/_static/terms-of-service'
   fileRoutesById: FileRoutesById
@@ -224,41 +164,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaticPrivacyRouteImport
       parentRoute: typeof StaticRoute
     }
-    '/_static/lp5': {
-      id: '/_static/lp5'
-      path: '/lp5'
-      fullPath: '/lp5'
-      preLoaderRoute: typeof StaticLp5RouteImport
-      parentRoute: typeof StaticRoute
-    }
-    '/_static/lp3': {
-      id: '/_static/lp3'
-      path: '/lp3'
-      fullPath: '/lp3'
-      preLoaderRoute: typeof StaticLp3RouteImport
-      parentRoute: typeof StaticRoute
-    }
-    '/_static/lp2': {
-      id: '/_static/lp2'
-      path: '/lp2'
-      fullPath: '/lp2'
-      preLoaderRoute: typeof StaticLp2RouteImport
-      parentRoute: typeof StaticRoute
-    }
-    '/_static/lp1': {
-      id: '/_static/lp1'
-      path: '/lp1'
-      fullPath: '/lp1'
-      preLoaderRoute: typeof StaticLp1RouteImport
-      parentRoute: typeof StaticRoute
-    }
-    '/_static/lp': {
-      id: '/_static/lp'
-      path: '/lp'
-      fullPath: '/lp'
-      preLoaderRoute: typeof StaticLpRouteImport
-      parentRoute: typeof StaticRoute
-    }
     '/_static/duckerweb': {
       id: '/_static/duckerweb'
       path: '/duckerweb'
@@ -289,22 +194,12 @@ const AuthedRouteWithChildren =
 
 interface StaticRouteChildren {
   StaticDuckerwebRoute: typeof StaticDuckerwebRoute
-  StaticLpRoute: typeof StaticLpRoute
-  StaticLp1Route: typeof StaticLp1Route
-  StaticLp2Route: typeof StaticLp2Route
-  StaticLp3Route: typeof StaticLp3Route
-  StaticLp5Route: typeof StaticLp5Route
   StaticPrivacyRoute: typeof StaticPrivacyRoute
   StaticTermsOfServiceRoute: typeof StaticTermsOfServiceRoute
 }
 
 const StaticRouteChildren: StaticRouteChildren = {
   StaticDuckerwebRoute: StaticDuckerwebRoute,
-  StaticLpRoute: StaticLpRoute,
-  StaticLp1Route: StaticLp1Route,
-  StaticLp2Route: StaticLp2Route,
-  StaticLp3Route: StaticLp3Route,
-  StaticLp5Route: StaticLp5Route,
   StaticPrivacyRoute: StaticPrivacyRoute,
   StaticTermsOfServiceRoute: StaticTermsOfServiceRoute,
 }

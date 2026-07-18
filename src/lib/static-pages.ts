@@ -3,11 +3,6 @@ export const STATIC_PRERENDER_PATHS = [
 	"/privacy",
 	"/terms-of-service",
 	"/duckerweb",
-	"/lp",
-	"/lp1",
-	"/lp2",
-	"/lp3",
-	"/lp5",
 ] as const;
 
 export type StaticPrerenderPath = (typeof STATIC_PRERENDER_PATHS)[number];
