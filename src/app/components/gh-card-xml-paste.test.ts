@@ -1,13 +1,46 @@
 import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
+import { renderToStaticMarkup } from "react-dom/server";
+import { createElement } from "react";
 import { buildGhJson } from "parser/src/parser";
 import {
+	GhCardXmlPaste,
 	getGhCardNameFromFileName,
 	getSingleScriptNickName,
 	ingestGhXml,
 	sanitizeGhCardName,
 	shouldAutoFillGhCardName,
 } from "./gh-card-xml-paste";
+
+const xmlPasteProps = {
+	xmlData: undefined,
+	setXmlData: vi.fn(),
+	isValidXml: false,
+	xmlError: "",
+	setXmlError: vi.fn(),
+	handlePasteFromClipboard: vi.fn(),
+	handleFileSelected: vi.fn(),
+};
+
+describe("GhCardXmlPaste shortcut hint", () => {
+	test("advertises native paste when the create dialog enables it", () => {
+		const html = renderToStaticMarkup(
+			createElement(GhCardXmlPaste, {
+				...xmlPasteProps,
+				pasteShortcutEnabled: true,
+			})
+		);
+		expect(html).toContain("Press Ctrl+V to paste, or drop a file");
+	});
+
+	test("does not advertise the shortcut in edit-card controls", () => {
+		const html = renderToStaticMarkup(
+			createElement(GhCardXmlPaste, xmlPasteProps)
+		);
+		expect(html).toContain("or drop a file");
+		expect(html).not.toContain("Ctrl+V");
+	});
+});
 
 describe("getGhCardNameFromFileName", () => {
 	test("removes the .gh extension", () => {

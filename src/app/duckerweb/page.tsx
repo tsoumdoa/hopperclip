@@ -12,6 +12,9 @@ import { GHJsonView } from "./components/GHJsonView";
 import { GHDiffView } from "./components/GHDiffView";
 import type { ViewMode } from "./types/type";
 import { cn } from "@/lib/utils";
+import { useCallback } from "react";
+import { useNativeGhXmlPaste } from "../hooks/use-native-gh-xml-paste";
+import { resolveDuckerwebPasteTarget } from "./hooks/use-duckerweb-state";
 
 const contentWidth =
 	"mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]";
@@ -43,8 +46,10 @@ export default function DuckerWebPage() {
 		comparisonFileName,
 		comparisonRejected,
 		handlePasteFromClipboard,
+		handlePastedXml,
 		handleFileSelected,
 		handlePasteComparison,
+		handlePastedComparisonXml,
 		handleComparisonFileSelected,
 		handleClearComparison,
 		handleClear,
@@ -55,6 +60,18 @@ export default function DuckerWebPage() {
 
 	const isDiff = viewMode === "diff";
 	const layout = viewLayouts[viewMode];
+	const nativePasteTarget = resolveDuckerwebPasteTarget(viewMode);
+	const handleNativePaste = useCallback(
+		(text: string) => {
+			if (nativePasteTarget === "comparison") {
+				handlePastedComparisonXml(text);
+			} else {
+				handlePastedXml(text);
+			}
+		},
+		[nativePasteTarget, handlePastedComparisonXml, handlePastedXml]
+	);
+	useNativeGhXmlPaste({ enabled: true, onPasteText: handleNativePaste });
 
 	const views: Record<ViewMode, React.ReactNode> = {
 		flow: <GHFlowCanvas nodes={nodes} edges={edges} />,

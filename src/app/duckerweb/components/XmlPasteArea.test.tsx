@@ -21,6 +21,7 @@ describe("XmlPasteArea", () => {
 
 		expect(html).toContain("Import a Grasshopper definition");
 		expect(html).toContain("Paste GhXml from clipboard");
+		expect(html).toContain("Press Ctrl+V to paste GhXml");
 		expect(html).toContain("Browse .gh or .ghx file");
 		expect(html).toContain("drag and drop anywhere in this view");
 		expect(html).not.toContain("Paste new GhXml");
@@ -56,6 +57,7 @@ describe("XmlPasteArea", () => {
 
 		expect(html).toContain("GhXml validated");
 		expect(html).toContain("Paste new");
+		expect(html).toContain("Ctrl+V");
 		expect(html).toContain("Browse new");
 		expect(html).toContain("Clear");
 		expect(html).not.toContain("Paste new GhXml</span>");

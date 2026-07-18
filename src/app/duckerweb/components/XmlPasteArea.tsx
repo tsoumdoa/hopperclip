@@ -2,6 +2,7 @@ import { Clipboard, FileUp, X } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { XmlPasteAreaProps } from "../types/type";
+import { useModifierKeyLabel } from "../../hooks/use-modifier-key-label";
 
 const actionButtonClass =
 	"flex w-full items-center justify-center gap-2.5 rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-500 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black";
@@ -18,6 +19,7 @@ export function XmlPasteArea({
 }: XmlPasteAreaProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const hasLoadedDefinition = Boolean(xmlData && isValidXml);
+	const modifier = useModifierKeyLabel();
 
 	const handlePickerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = event.target.files;
@@ -59,6 +61,9 @@ export function XmlPasteArea({
 					>
 						<Clipboard className="h-3.5 w-3.5 text-neutral-400" />
 						Paste new
+						<span className="rounded border border-neutral-700 px-1 py-0.5 font-mono text-[10px] text-neutral-500">
+							{modifier}+V
+						</span>
 					</button>
 					<button
 						type="button"
@@ -108,8 +113,8 @@ export function XmlPasteArea({
 					</div>
 				) : (
 					<p className="mb-4 text-sm leading-relaxed text-neutral-400">
-						Import a Grasshopper definition to inspect its components. Paste
-						GhXml from your clipboard, browse for a{" "}
+						Import a Grasshopper definition to inspect its components. Press{" "}
+						{modifier}+V to paste GhXml, browse for a{" "}
 						<span className="font-mono text-neutral-300">.gh</span> or{" "}
 						<span className="font-mono text-neutral-300">.ghx</span> file, or
 						drag and drop anywhere in this view.
@@ -148,11 +153,10 @@ export function XmlPasteArea({
 					/>
 				</div>
 
-				{!hasLoadedDefinition && (
-					<p className="mt-3 text-center text-xs text-neutral-500">
-						Drag a file over this page to drop it anywhere in the view
-					</p>
-				)}
+				<p className="mt-3 text-center text-xs text-neutral-500">
+					Press {modifier}+V to {hasLoadedDefinition ? "replace" : "paste"}, or
+					drag a file over this page to drop it anywhere in the view
+				</p>
 			</div>
 
 			{xmlError.length > 0 && (
