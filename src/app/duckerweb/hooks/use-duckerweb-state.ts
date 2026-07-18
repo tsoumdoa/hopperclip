@@ -51,6 +51,13 @@ export function resolveDuckerwebPasteTarget(
 	return viewMode === "diff" ? "comparison" : "original";
 }
 
+export function resolveDuckerwebImportView(
+	currentView: ViewMode,
+	source: "clipboard" | "file"
+): ViewMode {
+	return source === "clipboard" ? "flow" : currentView;
+}
+
 export function useDuckerwebState(): DuckerwebState & {
 	handlePasteFromClipboard: () => Promise<void>;
 	handlePastedXml: (text: string) => void;
@@ -119,6 +126,9 @@ export function useDuckerwebState(): DuckerwebState & {
 			setParsedData(result.parsedData);
 			setNodes(result.nodes);
 			setEdges(result.edges);
+			setViewMode((currentView) =>
+				resolveDuckerwebImportView(currentView, source)
+			);
 			setXmlError("");
 			setError("");
 			setComparisonData(null);

@@ -2,8 +2,22 @@ import fs from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
 	prepareDuckerwebImport,
+	resolveDuckerwebImportView,
 	resolveDuckerwebPasteTarget,
 } from "./use-duckerweb-state";
+
+describe("resolveDuckerwebImportView", () => {
+	test.each(["list", "flow", "json"] as const)(
+		"opens Flow after a successful clipboard paste from %s",
+		(currentView) => {
+			expect(resolveDuckerwebImportView(currentView, "clipboard")).toBe("flow");
+		}
+	);
+
+	test("preserves the current view for file imports", () => {
+		expect(resolveDuckerwebImportView("list", "file")).toBe("list");
+	});
+});
 
 describe("resolveDuckerwebPasteTarget", () => {
 	test("routes Diff pastes to the comparison definition", () => {
