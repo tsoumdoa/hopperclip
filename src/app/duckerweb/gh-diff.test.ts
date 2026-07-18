@@ -144,7 +144,10 @@ describe("diffGrasshopper", () => {
 		);
 
 		expect(modified?.status).toBe("modified");
-		expect(modified?.changes).toContain("Port settings");
+		expect(modified?.changes).toEqual([
+			`Input ${input.nick}: Mapping default → Flatten, Simplify on, Reverse on, Expression added`,
+			`Output ${output.nick}: Mapping default → Graft, Reverse on`,
+		]);
 		expect(overlayNode?.data.inputs[0]?.options).toEqual(input.options);
 		expect(overlayNode?.data.outputs[0]?.options).toEqual(output.options);
 	});
