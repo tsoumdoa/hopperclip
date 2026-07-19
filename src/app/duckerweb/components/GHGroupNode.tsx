@@ -21,9 +21,22 @@ export function GHGroupNode({ data }: GHGroupNodeProps) {
 			}}
 		>
 			{data.label !== "Group" && (
-				<span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-semibold whitespace-nowrap text-neutral-800">
-					{data.label}
-				</span>
+				<div
+					className="pointer-events-none absolute bottom-[calc(100%+5px)] left-1/2 z-20 -translate-x-1/2"
+					title={data.label}
+				>
+					<div className="relative border border-[#292929] bg-[#f4f4f4] px-2 py-1 font-sans text-[9px] leading-none font-normal whitespace-nowrap text-[#1f1f1f] shadow-sm">
+						{data.label}
+						<span
+							aria-hidden="true"
+							className="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[8px] border-x-transparent border-t-[#292929]"
+						/>
+						<span
+							aria-hidden="true"
+							className="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 -translate-y-px border-x-[5px] border-t-[7px] border-x-transparent border-t-[#f4f4f4]"
+						/>
+					</div>
+				</div>
 			)}
 		</div>
 	);
