@@ -55,7 +55,13 @@ export function resolveDuckerwebImportView(
 	currentView: ViewMode,
 	source: "clipboard" | "file"
 ): ViewMode {
-	return source === "clipboard" ? "flow" : currentView;
+	switch (source) {
+		case "clipboard":
+		case "file":
+			return "flow";
+		default:
+			return currentView;
+	}
 }
 
 export function useDuckerwebState(): DuckerwebState & {
@@ -73,7 +79,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [isValidXml, setIsValidXml] = useState(false);
 	const [xmlError, setXmlError] = useState("");
 	const [parsedData, setParsedData] = useState<ParsedGrasshopper | null>(null);
-	const [viewMode, setViewMode] = useState<ViewMode>("list");
+	const [viewMode, setViewMode] = useState<ViewMode>("flow");
 	const [nodes, setNodes] = useState<GHNode[]>([]);
 	const [edges, setEdges] = useState<Edge[]>([]);
 	const [error, setError] = useState("");
@@ -92,7 +98,7 @@ export function useDuckerwebState(): DuckerwebState & {
 		setXmlError("");
 		setIsValidXml(false);
 		setParsedData(null);
-		setViewMode("list");
+		setViewMode("flow");
 		setNodes([]);
 		setEdges([]);
 		setError("");
