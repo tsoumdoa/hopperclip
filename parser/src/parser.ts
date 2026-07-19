@@ -216,6 +216,10 @@ function parseParamChunk(
 		optional: (items.Optional as boolean) ?? false,
 		instanceGuid,
 	};
+	if (includeVisuals) {
+		const visuals = parseVisuals(paramChunk, items);
+		if (visuals) port.visuals = visuals;
+	}
 
 	if (type === "input") {
 		if (includeVisuals) {
@@ -331,11 +335,11 @@ function parseComponentValue(
 
 	// Parse Panel text
 	if (type.includes("panel")) {
-		const text = containerItems.UserText as string;
-		if (text !== undefined) {
+		const userText = containerItems.UserText;
+		if (userText !== undefined) {
 			return {
 				type: "panel",
-				text,
+				text: String(userText),
 			};
 		}
 	}
@@ -563,7 +567,11 @@ function parseComponent(
 		const outputParams = findAllChunks(paramDataChunk, "OutputParam");
 
 		for (let i = 0; i < outputCount && i < outputParams.length; i++) {
-			const param = parseParamChunk(outputParams[i], "output");
+			const param = parseParamChunk(
+				outputParams[i],
+				"output",
+				options?.includeVisuals
+			);
 			if (param && param.nick) {
 				const key = String(param.nick).toLowerCase();
 				component.outputs[key] = param;
@@ -590,7 +598,11 @@ function parseComponent(
 	const seenOutputKeys = new Set<string>();
 	const paramOutputs = findAllChunks(containerChunk, "param_output");
 	for (const paramChunk of paramOutputs) {
-		const param = parseParamChunk(paramChunk, "output");
+		const param = parseParamChunk(
+			paramChunk,
+			"output",
+			options?.includeVisuals
+		);
 		if (param && param.nick) {
 			let key = String(param.nick).toLowerCase();
 			if (seenOutputKeys.has(key)) {

@@ -29,6 +29,7 @@ export interface InputPort {
 	options?: PortOptions;
 	wireStyle?: WireStyle;
 	instanceGuid: string;
+	visuals?: Visuals;
 }
 
 export interface OutputPort {
@@ -37,6 +38,7 @@ export interface OutputPort {
 	optional?: boolean;
 	options?: PortOptions;
 	instanceGuid: string;
+	visuals?: Visuals;
 }
 
 export interface Visuals {

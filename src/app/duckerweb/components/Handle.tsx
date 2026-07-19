@@ -8,6 +8,7 @@ export function GHHandle({
 	type,
 	id,
 	className = "",
+	detached = false,
 }: GHHandleProps) {
 	if (variant === "compact") {
 		return (
@@ -25,15 +26,20 @@ export function GHHandle({
 	}
 
 	const borderRadius = type === "target" ? "50%" : "80%";
-	const transform =
-		position === "left" ? "translateX(-50%)" : "translateX(50%)";
+	const transform = detached
+		? position === "left"
+			? "translate(-50%, -50%)"
+			: "translate(50%, -50%)"
+		: position === "left"
+			? "translateX(-50%)"
+			: "translateX(50%)";
 
 	return (
 		<Handle
 			type={type}
 			position={position === "left" ? Position.Left : Position.Right}
 			id={id}
-			className={`pointer-events-auto relative! top-auto! left-auto! translate-x-0! translate-y-0! ${className}`}
+			className={`pointer-events-auto ${detached ? "" : "relative! top-auto! left-auto! translate-x-0! translate-y-0!"} ${className}`}
 			style={{
 				width: HANDLE_SIZE,
 				height: HANDLE_SIZE,

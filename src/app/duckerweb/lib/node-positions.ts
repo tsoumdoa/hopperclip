@@ -1,5 +1,4 @@
 import type { Component } from "parser/src/types";
-import { POSITION_SCALE_X } from "../components/constants";
 
 export type NodePosition = {
 	x: number;
@@ -18,9 +17,9 @@ export function buildNodePositions(
 		const b = comp.visuals?.bounds;
 		if (b) {
 			nodePositions.set(comp.id, {
-				x: b.x * POSITION_SCALE_X,
+				x: b.x,
 				y: b.y,
-				width: b.width * POSITION_SCALE_X,
+				width: b.width,
 				height: b.height,
 			});
 		} else {

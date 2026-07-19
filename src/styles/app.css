@@ -129,12 +129,17 @@
 		@apply h-full w-full;
 	}
 
-	.react-flow__node.group,
-	.react-flow__node.group > div {
+	.react-flow__node-group {
 		padding: 0 !important;
 		border: 1px solid #bbb !important;
 		box-shadow: none !important;
 		background: transparent !important;
+	}
+
+	.react-flow__node-group > div {
+		padding: 0 !important;
+		border: 0 !important;
+		box-shadow: none !important;
 	}
 
 	.react-flow__edges {

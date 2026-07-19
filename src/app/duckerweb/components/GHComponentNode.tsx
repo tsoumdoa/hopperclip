@@ -24,7 +24,10 @@ function getComputedSideWidth(ports: Port[], manualWidth?: number) {
 	);
 }
 
-function getPortTop(index: number, count: number) {
+function getPortTop(port: Port, index: number, count: number) {
+	if (port.position !== undefined) {
+		return `${port.position * 100}%`;
+	}
 	if (count <= 0) {
 		return "50%";
 	}
@@ -38,20 +41,22 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 
 	const inputWidth = getComputedSideWidth(inputs, data.inputWidth);
 	const outputWidth = getComputedSideWidth(outputs, data.outputWidth);
+	const usesGrasshopperBounds =
+		data.inputWidth !== undefined && data.outputWidth !== undefined;
 	const palette = runtimePalette(
 		data.runtimeState ?? "normal",
 		data.accentColor
 	);
 
 	return (
-		<div className="relative overflow-visible">
+		<div className="relative h-full w-full overflow-visible">
 			<div
-				className={`relative flex overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${
+				className={`relative flex h-full w-full overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${
 					selected ? "border-[#444]" : "border-[#444]"
 				}`}
 			>
 				<div
-					className="flex flex-col justify-around border-r border-[#444] px-2 py-2"
+					className={`flex shrink-0 flex-col justify-around border-r border-[#444] ${usesGrasshopperBounds ? "p-0" : "px-2 py-2"}`}
 					style={{ width: inputWidth, backgroundColor: palette.side }}
 				>
 					{inputs.map((input) => (
@@ -63,7 +68,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 				</div>
 
 				<div
-					className="flex items-center justify-center px-2 py-2"
+					className={`flex min-w-0 flex-1 items-center justify-center ${usesGrasshopperBounds ? "p-0" : "px-2 py-2"}`}
 					style={{ backgroundColor: palette.center }}
 				>
 					<span
@@ -78,7 +83,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 				</div>
 
 				<div
-					className="flex flex-col justify-around border-l border-[#444] px-2 py-2"
+					className={`flex shrink-0 flex-col justify-around border-l border-[#444] ${usesGrasshopperBounds ? "p-0" : "px-2 py-2"}`}
 					style={{ width: outputWidth, backgroundColor: palette.side }}
 				>
 					{outputs.map((output) => (
@@ -95,7 +100,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 					key={input.id}
 					className="pointer-events-none absolute left-0 flex items-center"
 					style={{
-						top: getPortTop(index, inputs.length),
+						top: getPortTop(input, index, inputs.length),
 						width: inputWidth,
 						transform: "translateY(-50%)",
 					}}
@@ -105,12 +110,15 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 						position="left"
 						type="target"
 						id={input.id}
+						detached={usesGrasshopperBounds}
 					/>
 
-					<div className="ml-1 min-w-0 flex-1 pr-2 text-[10px]">
+					<div
+						className={`${usesGrasshopperBounds ? "w-full overflow-hidden px-0.5" : "ml-1 min-w-0 flex-1 pr-2"} text-[10px]`}
+					>
 						<PortLabel
 							port={input}
-							align="right"
+							align={usesGrasshopperBounds ? "center" : "right"}
 							style={{ color: palette.text }}
 						/>
 					</div>
@@ -122,15 +130,17 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 					key={output.id}
 					className="pointer-events-none absolute right-0 flex items-center justify-end text-center"
 					style={{
-						top: getPortTop(index, outputs.length),
+						top: getPortTop(output, index, outputs.length),
 						width: outputWidth,
 						transform: "translateY(-50%)",
 					}}
 				>
-					<div className="mr-1 min-w-0 text-[10px]">
+					<div
+						className={`${usesGrasshopperBounds ? "w-full overflow-hidden px-0.5" : "mr-1 min-w-0"} text-[10px]`}
+					>
 						<PortLabel
 							port={output}
-							align="right"
+							align={usesGrasshopperBounds ? "center" : "right"}
 							style={{ color: palette.text }}
 						/>
 					</div>
@@ -140,6 +150,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 						position="right"
 						type="source"
 						id={output.id}
+						detached={usesGrasshopperBounds}
 					/>
 				</div>
 			))}

@@ -1,4 +1,5 @@
 import type { GHGroupNodeProps } from "../types/type";
+import { grasshopperArgbToCss } from "../lib/grasshopper-color";
 
 export function GHGroupNode({ data }: GHGroupNodeProps) {
 	const bounds = data.containerBounds;
@@ -16,6 +17,7 @@ export function GHGroupNode({ data }: GHGroupNodeProps) {
 			className="relative h-full w-full rounded-lg"
 			style={{
 				zIndex: 1,
+				backgroundColor: grasshopperArgbToCss(data.groupColor, "transparent"),
 			}}
 		>
 			{data.label !== "Group" && (

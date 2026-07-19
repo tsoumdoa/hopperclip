@@ -26,9 +26,13 @@ export type GHNodeData = {
 	runtimeState?: GHRuntimeState;
 	members?: string[];
 	containerBounds?: Bounds;
+	groupColor?: string;
 	value?: string;
 	percent?: number;
 	height?: number;
+	inputWidth?: number;
+	outputWidth?: number;
+	usesGrasshopperBounds?: boolean;
 } & Record<string, unknown>;
 
 export type GHNode = Node<GHNodeData>;
@@ -37,6 +41,7 @@ export type Port = {
 	id: string;
 	label: string;
 	options?: PortOptions;
+	position?: number;
 };
 
 export type Bounds = {
@@ -167,6 +172,7 @@ export type GHNodeProps = {
 		value?: string;
 		height?: number;
 		script?: ScriptData;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -177,6 +183,7 @@ export type GHGroupNodeProps = {
 		type: string;
 		members?: string[];
 		containerBounds?: Bounds;
+		groupColor?: string;
 		accentColor?: string;
 		selected?: boolean;
 	};
@@ -193,6 +200,7 @@ export type GHSliderNodeProps = {
 		selected?: boolean;
 		value?: string;
 		percent?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -214,6 +222,7 @@ export type GHValueListNodeProps = {
 		value?: string;
 		items?: GHValueListItem[];
 		selectedIndex?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -227,6 +236,7 @@ export type GHToggleNodeProps = {
 		accentColor?: string;
 		selected?: boolean;
 		value?: string;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -241,6 +251,8 @@ export type GHSwatchNodeProps = {
 		selected?: boolean;
 		value?: string;
 		color?: string;
+		outputWidth?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -253,6 +265,7 @@ export type GHButtonNodeProps = {
 		outputs: Port[];
 		accentColor?: string;
 		selected?: boolean;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -282,10 +295,12 @@ export type GHHandleProps = {
 	type: HandlePortType;
 	id?: string;
 	className?: string;
+	detached?: boolean;
 };
 
 export type GHHandlePositionProps = {
 	position: HandleSide;
 	children: ReactNode;
 	className?: string;
+	top?: string;
 };

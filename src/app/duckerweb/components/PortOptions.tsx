@@ -124,7 +124,7 @@ export function PortLabel({
 	style,
 }: {
 	port: Port;
-	align: "left" | "right";
+	align: "left" | "center" | "right";
 	style?: CSSProperties;
 }) {
 	const badges = getOptionBadges(port.options);
@@ -133,7 +133,11 @@ export function PortLabel({
 	return (
 		<span
 			className={`pointer-events-auto flex w-full min-w-0 items-center gap-1 whitespace-nowrap ${
-				align === "right" ? "justify-end text-right" : "justify-start text-left"
+				align === "right"
+					? "justify-end text-right"
+					: align === "center"
+						? "justify-center text-center"
+						: "justify-start text-left"
 			}`}
 			style={style}
 			title={summary}
