@@ -8,6 +8,7 @@ import {
 	Controls,
 	Panel,
 	useReactFlow,
+	useViewport,
 	type NodeTypes,
 	type EdgeTypes,
 } from "@xyflow/react";
@@ -63,6 +64,28 @@ function FocusOnNode({ focus }: { focus: GHFlowCanvasProps["focus"] }) {
 	return null;
 }
 
+function OriginAxes() {
+	const { x, y } = useViewport();
+
+	return (
+		<div
+			className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+			aria-hidden="true"
+		>
+			<div
+				data-origin-axis="x"
+				className="absolute right-0 left-0 h-0.5 -translate-y-1/2 bg-[#767873]/80"
+				style={{ top: y }}
+			/>
+			<div
+				data-origin-axis="y"
+				className="absolute top-0 bottom-0 w-0.5 -translate-x-1/2 bg-[#767873]/80"
+				style={{ left: x }}
+			/>
+		</div>
+	);
+}
+
 export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 	const [revealHiddenWires, setRevealHiddenWires] = useState(false);
@@ -116,6 +139,7 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 					bgColor="#cbc9c8"
 					color="#bbb8af"
 				/>
+				<OriginAxes />
 				<Controls />
 				<Panel position="top-right">
 					<button
