@@ -10,6 +10,7 @@ export function GHEdge({
 	targetPosition,
 	selected,
 	style,
+	data,
 }: GHEdgeProps) {
 	const [edgePath] = getBezierPath({
 		sourceX,
@@ -20,6 +21,9 @@ export function GHEdge({
 		targetPosition,
 		curvature: 0.35,
 	});
+	const wireStyle = data?.wireStyle ?? "normal";
+	const isHidden = wireStyle === "hidden";
+	const isVisible = !isHidden || data?.isRevealed;
 
 	return (
 		<BaseEdge
@@ -27,6 +31,16 @@ export function GHEdge({
 			style={{
 				stroke: "#555552",
 				strokeWidth: 1.5,
+				opacity: isVisible
+					? wireStyle === "faint"
+						? 0.28
+						: isHidden
+							? 0.32
+							: 1
+					: 0,
+				strokeDasharray: isHidden ? "4 4" : undefined,
+				pointerEvents: isVisible ? "auto" : "none",
+				transition: "opacity 160ms ease",
 				...style,
 				...(selected && { stroke: "#00a0ff", strokeWidth: 2, opacity: 1 }),
 			}}

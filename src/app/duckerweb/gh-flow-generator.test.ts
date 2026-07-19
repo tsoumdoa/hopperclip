@@ -16,6 +16,31 @@ test("generateFlowData maps wires onto connected source/target nodes", () => {
 	}
 });
 
+test("generateFlowData preserves wire display styles", () => {
+	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
+	const parsed = buildGhJson(xml, { includeVisuals: true });
+	const wire = parsed.wires[0];
+	parsed.wires = [
+		{ ...wire, style: "faint" },
+		{ ...wire, style: "hidden" },
+	];
+
+	const { edges } = generateFlowData(parsed);
+
+	expect(edges[0].data?.wireStyle).toBe("faint");
+	expect(edges[1].data?.wireStyle).toBe("hidden");
+});
+
+test("generateFlowData reads faint wire styles from Grasshopper XML", () => {
+	const xml = fs.readFileSync(
+		"parser/sand/xmls/user_2wqbnxvyl1Wpms6P31fLGrwH2c3_w01KJ2ROEV8GrxvrtHv1A.xml",
+		"utf8"
+	);
+	const parsed = buildGhJson(xml, { includeVisuals: true });
+
+	expect(parsed.wires.some((wire) => wire.style === "faint")).toBe(true);
+});
+
 test("generateFlowData exposes standalone parameter internal expressions", () => {
 	const xml = fs.readFileSync(
 		"parser/sand/xmls/flatten-internal-expression.xml",

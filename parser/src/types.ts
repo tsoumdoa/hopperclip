@@ -27,6 +27,7 @@ export interface InputPort {
 	sources?: string[];
 	optional?: boolean;
 	options?: PortOptions;
+	wireStyle?: WireStyle;
 	instanceGuid: string;
 }
 

@@ -171,19 +171,30 @@ export const flowGalleryNodes: GHNode[] = [
 
 export const flowGalleryEdges: Edge[] = [
 	{
-		id: "slider-to-component",
-		source: "slider",
-		sourceHandle: "out",
+		id: "normal-wire",
+		source: "component-normal",
+		sourceHandle: "result",
 		target: "component-hidden",
 		targetHandle: "geometry",
 		type: "default",
+		data: { wireStyle: "normal" },
 	},
 	{
-		id: "component-to-panel",
-		source: "component-normal",
-		sourceHandle: "result",
-		target: "panel",
+		id: "faint-wire",
+		source: "component-hidden",
+		sourceHandle: "out",
+		target: "component-locked",
 		targetHandle: "in",
 		type: "default",
+		data: { wireStyle: "faint" },
+	},
+	{
+		id: "hidden-wire",
+		source: "component-locked",
+		sourceHandle: "out",
+		target: "script",
+		targetHandle: "x",
+		type: "default",
+		data: { wireStyle: "hidden" },
 	},
 ];
