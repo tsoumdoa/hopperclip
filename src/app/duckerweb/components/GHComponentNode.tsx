@@ -114,7 +114,15 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 					/>
 
 					<div
-						className={`${usesGrasshopperBounds ? "w-full overflow-hidden px-0.5" : "ml-1 min-w-0 flex-1 pr-2"} text-[10px]`}
+						className={`${usesGrasshopperBounds ? "shrink-0 overflow-hidden" : "ml-1 min-w-0 flex-1 pr-2"} text-[10px]`}
+						style={
+							usesGrasshopperBounds
+								? {
+										marginLeft: input.labelOffset ?? 0,
+										width: input.labelWidth ?? inputWidth,
+									}
+								: undefined
+						}
 					>
 						<PortLabel
 							port={input}
@@ -128,7 +136,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 			{outputs.map((output, index) => (
 				<div
 					key={output.id}
-					className="pointer-events-none absolute right-0 flex items-center justify-end text-center"
+					className={`pointer-events-none absolute right-0 flex items-center text-center ${usesGrasshopperBounds ? "justify-start" : "justify-end"}`}
 					style={{
 						top: getPortTop(output, index, outputs.length),
 						width: outputWidth,
@@ -136,7 +144,15 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 					}}
 				>
 					<div
-						className={`${usesGrasshopperBounds ? "w-full overflow-hidden px-0.5" : "mr-1 min-w-0"} text-[10px]`}
+						className={`${usesGrasshopperBounds ? "shrink-0 overflow-hidden" : "mr-1 min-w-0"} text-[10px]`}
+						style={
+							usesGrasshopperBounds
+								? {
+										marginLeft: output.labelOffset ?? 0,
+										width: output.labelWidth ?? outputWidth,
+									}
+								: undefined
+						}
 					>
 						<PortLabel
 							port={output}

@@ -132,7 +132,7 @@ export function PortLabel({
 
 	return (
 		<span
-			className={`pointer-events-auto flex w-full min-w-0 items-center gap-1 whitespace-nowrap ${
+			className={`pointer-events-auto flex w-full min-w-0 items-center gap-1 leading-none whitespace-nowrap ${
 				align === "right"
 					? "justify-end text-right"
 					: align === "center"

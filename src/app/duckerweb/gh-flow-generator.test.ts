@@ -139,7 +139,15 @@ test("generateFlowData preserves Grasshopper bounds for nodes and groups", () =>
 		52 / 84,
 		72 / 84,
 	]);
+	expect(sphereNode?.data.inputs[0]).toMatchObject({
+		labelOffset: 2,
+		labelWidth: 10,
+	});
 	expect(sphereNode?.data.outputs[0]?.position).toBe(42 / 84);
+	expect(sphereNode?.data.outputs[0]).toMatchObject({
+		labelOffset: 0,
+		labelWidth: 14,
+	});
 	expect(groupNode?.position).toEqual({ x: 70, y: 482 });
 	expect(groupNode?.style).toMatchObject({ width: 153, height: 114 });
 	expect(groupNode?.data.groupColor).toBe("150;135;50;50");

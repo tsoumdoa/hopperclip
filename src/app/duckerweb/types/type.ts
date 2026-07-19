@@ -44,6 +44,8 @@ export type Port = {
 	label: string;
 	options?: PortOptions;
 	position?: number;
+	labelOffset?: number;
+	labelWidth?: number;
 };
 
 export type Bounds = {

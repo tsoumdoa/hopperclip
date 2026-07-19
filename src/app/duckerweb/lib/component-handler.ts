@@ -53,12 +53,19 @@ export function handleComponent(
 ): GHNode {
 	const inputPorts = Object.values(component.inputs);
 	const outputPorts = Object.values(component.outputs);
+	const inputWidth = getPortColumnWidth(component, inputPorts, "input");
+	const outputWidth = getPortColumnWidth(component, outputPorts, "output");
 	const inputs = Object.entries(component.inputs).map(([key, port]) => ({
 		id: `${component.id}.${key}`,
 		label: port.nick,
 		options: port.options,
 		hasSource: !!port.source,
 		position: getRelativePortPosition(component, port),
+		labelOffset:
+			component.visuals?.bounds && port.visuals?.bounds
+				? port.visuals.bounds.x - component.visuals.bounds.x
+				: undefined,
+		labelWidth: port.visuals?.bounds?.width,
 	}));
 
 	const outputEntries = Object.entries(component.outputs);
@@ -74,6 +81,16 @@ export function handleComponent(
 					}
 				: port.options,
 		position: getRelativePortPosition(component, port),
+		labelOffset:
+			component.visuals?.bounds &&
+			port.visuals?.bounds &&
+			outputWidth !== undefined
+				? port.visuals.bounds.x -
+					(component.visuals.bounds.x +
+						component.visuals.bounds.width -
+						outputWidth)
+				: undefined,
+		labelWidth: port.visuals?.bounds?.width,
 	}));
 
 	const position = nodePositions.get(component.id) ?? {
@@ -98,8 +115,8 @@ export function handleComponent(
 					: "normal",
 		value: extractValue(component),
 		height: position.height,
-		inputWidth: getPortColumnWidth(component, inputPorts, "input"),
-		outputWidth: getPortColumnWidth(component, outputPorts, "output"),
+		inputWidth,
+		outputWidth,
 		usesGrasshopperBounds: component.visuals?.bounds !== undefined,
 	};
 	const runtimeClasses = [
