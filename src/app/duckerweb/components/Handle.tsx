@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { HANDLE_SIZE } from "./constants";
+import { HANDLE_SIZE, HANDLE_STROKE } from "./constants";
 import type { GHHandleProps } from "../types/type";
 
 export function GHHandle({
@@ -15,8 +15,9 @@ export function GHHandle({
 				type={type}
 				position={position === "left" ? Position.Left : Position.Right}
 				id={id}
-				className={`!h-[9px] !w-[9px] !rounded-full !border !border-[#777] !bg-[#aaa] ${className}`}
+				className={`!h-[9px] !w-[9px] !rounded-full !border !bg-[#aaa] ${className}`}
 				style={{
+					borderColor: HANDLE_STROKE,
 					clipPath: "inset(0 0 0 50%)",
 				}}
 			/>
@@ -38,7 +39,7 @@ export function GHHandle({
 				height: HANDLE_SIZE,
 				flexShrink: 0,
 				borderRadius,
-				border: "2.2px solid #333",
+				border: `2.2px solid ${HANDLE_STROKE}`,
 				background: "#fff",
 				clipPath:
 					Position.Left === position ? "inset(0 50% 0 0)" : "inset(0 0 0 50%)",

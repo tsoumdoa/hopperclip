@@ -266,6 +266,10 @@ export type GHEdgeProps = {
 	targetPosition: Position;
 	selected?: boolean;
 	style?: CSSProperties;
+	data?: {
+		wireStyle?: "normal" | "faint" | "hidden";
+		isRevealed?: boolean;
+	};
 };
 
 export type HandleVariant = "detailed" | "compact";

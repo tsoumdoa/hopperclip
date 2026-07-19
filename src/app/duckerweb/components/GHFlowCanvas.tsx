@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	ReactFlow,
 	Background,
 	BackgroundVariant,
 	Controls,
+	Panel,
 	useReactFlow,
 	type NodeTypes,
 	type EdgeTypes,
 } from "@xyflow/react";
+import { Eye, EyeOff } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 import { GHPanelNode } from "./GHPanelNode";
@@ -60,18 +62,39 @@ function FocusOnNode({ focus }: { focus: GHFlowCanvasProps["focus"] }) {
 }
 
 export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
+	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+	const [revealHiddenWires, setRevealHiddenWires] = useState(false);
 	const defaultEdgeOptions = useMemo(
 		() => ({
 			type: "default",
 		}),
 		[]
 	);
+	const visibleEdges = useMemo(
+		() =>
+			edges.map((edge) => {
+				const wireStyle = edge.data?.wireStyle;
+				if (wireStyle !== "hidden") return edge;
+
+				return {
+					...edge,
+					data: {
+						...edge.data,
+						isRevealed:
+							revealHiddenWires ||
+							edge.source === selectedNodeId ||
+							edge.target === selectedNodeId,
+					},
+				};
+			}),
+		[edges, revealHiddenWires, selectedNodeId]
+	);
 
 	return (
 		<div className="gh-canvas-container">
 			<ReactFlow
 				nodes={nodes}
-				edges={edges}
+				edges={visibleEdges}
 				nodeTypes={nodeTypes}
 				edgeTypes={edgeTypes}
 				defaultEdgeOptions={defaultEdgeOptions}
@@ -81,6 +104,8 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 				maxZoom={4}
 				proOptions={{ hideAttribution: true }}
 				colorMode="dark"
+				onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+				onPaneClick={() => setSelectedNodeId(null)}
 			>
 				<Background
 					variant={BackgroundVariant.Lines}
@@ -90,6 +115,20 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 					color="#bbb8af"
 				/>
 				<Controls />
+				<Panel position="top-right">
+					<button
+						type="button"
+						aria-pressed={revealHiddenWires}
+						title={
+							revealHiddenWires ? "Hide hidden wires" : "Reveal hidden wires"
+						}
+						onClick={() => setRevealHiddenWires((current) => !current)}
+						className="flex items-center gap-1.5 rounded border border-[#8d8b86] bg-[#e5e3de]/95 px-2.5 py-1.5 text-xs font-medium text-[#3f3f3c] shadow-sm transition-colors hover:bg-white"
+					>
+						{revealHiddenWires ? <EyeOff size={14} /> : <Eye size={14} />}
+						Hidden wires
+					</button>
+				</Panel>
 				<FocusOnNode focus={focus} />
 			</ReactFlow>
 		</div>

@@ -17,15 +17,16 @@ function semicolonRgbaToCss(input: string): string {
 export function GHSwatchNode({ data }: GHSwatchNodeProps) {
 	const bg = data.color ? semicolonRgbaToCss(data.color) : "#ddd";
 	return (
-		<div
-			className={`flex h-7 items-center overflow-hidden rounded-sm border border-none font-sans text-[10px] shadow-sm select-none`}
-			style={{
-				minWidth: 100,
-				backgroundColor: bg,
-			}}
-		>
-			<div className="flex h-full shrink-0 items-center border-r border-[#aaa] bg-[#b0ada6] px-2 font-medium text-[#222]">
-				{data.label ?? "Swatch"}
+		<div className="relative overflow-visible">
+			<div className="flex h-7 w-max items-center overflow-hidden rounded-sm border border-[#444] font-sans text-[10px] shadow-md select-none">
+				<div className="flex h-full min-w-11 items-center border-r border-[#444] bg-[#b0ada6] px-2 font-medium whitespace-nowrap text-[#222]">
+					{data.label ?? "Swatch"}
+				</div>
+				<div
+					aria-hidden
+					className="h-full w-14 shrink-0"
+					style={{ backgroundColor: bg }}
+				/>
 			</div>
 
 			<GHHandle

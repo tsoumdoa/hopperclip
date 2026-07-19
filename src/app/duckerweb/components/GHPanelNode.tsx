@@ -2,14 +2,14 @@ import type { GHNodeProps } from "../types/type";
 import { GHHandle } from "./Handle";
 import { HandlePosition } from "./HandlePosition";
 
-export function GHPanelNode({ data, selected }: GHNodeProps) {
+export function GHPanelNode({ data }: GHNodeProps) {
 	const inputs = data.inputs ?? [];
 	const outputs = data.outputs ?? [];
 
 	return (
 		<div className="relative overflow-visible">
 			<div
-				className={`relative flex items-center overflow-hidden rounded-sm border font-sans text-[10px] shadow-sm select-none ${selected ? "border-[#444]" : "border-[#b0aa40]"}`}
+				className="relative flex items-center overflow-hidden rounded-sm border border-[#444] font-sans text-[10px] shadow-sm select-none"
 				style={{
 					minWidth: 60,
 					height: data.height ?? 28,

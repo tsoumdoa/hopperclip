@@ -26,6 +26,7 @@ export function generateEdges(
 				sourceHandle: wire.from,
 				target: targetId,
 				targetHandle: wire.to,
+				data: { wireStyle: wire.style ?? "normal" },
 			} as Edge;
 		})
 		.filter((edge): edge is Edge => edge !== null);

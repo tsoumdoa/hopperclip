@@ -13,6 +13,7 @@ import { Route as ShareRouteImport } from './routes/share'
 import { Route as StaticRouteImport } from './routes/_static'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevFlowGalleryRouteImport } from './routes/dev/flow-gallery'
 import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms-of-service'
 import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
 import { Route as StaticDuckerwebRouteImport } from './routes/_static/duckerweb'
@@ -34,6 +35,11 @@ const AuthedRoute = AuthedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevFlowGalleryRoute = DevFlowGalleryRouteImport.update({
+  id: '/dev/flow-gallery',
+  path: '/dev/flow-gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaticTermsOfServiceRoute = StaticTermsOfServiceRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/duckerweb': typeof StaticDuckerwebRoute
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
+  '/dev/flow-gallery': typeof DevFlowGalleryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/duckerweb': typeof StaticDuckerwebRoute
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
+  '/dev/flow-gallery': typeof DevFlowGalleryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/_static/duckerweb': typeof StaticDuckerwebRoute
   '/_static/privacy': typeof StaticPrivacyRoute
   '/_static/terms-of-service': typeof StaticTermsOfServiceRoute
+  '/dev/flow-gallery': typeof DevFlowGalleryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
     | '/duckerweb'
     | '/privacy'
     | '/terms-of-service'
+    | '/dev/flow-gallery'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/duckerweb'
     | '/privacy'
     | '/terms-of-service'
+    | '/dev/flow-gallery'
   id:
     | '__root__'
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/_static/duckerweb'
     | '/_static/privacy'
     | '/_static/terms-of-service'
+    | '/dev/flow-gallery'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   StaticRoute: typeof StaticRouteWithChildren
   ShareRoute: typeof ShareRoute
+  DevFlowGalleryRoute: typeof DevFlowGalleryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/flow-gallery': {
+      id: '/dev/flow-gallery'
+      path: '/dev/flow-gallery'
+      fullPath: '/dev/flow-gallery'
+      preLoaderRoute: typeof DevFlowGalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_static/terms-of-service': {
@@ -212,6 +232,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   StaticRoute: StaticRouteWithChildren,
   ShareRoute: ShareRoute,
+  DevFlowGalleryRoute: DevFlowGalleryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

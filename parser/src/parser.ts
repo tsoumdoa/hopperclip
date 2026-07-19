@@ -200,7 +200,8 @@ function parsePortOptions(
 
 function parseParamChunk(
 	paramChunk: XmlChunk,
-	type: "input" | "output"
+	type: "input" | "output",
+	includeVisuals = false
 ): InputPort | OutputPort | null {
 	const items = extractItems(paramChunk);
 
@@ -217,6 +218,12 @@ function parseParamChunk(
 	};
 
 	if (type === "input") {
+		if (includeVisuals) {
+			const wireDisplay = items.WireDisplay;
+			(port as InputPort).wireStyle =
+				wireDisplay === 1 ? "faint" : wireDisplay === 2 ? "hidden" : "normal";
+		}
+
 		const sources = extractIndexedItems(paramChunk, "Source");
 		if (sources.length > 0) {
 			(port as InputPort).source = sources[0];
@@ -540,7 +547,11 @@ function parseComponent(
 		const inputParams = findAllChunks(paramDataChunk, "InputParam");
 
 		for (let i = 0; i < inputCount && i < inputParams.length; i++) {
-			const param = parseParamChunk(inputParams[i], "input");
+			const param = parseParamChunk(
+				inputParams[i],
+				"input",
+				options?.includeVisuals
+			);
 			if (param && param.nick) {
 				const key = String(param.nick).toLowerCase();
 				component.inputs[key] = param;
@@ -565,7 +576,7 @@ function parseComponent(
 	const seenInputKeys = new Set<string>();
 	const paramInputs = findAllChunks(containerChunk, "param_input");
 	for (const paramChunk of paramInputs) {
-		const param = parseParamChunk(paramChunk, "input");
+		const param = parseParamChunk(paramChunk, "input", options?.includeVisuals);
 		if (param && param.nick) {
 			let key = String(param.nick).toLowerCase();
 			if (seenInputKeys.has(key)) {
@@ -797,6 +808,9 @@ export function parseGrasshopper(
 					wires.push({
 						from: resolvedFrom,
 						to: `${compId}.${inputName}`,
+						...(options?.includeVisuals && {
+							style: input.wireStyle ?? "normal",
+						}),
 						sourceComponentGuid: src,
 						targetPortGuid: input.instanceGuid,
 					});
@@ -804,6 +818,9 @@ export function parseGrasshopper(
 					wires.push({
 						from: src,
 						to: `${compId}.${inputName}`,
+						...(options?.includeVisuals && {
+							style: input.wireStyle ?? "normal",
+						}),
 						sourceComponentGuid: src,
 						targetPortGuid: input.instanceGuid,
 					});

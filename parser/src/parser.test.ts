@@ -103,3 +103,48 @@ describe("buildGhJson parameter options", () => {
 		});
 	});
 });
+
+describe("buildGhJson wire display", () => {
+	it("parses normal, faint, and hidden styles from direct param_input chunks", () => {
+		const target = (index: number, style?: number) => `
+			<chunk name="Object" index="${index}">
+				<items><item name="GUID">target-type-${index}</item><item name="Name">Target</item></items>
+				<chunks><chunk name="Container">
+					<items><item name="InstanceGuid">target-${index}</item><item name="NickName">Target ${index}</item></items>
+					<chunks><chunk name="param_input" index="0"><items>
+						<item name="NickName">I</item>
+						<item name="InstanceGuid">input-${index}</item>
+						<item name="Source" index="0">source-output</item>
+						<item name="SourceCount">1</item>
+						${style === undefined ? "" : `<item name="WireDisplay" type_name="gh_int32">${style}</item>`}
+					</items></chunk></chunks>
+				</chunk></chunks>
+			</chunk>`;
+
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">source-type</item><item name="Name">Source</item></items>
+						<chunks><chunk name="Container">
+							<items><item name="InstanceGuid">source</item><item name="NickName">Source</item></items>
+							<chunks><chunk name="param_output" index="0"><items>
+								<item name="NickName">O</item><item name="InstanceGuid">source-output</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+					${target(1)}
+					${target(2, 1)}
+					${target(3, 2)}
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml, { includeVisuals: true });
+
+		expect(parsed.wires.map((wire) => wire.style)).toEqual([
+			"normal",
+			"faint",
+			"hidden",
+		]);
+	});
+});
