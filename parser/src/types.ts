@@ -29,6 +29,7 @@ export interface InputPort {
 	options?: PortOptions;
 	wireStyle?: WireStyle;
 	instanceGuid: string;
+	visuals?: Visuals;
 }
 
 export interface OutputPort {
@@ -37,6 +38,7 @@ export interface OutputPort {
 	optional?: boolean;
 	options?: PortOptions;
 	instanceGuid: string;
+	visuals?: Visuals;
 }
 
 export interface Visuals {
@@ -92,6 +94,7 @@ export interface ComponentValue {
 	type:
 		| "slider"
 		| "panel"
+		| "scribble"
 		| "valueList"
 		| "number"
 		| "text"
@@ -106,6 +109,17 @@ export interface ComponentValue {
 	interval?: number;
 	// Panel/Text specific
 	text?: string;
+	// Scribble specific
+	font?: string;
+	size?: number;
+	bold?: boolean;
+	italic?: boolean;
+	corners?: {
+		a: { x: number; y: number };
+		b: { x: number; y: number };
+		c: { x: number; y: number };
+		d: { x: number; y: number };
+	};
 	// Value List specific
 	items?: Array<{
 		name: string;

@@ -32,7 +32,10 @@ function getComputedSideWidth(ports: Port[], manualWidth?: number) {
 	);
 }
 
-function getPortTop(index: number, count: number) {
+function getPortTop(port: Port, index: number, count: number) {
+	if (port.position !== undefined) {
+		return `${port.position * 100}%`;
+	}
 	if (count <= 0) {
 		return "50%";
 	}
@@ -135,6 +138,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 
 	const inputWidth = getComputedSideWidth(inputs, data.inputWidth);
 	const outputWidth = getComputedSideWidth(outputs, data.outputWidth);
+	const bounded = data.usesGrasshopperBounds === true;
 	const palette = runtimePalette(
 		data.runtimeState ?? "normal",
 		data.accentColor
@@ -142,14 +146,16 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 
 	return (
 		<>
-			<div className="relative overflow-visible">
+			<div
+				className={`relative overflow-visible ${bounded ? "h-full w-full" : ""}`}
+			>
 				<div
-					className={`relative flex overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${
+					className={`relative flex overflow-hidden rounded-sm border font-sans text-[10px] shadow-md select-none ${bounded ? "h-full w-full" : ""} ${
 						selected ? "border-[#444]" : "border-[#444]"
 					}`}
 				>
 					<div
-						className="flex flex-col justify-around border-r border-[#444] px-2 py-2"
+						className={`flex shrink-0 flex-col justify-around border-r border-[#444] ${bounded ? "p-0" : "px-2 py-2"}`}
 						style={{ width: inputWidth, backgroundColor: palette.side }}
 					>
 						{inputs.map((input) => (
@@ -161,7 +167,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 					</div>
 
 					<div
-						className="flex items-center justify-center px-2 py-2"
+						className={`flex min-w-0 flex-1 items-center justify-center ${bounded ? "p-0" : "px-2 py-2"}`}
 						style={{ backgroundColor: palette.center }}
 					>
 						<span
@@ -176,7 +182,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 					</div>
 
 					<div
-						className="flex flex-col justify-around border-l border-[#444] px-2 py-2"
+						className={`flex shrink-0 flex-col justify-around border-l border-[#444] ${bounded ? "p-0" : "px-2 py-2"}`}
 						style={{ width: outputWidth, backgroundColor: palette.side }}
 					>
 						{outputs.map((output) => (
@@ -205,7 +211,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 						key={input.id}
 						className="pointer-events-none absolute left-0 flex items-center"
 						style={{
-							top: getPortTop(index, inputs.length),
+							top: getPortTop(input, index, inputs.length),
 							width: inputWidth,
 							transform: "translateY(-50%)",
 						}}
@@ -215,12 +221,23 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 							position="left"
 							type="target"
 							id={input.id}
+							detached={bounded}
 						/>
 
-						<div className="ml-1 min-w-0 flex-1 pr-2 text-[10px]">
+						<div
+							className={`${bounded ? "shrink-0 overflow-hidden" : "ml-1 min-w-0 flex-1 pr-2"} text-[10px]`}
+							style={
+								bounded
+									? {
+											marginLeft: input.labelOffset ?? 0,
+											width: input.labelWidth ?? inputWidth,
+										}
+									: undefined
+							}
+						>
 							<PortLabel
 								port={input}
-								align="right"
+								align={bounded ? "center" : "right"}
 								style={{ color: palette.text }}
 							/>
 						</div>
@@ -230,17 +247,27 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 				{outputs.map((output, index) => (
 					<div
 						key={output.id}
-						className="pointer-events-none absolute right-0 flex items-center justify-end text-center"
+						className={`pointer-events-none absolute right-0 flex items-center text-center ${bounded ? "justify-start" : "justify-end"}`}
 						style={{
-							top: getPortTop(index, outputs.length),
+							top: getPortTop(output, index, outputs.length),
 							width: outputWidth,
 							transform: "translateY(-50%)",
 						}}
 					>
-						<div className="mr-1 min-w-0 text-[10px]">
+						<div
+							className={`${bounded ? "shrink-0 overflow-hidden" : "mr-1 min-w-0"} text-[10px]`}
+							style={
+								bounded
+									? {
+											marginLeft: output.labelOffset ?? 0,
+											width: output.labelWidth ?? outputWidth,
+										}
+									: undefined
+							}
+						>
 							<PortLabel
 								port={output}
-								align="right"
+								align={bounded ? "center" : "right"}
 								style={{ color: palette.text }}
 							/>
 						</div>
@@ -250,6 +277,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 							position="right"
 							type="source"
 							id={output.id}
+							detached={bounded}
 						/>
 					</div>
 				))}

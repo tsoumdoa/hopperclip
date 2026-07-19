@@ -1,31 +1,29 @@
 import type { GHSwatchNodeProps } from "../types/type";
+import { grasshopperArgbToCss } from "../lib/grasshopper-color";
 import { GHHandle } from "./Handle";
 
-function semicolonRgbaToCss(input: string): string {
-	const parts = input.split(";").map(Number);
-
-	if (parts.length < 3 || parts.some(Number.isNaN)) {
-		return "#ddd";
-	}
-
-	const [a = 255, r, g, b] = parts;
-	const alpha = Math.max(0, Math.min(255, a)) / 255;
-
-	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 export function GHSwatchNode({ data }: GHSwatchNodeProps) {
-	const bg = data.color ? semicolonRgbaToCss(data.color) : "#ddd";
+	const bg = grasshopperArgbToCss(data.color, "#ddd");
+	const bounded = data.usesGrasshopperBounds === true;
 	return (
-		<div className="relative overflow-visible">
-			<div className="flex h-7 w-max items-center overflow-hidden rounded-sm border border-[#444] font-sans text-[10px] shadow-md select-none">
-				<div className="flex h-full min-w-11 items-center border-r border-[#444] bg-[#b0ada6] px-2 font-medium whitespace-nowrap text-[#222]">
+		<div
+			className={`relative overflow-visible ${bounded ? "h-full w-full" : ""}`}
+		>
+			<div
+				className={`flex items-center overflow-hidden rounded-sm border border-[#444] font-sans text-[10px] shadow-md select-none ${bounded ? "h-full w-full min-w-0" : "h-7 w-max"}`}
+			>
+				<div
+					className={`flex h-full min-w-0 items-center overflow-hidden border-r border-[#444] bg-[#b0ada6] px-2 font-medium text-ellipsis whitespace-nowrap text-[#222] ${bounded ? "flex-1" : "min-w-11"}`}
+				>
 					{data.label ?? "Swatch"}
 				</div>
 				<div
 					aria-hidden
-					className="h-full w-14 shrink-0"
-					style={{ backgroundColor: bg }}
+					className={`h-full shrink-0 ${bounded ? "" : "w-14"}`}
+					style={{
+						backgroundColor: bg,
+						width: bounded ? (data.outputWidth ?? "25%") : undefined,
+					}}
 				/>
 			</div>
 

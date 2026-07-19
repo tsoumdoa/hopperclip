@@ -216,6 +216,10 @@ function parseParamChunk(
 		optional: (items.Optional as boolean) ?? false,
 		instanceGuid,
 	};
+	if (includeVisuals) {
+		const visuals = parseVisuals(paramChunk, items);
+		if (visuals) port.visuals = visuals;
+	}
 
 	if (type === "input") {
 		if (includeVisuals) {
@@ -313,6 +317,29 @@ function parseComponentValue(
 ): Component["value"] | undefined {
 	const type = componentType.toLowerCase();
 
+	// Scribbles are canvas annotations. Their four corners describe the text
+	// rectangle inside the slightly larger component bounds.
+	if (type === "scribble") {
+		const text = containerItems.Text;
+		const a = containerItems.Ca as { x: number; y: number } | undefined;
+		const b = containerItems.Cb as { x: number; y: number } | undefined;
+		const c = containerItems.Cc as { x: number; y: number } | undefined;
+		const d = containerItems.Cd as { x: number; y: number } | undefined;
+
+		return {
+			type: "scribble",
+			text: text === undefined ? "" : String(text),
+			font:
+				containerItems.Font === undefined
+					? "Arial"
+					: String(containerItems.Font),
+			size: Number(containerItems.Size ?? 12),
+			bold: containerItems.Bold === true,
+			italic: containerItems.Italic === true,
+			corners: a && b && c && d ? { a, b, c, d } : undefined,
+		};
+	}
+
 	// Parse Slider values
 	if (type.includes("slider")) {
 		const sliderChunk = findChunk(containerChunk, "Slider");
@@ -331,11 +358,11 @@ function parseComponentValue(
 
 	// Parse Panel text
 	if (type.includes("panel")) {
-		const text = containerItems.UserText as string;
-		if (text !== undefined) {
+		const userText = containerItems.UserText;
+		if (userText !== undefined) {
 			return {
 				type: "panel",
-				text,
+				text: String(userText),
 			};
 		}
 	}
@@ -563,7 +590,11 @@ function parseComponent(
 		const outputParams = findAllChunks(paramDataChunk, "OutputParam");
 
 		for (let i = 0; i < outputCount && i < outputParams.length; i++) {
-			const param = parseParamChunk(outputParams[i], "output");
+			const param = parseParamChunk(
+				outputParams[i],
+				"output",
+				options?.includeVisuals
+			);
 			if (param && param.nick) {
 				const key = String(param.nick).toLowerCase();
 				component.outputs[key] = param;
@@ -590,7 +621,11 @@ function parseComponent(
 	const seenOutputKeys = new Set<string>();
 	const paramOutputs = findAllChunks(containerChunk, "param_output");
 	for (const paramChunk of paramOutputs) {
-		const param = parseParamChunk(paramChunk, "output");
+		const param = parseParamChunk(
+			paramChunk,
+			"output",
+			options?.includeVisuals
+		);
 		if (param && param.nick) {
 			let key = String(param.nick).toLowerCase();
 			if (seenOutputKeys.has(key)) {

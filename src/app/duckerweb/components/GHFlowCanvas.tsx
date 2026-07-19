@@ -24,11 +24,13 @@ import { GHSwatchNode } from "./GHSwatchNode";
 import { GHButtonNode } from "./GHButtonNode";
 import { GHGroupNode } from "./GHGroupNode";
 import { GHRelayNode } from "./GHRelayNode";
+import { GHScribbleNode } from "./GHScribbleNode";
 import { GHEdge } from "./GHEdge";
 import type { GHFlowCanvasProps } from "../types/type";
 
 const nodeTypes: NodeTypes = {
 	panel: GHPanelNode as NodeTypes[string],
+	scribble: GHScribbleNode as NodeTypes[string],
 	value: GHPanelNode as NodeTypes[string],
 	component: GHComponentNode as NodeTypes[string],
 	script: GHScriptNode as NodeTypes[string],

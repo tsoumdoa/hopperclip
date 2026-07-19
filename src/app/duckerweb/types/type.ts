@@ -6,6 +6,7 @@ import type { GHRuntimeState } from "../lib/runtime-palette";
 export type GHNodeType =
 	| "value"
 	| "panel"
+	| "scribble"
 	| "component"
 	| "script"
 	| "slider"
@@ -26,9 +27,14 @@ export type GHNodeData = {
 	runtimeState?: GHRuntimeState;
 	members?: string[];
 	containerBounds?: Bounds;
+	groupColor?: string;
 	value?: string;
 	percent?: number;
 	height?: number;
+	inputWidth?: number;
+	outputWidth?: number;
+	usesGrasshopperBounds?: boolean;
+	scribble?: GHScribbleData;
 } & Record<string, unknown>;
 
 export type GHNode = Node<GHNodeData>;
@@ -37,6 +43,9 @@ export type Port = {
 	id: string;
 	label: string;
 	options?: PortOptions;
+	position?: number;
+	labelOffset?: number;
+	labelWidth?: number;
 };
 
 export type Bounds = {
@@ -153,6 +162,27 @@ export type ScriptData = {
 	title?: string;
 };
 
+export type GHScribbleData = {
+	font: string;
+	size: number;
+	bold: boolean;
+	italic: boolean;
+	corners?: {
+		a: { x: number; y: number };
+		b: { x: number; y: number };
+		c: { x: number; y: number };
+		d: { x: number; y: number };
+	};
+	componentBounds?: Bounds;
+};
+
+export type GHScribbleNodeProps = {
+	data: {
+		value?: string;
+		scribble?: GHScribbleData;
+	};
+};
+
 export type GHNodeProps = {
 	data: {
 		label: string;
@@ -167,6 +197,7 @@ export type GHNodeProps = {
 		value?: string;
 		height?: number;
 		script?: ScriptData;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -177,6 +208,7 @@ export type GHGroupNodeProps = {
 		type: string;
 		members?: string[];
 		containerBounds?: Bounds;
+		groupColor?: string;
 		accentColor?: string;
 		selected?: boolean;
 	};
@@ -193,6 +225,7 @@ export type GHSliderNodeProps = {
 		selected?: boolean;
 		value?: string;
 		percent?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -214,6 +247,7 @@ export type GHValueListNodeProps = {
 		value?: string;
 		items?: GHValueListItem[];
 		selectedIndex?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -227,6 +261,7 @@ export type GHToggleNodeProps = {
 		accentColor?: string;
 		selected?: boolean;
 		value?: string;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -241,6 +276,8 @@ export type GHSwatchNodeProps = {
 		selected?: boolean;
 		value?: string;
 		color?: string;
+		outputWidth?: number;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -253,6 +290,7 @@ export type GHButtonNodeProps = {
 		outputs: Port[];
 		accentColor?: string;
 		selected?: boolean;
+		usesGrasshopperBounds?: boolean;
 	};
 	selected?: boolean;
 };
@@ -282,10 +320,12 @@ export type GHHandleProps = {
 	type: HandlePortType;
 	id?: string;
 	className?: string;
+	detached?: boolean;
 };
 
 export type GHHandlePositionProps = {
 	position: HandleSide;
 	children: ReactNode;
 	className?: string;
+	top?: string;
 };

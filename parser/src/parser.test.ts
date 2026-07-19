@@ -148,3 +148,112 @@ describe("buildGhJson wire display", () => {
 		]);
 	});
 });
+
+describe("buildGhJson parameter visuals", () => {
+	it("parses input and output bounds and pivots", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">sphere-type</item><item name="Name">Mesh Sphere</item></items>
+						<chunks><chunk name="Container">
+							<items><item name="InstanceGuid">sphere</item><item name="NickName">MSphere</item></items>
+							<chunks>
+								<chunk name="param_input" index="0">
+									<items><item name="NickName">B</item><item name="InstanceGuid">base</item></items>
+									<chunks><chunk name="Attributes"><items>
+										<item name="Bounds" type_name="gh_drawing_rectanglef"><X>157</X><Y>504</Y><W>10</W><H>20</H></item>
+										<item name="Pivot" type_name="gh_drawing_pointf"><X>163.5</X><Y>514</Y></item>
+									</items></chunk></chunks>
+								</chunk>
+								<chunk name="param_output" index="0">
+									<items><item name="NickName">M</item><item name="InstanceGuid">mesh</item></items>
+									<chunks><chunk name="Attributes"><items>
+										<item name="Bounds" type_name="gh_drawing_rectanglef"><X>197</X><Y>504</Y><W>14</W><H>80</H></item>
+										<item name="Pivot" type_name="gh_drawing_pointf"><X>204</X><Y>544</Y></item>
+									</items></chunk></chunks>
+								</chunk>
+							</chunks>
+						</chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml, { includeVisuals: true });
+
+		expect(parsed.components.MSphere.inputs.b.visuals).toEqual({
+			bounds: { x: 157, y: 504, width: 10, height: 20 },
+			pivot: { x: 163.5, y: 514 },
+		});
+		expect(parsed.components.MSphere.outputs.m.visuals).toEqual({
+			bounds: { x: 197, y: 504, width: 14, height: 80 },
+			pivot: { x: 204, y: 544 },
+		});
+	});
+});
+
+describe("buildGhJson panel content", () => {
+	it("preserves a custom panel heading separately from its body text", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">panel-type</item><item name="Name">Panel</item></items>
+						<chunks><chunk name="Container"><items>
+							<item name="InstanceGuid">panel-instance</item>
+							<item name="NickName">constant 2</item>
+							<item name="UserText">2</item>
+						</items></chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const panel = buildGhJson(xml).components["constant 2"];
+
+		expect(panel.nickName).toBe("constant 2");
+		expect(panel.value).toEqual({ type: "panel", text: "2" });
+	});
+});
+
+describe("buildGhJson scribble content", () => {
+	it("preserves text geometry and font styling", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">scribble-type</item><item name="Name">Scribble</item></items>
+						<chunks><chunk name="Container"><items>
+							<item name="InstanceGuid">scribble-instance</item>
+							<item name="NickName">Scribble</item>
+							<item name="Bold">false</item>
+							<item name="Italic">true</item>
+							<item name="Font">Arial</item>
+							<item name="Size">18</item>
+							<item name="Text">Sinuous interlocking seam</item>
+							<item name="Ca" type_name="gh_drawing_pointf"><X>660</X><Y>20</Y></item>
+							<item name="Cb" type_name="gh_drawing_pointf"><X>1118.2617</X><Y>20</Y></item>
+							<item name="Cc" type_name="gh_drawing_pointf"><X>1118.2617</X><Y>36.89258</Y></item>
+							<item name="Cd" type_name="gh_drawing_pointf"><X>660</X><Y>36.89258</Y></item>
+						</items></chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const scribble = buildGhJson(xml).components.Scribble;
+
+		expect(scribble.value).toEqual({
+			type: "scribble",
+			text: "Sinuous interlocking seam",
+			font: "Arial",
+			size: 18,
+			bold: false,
+			italic: true,
+			corners: {
+				a: { x: 660, y: 20 },
+				b: { x: 1118.2617, y: 20 },
+				c: { x: 1118.2617, y: 36.89258 },
+				d: { x: 660, y: 36.89258 },
+			},
+		});
+	});
+});
