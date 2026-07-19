@@ -9,6 +9,7 @@ export function extractValue(component: Component): string | undefined {
 		case "slider":
 			return v.current !== undefined ? String(v.current) : undefined;
 		case "panel":
+		case "scribble":
 		case "text":
 			return v.text ?? undefined;
 		case "valueList":

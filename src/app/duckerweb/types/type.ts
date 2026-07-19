@@ -6,6 +6,7 @@ import type { GHRuntimeState } from "../lib/runtime-palette";
 export type GHNodeType =
 	| "value"
 	| "panel"
+	| "scribble"
 	| "component"
 	| "script"
 	| "slider"
@@ -33,6 +34,7 @@ export type GHNodeData = {
 	inputWidth?: number;
 	outputWidth?: number;
 	usesGrasshopperBounds?: boolean;
+	scribble?: GHScribbleData;
 } & Record<string, unknown>;
 
 export type GHNode = Node<GHNodeData>;
@@ -156,6 +158,27 @@ export type ScriptData = {
 	language?: string;
 	code: string;
 	title?: string;
+};
+
+export type GHScribbleData = {
+	font: string;
+	size: number;
+	bold: boolean;
+	italic: boolean;
+	corners?: {
+		a: { x: number; y: number };
+		b: { x: number; y: number };
+		c: { x: number; y: number };
+		d: { x: number; y: number };
+	};
+	componentBounds?: Bounds;
+};
+
+export type GHScribbleNodeProps = {
+	data: {
+		value?: string;
+		scribble?: GHScribbleData;
+	};
 };
 
 export type GHNodeProps = {

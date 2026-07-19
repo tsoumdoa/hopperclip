@@ -317,6 +317,29 @@ function parseComponentValue(
 ): Component["value"] | undefined {
 	const type = componentType.toLowerCase();
 
+	// Scribbles are canvas annotations. Their four corners describe the text
+	// rectangle inside the slightly larger component bounds.
+	if (type === "scribble") {
+		const text = containerItems.Text;
+		const a = containerItems.Ca as { x: number; y: number } | undefined;
+		const b = containerItems.Cb as { x: number; y: number } | undefined;
+		const c = containerItems.Cc as { x: number; y: number } | undefined;
+		const d = containerItems.Cd as { x: number; y: number } | undefined;
+
+		return {
+			type: "scribble",
+			text: text === undefined ? "" : String(text),
+			font:
+				containerItems.Font === undefined
+					? "Arial"
+					: String(containerItems.Font),
+			size: Number(containerItems.Size ?? 12),
+			bold: containerItems.Bold === true,
+			italic: containerItems.Italic === true,
+			corners: a && b && c && d ? { a, b, c, d } : undefined,
+		};
+	}
+
 	// Parse Slider values
 	if (type.includes("slider")) {
 		const sliderChunk = findChunk(containerChunk, "Slider");

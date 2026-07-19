@@ -4,6 +4,7 @@ import type { GHNodeType } from "../types/type";
 export function getComponentNodeType(component: Component): GHNodeType {
 	if (component.type === "Group") return "group";
 	if (component.type.endsWith("Script")) return "script";
+	if (component.value?.type === "scribble") return "scribble";
 	if (component.value?.type === "slider") return "slider";
 	if (component.value?.type === "valueList") return "valueList";
 	if (component.value?.type === "toggle") return "toggle";

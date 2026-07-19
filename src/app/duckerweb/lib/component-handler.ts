@@ -117,6 +117,17 @@ export function handleComponent(
 		nodeData.color = component.value.color;
 	}
 
+	if (component.value?.type === "scribble") {
+		nodeData.scribble = {
+			font: component.value.font ?? "Arial",
+			size: component.value.size ?? 12,
+			bold: component.value.bold === true,
+			italic: component.value.italic === true,
+			corners: component.value.corners,
+			componentBounds: component.visuals?.bounds,
+		};
+	}
+
 	if (component.script) {
 		nodeData.script = component.script;
 	}

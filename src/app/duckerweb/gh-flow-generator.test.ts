@@ -152,6 +152,55 @@ test("Grasshopper ARGB colors retain their encoded opacity", () => {
 	expect(grasshopperArgbToCss("invalid", "transparent")).toBe("transparent");
 });
 
+test("generateFlowData renders Scribble as positioned text annotation", () => {
+	const scribble = component("Scribble", "Scribble", {
+		x: 655,
+		y: 15,
+		width: 468.26172,
+		height: 26.892578,
+	});
+	scribble.value = {
+		type: "scribble",
+		text: "Sinuous interlocking seam — native GH components only",
+		font: "Arial",
+		size: 18,
+		bold: false,
+		italic: false,
+		corners: {
+			a: { x: 660, y: 20 },
+			b: { x: 1118.2617, y: 20 },
+			c: { x: 1118.2617, y: 36.89258 },
+			d: { x: 660, y: 36.89258 },
+		},
+	};
+
+	const { nodes } = generateFlowData({
+		version: "0.2.2",
+		components: { scribble },
+		wires: [],
+	});
+	const node = nodes[0];
+
+	expect(node.type).toBe("scribble");
+	expect(node.position).toEqual({ x: 655, y: 15 });
+	expect(node.style).toMatchObject({ width: 468.26172, height: 26.892578 });
+	expect(node.data.value).toBe(
+		"Sinuous interlocking seam — native GH components only"
+	);
+	expect(node.data.scribble).toMatchObject({
+		font: "Arial",
+		size: 18,
+		bold: false,
+		italic: false,
+		componentBounds: {
+			x: 655,
+			y: 15,
+			width: 468.26172,
+			height: 26.892578,
+		},
+	});
+});
+
 test("generateFlowData maps wires onto connected source/target nodes", () => {
 	const xml = fs.readFileSync("parser/sand/xmls/brep-area-Wire.xml", "utf8");
 	const parsed = buildGhJson(xml, { includeVisuals: true });
