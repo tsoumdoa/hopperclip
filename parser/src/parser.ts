@@ -5,6 +5,7 @@ import type {
 	InputPort,
 	OutputPort,
 	Wire,
+	WireStyle,
 	ParseOptions,
 	Visuals,
 	ComponentState,
@@ -156,6 +157,10 @@ function parseMapping(mappingValue: number): DataMapping {
 	}
 }
 
+function parseWireStyle(wireDisplay: unknown): WireStyle {
+	return wireDisplay === 1 ? "faint" : wireDisplay === 2 ? "hidden" : "normal";
+}
+
 function parsePortOptions(
 	items: Record<string, unknown>
 ): PortOptions | undefined {
@@ -223,9 +228,7 @@ function parseParamChunk(
 
 	if (type === "input") {
 		if (includeVisuals) {
-			const wireDisplay = items.WireDisplay;
-			(port as InputPort).wireStyle =
-				wireDisplay === 1 ? "faint" : wireDisplay === 2 ? "hidden" : "normal";
+			(port as InputPort).wireStyle = parseWireStyle(items.WireDisplay);
 		}
 
 		const sources = extractIndexedItems(paramChunk, "Source");
@@ -632,18 +635,24 @@ function parseComponent(
 		}
 	}
 
-	// Handle container-level sources for primitive components (e.g., Text, Number Slider)
-	// These don't have ParameterData but have Source directly in Container
+	// Handle container-level sources for primitive components (e.g., Text, Number)
+	// These don't have ParameterData but have Source / WireDisplay directly in Container
 	const sourceGuids = extractIndexedItems(containerChunk, "Source");
 	if (sourceGuids.length > 0 && Object.keys(component.inputs).length === 0) {
-		// Create a default input for components with container-level sources
-		component.inputs["value"] = {
+		const input: InputPort = {
 			description: "Input value",
 			nick: "V",
 			optional: true,
 			source: sourceGuids[0],
 			instanceGuid: instanceGuid,
 		};
+		if (sourceGuids.length > 1) {
+			input.sources = sourceGuids;
+		}
+		if (options?.includeVisuals) {
+			input.wireStyle = parseWireStyle(containerItems.WireDisplay);
+		}
+		component.inputs["value"] = input;
 	}
 
 	// Value-type components (Panel, Slider, Number, etc.) have no param_output chunks

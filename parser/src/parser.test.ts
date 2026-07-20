@@ -147,6 +147,64 @@ describe("buildGhJson wire display", () => {
 			"hidden",
 		]);
 	});
+
+	it("parses WireDisplay and multiple Sources from a standalone parameter container", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">unit-z-type</item><item name="Name">Unit Z</item></items>
+						<chunks><chunk name="Container">
+							<items><item name="InstanceGuid">unit-z</item><item name="NickName">Z</item></items>
+							<chunks><chunk name="param_output" index="0"><items>
+								<item name="NickName">V</item><item name="InstanceGuid">unit-z-output</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="1">
+						<items><item name="GUID">extrude-type</item><item name="Name">Extrude</item></items>
+						<chunks><chunk name="Container">
+							<items><item name="InstanceGuid">extrude</item><item name="NickName">Extr</item></items>
+							<chunks><chunk name="param_output" index="0"><items>
+								<item name="NickName">E</item><item name="InstanceGuid">extrude-output</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="2">
+						<items>
+							<item name="GUID">3e8ca6be-fda8-4aaf-b5c0-3c54c8bb7312</item>
+							<item name="Name">Number</item>
+						</items>
+						<chunks><chunk name="Container"><items>
+							<item name="Description">Contains a collection of floating point numbers</item>
+							<item name="InstanceGuid">number-instance</item>
+							<item name="NickName">Num</item>
+							<item name="Source" index="0">unit-z-output</item>
+							<item name="Source" index="1">extrude-output</item>
+							<item name="SourceCount">2</item>
+							<item name="WireDisplay" type_name="gh_int32">1</item>
+						</items></chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml, { includeVisuals: true });
+
+		expect(parsed.components.Num.inputs.value).toMatchObject({
+			source: "Z.v",
+			sources: ["unit-z-output", "extrude-output"],
+			wireStyle: "faint",
+		});
+		expect(
+			parsed.wires.filter((wire) => wire.to === "Num.value").map((wire) => ({
+				from: wire.from,
+				style: wire.style,
+			}))
+		).toEqual([
+			{ from: "Z.v", style: "faint" },
+			{ from: "Extr.e", style: "faint" },
+		]);
+	});
 });
 
 describe("buildGhJson parameter visuals", () => {
