@@ -105,53 +105,65 @@ const cases = [
 function LandingPageContent() {
 	return (
 		<>
-			<section className="mx-auto flex w-full max-w-4xl flex-col gap-5 pt-6 pb-4 md:pt-10 md:pb-6">
-				<Reveal>
-					<span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-600">
-						for individuals &amp; teams
-					</span>
-				</Reveal>
-				<Reveal delay={0.05}>
-					<div>
-						<h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-							Grasshopper, reviewed.
-						</h1>
-						<p className="mt-3 max-w-xl text-base text-neutral-400 md:text-lg">
-							Organize your own Grasshopper definitions. Share them with a team
-							to inspect, compare, and review across versions — without anyone
-							needing Rhino in front of them.
-						</p>
-					</div>
-				</Reveal>
-				<Reveal delay={0.1}>
-					<div className="flex flex-wrap items-center gap-3 pt-1">
-						<SignUpButton mode="modal">
-							<button
-								type="button"
-								className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
-							>
-								Get started
-								<ArrowRight className="h-4 w-4" />
-							</button>
-						</SignUpButton>
-					</div>
-					<p className="mt-3 flex items-center gap-2 text-base text-neutral-400">
-						<Plug className="h-4 w-4 shrink-0" />
-						Nothing to install — no Rhino, no plugins, no setup for whoever
-						opens the link.
-					</p>
-				</Reveal>
-			</section>
+			<div className="mx-auto w-full max-w-6xl">
+				<div className="xl:grid xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-end xl:gap-12">
+					<section className="flex w-full flex-col gap-5 pt-6 pb-4 md:pt-10 md:pb-6">
+						<Reveal>
+							<span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-600">
+								for individuals &amp; teams
+							</span>
+						</Reveal>
+						<Reveal delay={0.05}>
+							<div>
+								<h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
+									Grasshopper, reviewed.
+								</h1>
+								<p className="mt-3 max-w-xl text-base text-neutral-400 md:text-lg">
+									Organize your own Grasshopper definitions. Share them with a
+									team to inspect, compare, and review across versions — without
+									anyone needing Rhino in front of them.
+								</p>
+							</div>
+						</Reveal>
+						<Reveal delay={0.1}>
+							<div className="flex flex-wrap items-center gap-3 pt-1">
+								<SignUpButton mode="modal">
+									<button
+										type="button"
+										className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
+									>
+										Get started
+										<ArrowRight className="h-4 w-4" />
+									</button>
+								</SignUpButton>
+							</div>
+							<p className="mt-3 flex items-center gap-2 text-base text-neutral-400">
+								<Plug className="h-4 w-4 shrink-0" />
+								Nothing to install — no Rhino, no plugins, no setup for whoever
+								opens the link.
+							</p>
+						</Reveal>
+					</section>
 
-			<section className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
-				{cases.map((c, i) => (
-					<Reveal key={c.eyebrow} delay={i * 0.08}>
-						<CaseCard {...c} />
-					</Reveal>
-				))}
-			</section>
+					<div className="hidden pt-6 pb-4 md:pt-10 md:pb-6 xl:block">
+						<Reveal delay={0.12}>
+							<DuckerWebCard variant="aside" />
+						</Reveal>
+					</div>
+				</div>
 
-			<DuckerWebSection />
+				<section className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
+					{cases.map((c, i) => (
+						<Reveal key={c.eyebrow} delay={i * 0.08}>
+							<CaseCard {...c} />
+						</Reveal>
+					))}
+				</section>
+
+				<div className="xl:hidden">
+					<DuckerWebSection />
+				</div>
+			</div>
 			<BottomFade />
 		</>
 	);
@@ -171,50 +183,86 @@ function BottomFade() {
 
 function DuckerWebSection() {
 	return (
-		<section className="mx-auto mt-10 w-full max-w-5xl pb-4 md:mt-12">
+		<section className="mt-10 w-full pb-4 md:mt-12">
 			<Reveal>
-				<div className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black">
-					<div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
-						<div className="max-w-xl">
-							<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
-								// also from hopper clip
-							</div>
-							<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
-								Look at a definition without opening Rhino.
-							</h2>
-							<p className="mt-3 text-sm leading-relaxed text-neutral-400 md:text-base">
-								<span className="font-medium text-neutral-200">DuckerWeb</span>{" "}
-								is our free, browser-only viewer. Drop a{" "}
-								<code className="rounded bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-300">
-									.gh
-								</code>
-								, paste GhXml, or compare two versions side-by-side —
-								everything runs locally in your browser, nothing uploaded, no
-								account required.
-							</p>
-							<div className="mt-4 flex flex-wrap gap-2">
-								<Pill>No Rhino</Pill>
-								<Pill>No Grasshopper</Pill>
-								<Pill>No sign-up</Pill>
-								<Pill>Runs locally</Pill>
-							</div>
-						</div>
-						<div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-							<Link
-								to="/duckerweb"
-								className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
-							>
-								Open DuckerWeb
-								<ArrowRight className="h-4 w-4" />
-							</Link>
-							<span className="text-xs text-neutral-500">
-								free · no account needed
-							</span>
-						</div>
-					</div>
-				</div>
+				<DuckerWebCard variant="banner" />
 			</Reveal>
 		</section>
+	);
+}
+
+function DuckerWebCard({ variant }: { variant: "aside" | "banner" }) {
+	if (variant === "aside") {
+		return (
+			<div className="rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black p-6">
+				<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
+					// also from hopper clip
+				</div>
+				<h2 className="mt-3 text-lg font-semibold leading-snug tracking-tight">
+					Look at a definition without opening Rhino.
+				</h2>
+				<p className="mt-2 text-sm leading-relaxed text-neutral-400">
+					<span className="font-medium text-neutral-200">DuckerWeb</span> is our
+					free browser viewer — drop a{" "}
+					<code className="rounded bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-300">
+						.gh
+					</code>
+					, no account needed.
+				</p>
+				<Link
+					to="/duckerweb"
+					className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
+				>
+					Open DuckerWeb
+					<ArrowRight className="h-4 w-4" />
+				</Link>
+				<p className="mt-2 text-center text-xs text-neutral-500">
+					free · runs locally in your browser
+				</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black">
+			<div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+				<div className="max-w-xl">
+					<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
+						// also from hopper clip
+					</div>
+					<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+						Look at a definition without opening Rhino.
+					</h2>
+					<p className="mt-3 text-sm leading-relaxed text-neutral-400 md:text-base">
+						<span className="font-medium text-neutral-200">DuckerWeb</span> is
+						our free, browser-only viewer. Drop a{" "}
+						<code className="rounded bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-300">
+							.gh
+						</code>
+						, paste GhXml, or compare two versions side-by-side — everything
+						runs locally in your browser, nothing uploaded, no account required.
+					</p>
+					<div className="mt-4 flex flex-wrap gap-2">
+						<Pill>No Rhino</Pill>
+						<Pill>No Grasshopper</Pill>
+						<Pill>No sign-up</Pill>
+						<Pill>Runs locally</Pill>
+					</div>
+				</div>
+				<div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+					<Link
+						to="/duckerweb"
+						className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200"
+					>
+						Open DuckerWeb
+						<ArrowRight className="h-4 w-4" />
+					</Link>
+					<span className="text-xs text-neutral-500">
+						free · no account needed
+					</span>
+				</div>
+			</div>
+		</div>
 	);
 }
 
