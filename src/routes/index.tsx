@@ -22,7 +22,7 @@ import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/")({
 	head: () => ({
-		meta: [{ title: "Hopper Clip — Grasshopper, reviewed" }],
+		meta: [{ title: "Hopper Clip — Grasshopper, sorted" }],
 	}),
 	beforeLoad: async () => {
 		const { userId } = await fetchClerkAuth();
@@ -109,13 +109,13 @@ function LandingPageContent() {
 				<div className="xl:grid xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-end xl:gap-12">
 					<section className="flex w-full flex-col gap-5 pt-6 pb-4 md:pt-10 md:pb-6">
 						<Reveal>
-							<span className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-600">
+							<span className="font-mono text-xs tracking-[0.2em] text-neutral-600 uppercase">
 								for individuals &amp; teams
 							</span>
 						</Reveal>
 						<Reveal delay={0.05}>
 							<div>
-								<h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
+								<h1 className="max-w-2xl text-4xl leading-[1.05] font-semibold tracking-tight md:text-6xl">
 									Grasshopper, reviewed.
 								</h1>
 								<p className="mt-3 max-w-xl text-base text-neutral-400 md:text-lg">
@@ -195,10 +195,10 @@ function DuckerWebCard({ variant }: { variant: "aside" | "banner" }) {
 	if (variant === "aside") {
 		return (
 			<div className="rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black p-6">
-				<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
+				<div className="font-mono text-xs tracking-[0.2em] text-neutral-500 uppercase">
 					// also from hopper clip
 				</div>
-				<h2 className="mt-3 text-lg font-semibold leading-snug tracking-tight">
+				<h2 className="mt-3 text-lg leading-snug font-semibold tracking-tight">
 					Look at a definition without opening Rhino.
 				</h2>
 				<p className="mt-2 text-sm leading-relaxed text-neutral-400">
@@ -227,7 +227,7 @@ function DuckerWebCard({ variant }: { variant: "aside" | "banner" }) {
 		<div className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-950 to-black">
 			<div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
 				<div className="max-w-xl">
-					<div className="font-mono text-xs uppercase tracking-[0.2em] text-neutral-500">
+					<div className="font-mono text-xs tracking-[0.2em] text-neutral-500 uppercase">
 						// also from hopper clip
 					</div>
 					<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
@@ -288,10 +288,10 @@ function CaseCard({
 	return (
 		<div className="flex h-full flex-col gap-3 rounded-xl border border-neutral-900 bg-neutral-950 p-6 transition-colors hover:border-neutral-700">
 			<Icon className="h-5 w-5 text-neutral-400" />
-			<div className="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+			<div className="font-mono text-xs tracking-[0.18em] text-neutral-500 uppercase">
 				{eyebrow}
 			</div>
-			<h3 className="text-lg font-semibold leading-snug">{title}</h3>
+			<h3 className="text-lg leading-snug font-semibold">{title}</h3>
 			<p className="text-sm text-neutral-400">{body}</p>
 		</div>
 	);
