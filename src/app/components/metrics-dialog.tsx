@@ -37,7 +37,7 @@ export function MetricsDialog(props: {
 					</div>
 				)}
 
-				<Tabs defaultValue="metrics" className="flex-1 overflow-hidden">
+				<Tabs defaultValue="flow" className="flex-1 overflow-hidden">
 					<div className="border-neutral-700 pl-4">
 						<TabsList>
 							<TabsTrigger value="flow">Flow View</TabsTrigger>
