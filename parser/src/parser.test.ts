@@ -192,6 +192,75 @@ describe("buildGhJson parameter visuals", () => {
 	});
 });
 
+describe("buildGhJson component state", () => {
+	it("falls back Hidden to true when omitted, and reads Selected from Attributes", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items><item name="GUID">hidden-type</item><item name="Name">Hidden Comp</item></items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="Hidden" type_name="gh_bool">true</item>
+								<item name="InstanceGuid">hidden-instance</item>
+								<item name="NickName">HiddenComp</item>
+							</items>
+							<chunks><chunk name="Attributes"><items>
+								<item name="Selected" type_name="gh_bool">true</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="1">
+						<items><item name="GUID">visible-type</item><item name="Name">Visible Comp</item></items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="Hidden" type_name="gh_bool">false</item>
+								<item name="InstanceGuid">visible-instance</item>
+								<item name="NickName">VisibleComp</item>
+							</items>
+							<chunks><chunk name="Attributes"><items>
+								<item name="Selected" type_name="gh_bool">true</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="2">
+						<items><item name="GUID">missing-type</item><item name="Name">Missing Comp</item></items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">missing-instance</item>
+								<item name="NickName">MissingComp</item>
+							</items>
+							<chunks><chunk name="Attributes"><items>
+								<item name="Selected" type_name="gh_bool">true</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const parsed = buildGhJson(xml, { includeVisuals: true });
+
+		expect(parsed.components.HiddenComp.state).toEqual({
+			hidden: true,
+			locked: false,
+			frozen: false,
+			selected: true,
+		});
+		expect(parsed.components.VisibleComp.state).toEqual({
+			hidden: false,
+			locked: false,
+			frozen: false,
+			selected: true,
+		});
+		expect(parsed.components.MissingComp.state).toEqual({
+			hidden: true,
+			locked: false,
+			frozen: false,
+			selected: true,
+		});
+	});
+});
+
 describe("buildGhJson panel content", () => {
 	it("preserves a custom panel heading separately from its body text", () => {
 		const xml = `

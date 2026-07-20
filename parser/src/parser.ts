@@ -490,34 +490,30 @@ function parseVisuals(
 }
 
 function parseComponentState(
+	containerChunk: XmlChunk,
 	containerItems: Record<string, unknown>
-): ComponentState | undefined {
-	const state: ComponentState = {};
-	let hasState = false;
+): ComponentState {
+	// Grasshopper only serializes Locked/Frozen when true; omission means false.
+	// Hidden falls back to true when the attribute is missing.
+	const state: ComponentState = {
+		hidden:
+			containerItems.Hidden === undefined
+				? true
+				: containerItems.Hidden === true,
+		locked: containerItems.Locked === true,
+		frozen: containerItems.Frozen === true,
+	};
 
-	if (containerItems.Hidden !== undefined) {
-		state.hidden = containerItems.Hidden === true;
-		hasState = true;
+	// Selected lives in Attributes, not Container items.
+	const attributesChunk = findChunk(containerChunk, "Attributes");
+	if (attributesChunk) {
+		const attrItems = extractItems(attributesChunk);
+		if (attrItems.Selected !== undefined) {
+			state.selected = attrItems.Selected === true;
+		}
 	}
 
-	if (containerItems.Locked !== undefined) {
-		state.locked = containerItems.Locked === true;
-		hasState = true;
-	}
-
-	// Frozen is typically in container items
-	if (containerItems.Frozen !== undefined) {
-		state.frozen = containerItems.Frozen === true;
-		hasState = true;
-	}
-
-	// Selected is typically in Attributes
-	if (containerItems.Selected !== undefined) {
-		state.selected = containerItems.Selected === true;
-		hasState = true;
-	}
-
-	return hasState ? state : undefined;
+	return state;
 }
 
 interface ParsedComponent {
@@ -706,10 +702,7 @@ function parseComponent(
 			component.visuals = visuals;
 		}
 
-		const state = parseComponentState(containerItems);
-		if (state) {
-			component.state = state;
-		}
+		component.state = parseComponentState(containerChunk, containerItems);
 	}
 
 	return { component, instanceGuid, objectChunk };
