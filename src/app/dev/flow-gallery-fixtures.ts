@@ -114,7 +114,7 @@ export const flowGalleryNodes: GHNode[] = [
 		id: "group",
 		type: "group",
 		position: { x: 45, y: 260 },
-		style: { width: 1100, height: 315 },
+		style: { width: 1200, height: 315 },
 		zIndex: 0,
 		data: {
 			label: "Inputs, values, and utility components",
@@ -129,8 +129,10 @@ export const flowGalleryNodes: GHNode[] = [
 				"swatch",
 				"button",
 				"relay",
+				"relay-hidden",
+				"relay-locked",
 			],
-			containerBounds: { x: 45, y: 260, width: 1100, height: 315 },
+			containerBounds: { x: 45, y: 260, width: 1200, height: 315 },
 		},
 	},
 	{
@@ -165,6 +167,30 @@ export const flowGalleryNodes: GHNode[] = [
 			type: "relay",
 			inputs: [input("in", "Input")],
 			outputs: [output("out", "Geometry")],
+		},
+	},
+	{
+		id: "relay-hidden",
+		type: "relay",
+		position: { x: 880, y: 500 },
+		data: {
+			label: "Srf",
+			type: "relay",
+			runtimeState: "hidden",
+			inputs: [input("in", "Input")],
+			outputs: [output("out", "Surface")],
+		},
+	},
+	{
+		id: "relay-locked",
+		type: "relay",
+		position: { x: 1060, y: 500 },
+		data: {
+			label: "Rec",
+			type: "relay",
+			runtimeState: "locked",
+			inputs: [input("in", "Input")],
+			outputs: [output("out", "Rectangle")],
 		},
 	},
 ];

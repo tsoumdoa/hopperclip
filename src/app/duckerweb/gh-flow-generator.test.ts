@@ -278,3 +278,58 @@ test("generateFlowData exposes standalone parameter internal expressions", () =>
 	expect(mappedNode?.type).toBe("relay");
 	expect(mappedNode?.data.outputs[0]?.options?.mapping).toBe("flatten");
 });
+
+test("generateFlowData exposes hidden and locked runtime state on relays", () => {
+	const xml = `
+		<Archive name="Root">
+			<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+				<chunk name="Object" index="0">
+					<items><item name="GUID">srf-type</item><item name="Name">Surface</item></items>
+					<chunks><chunk name="Container">
+						<items>
+							<item name="Description">Contains a collection of generic surfaces</item>
+							<item name="Hidden" type_name="gh_bool">true</item>
+							<item name="InstanceGuid">srf-instance</item>
+							<item name="NickName">Srf</item>
+						</items>
+					</chunk></chunks>
+				</chunk>
+				<chunk name="Object" index="1">
+					<items><item name="GUID">rec-type</item><item name="Name">Rectangle</item></items>
+					<chunks><chunk name="Container">
+						<items>
+							<item name="Description">Contains a collection of rectangles</item>
+							<item name="Hidden" type_name="gh_bool">true</item>
+							<item name="Locked" type_name="gh_bool">true</item>
+							<item name="InstanceGuid">rec-instance</item>
+							<item name="NickName">Rec</item>
+						</items>
+					</chunk></chunks>
+				</chunk>
+				<chunk name="Object" index="2">
+					<items><item name="GUID">pln-type</item><item name="Name">Plane</item></items>
+					<chunks><chunk name="Container">
+						<items>
+							<item name="Description">Contains a collection of three-dimensional axis-systems</item>
+							<item name="Hidden" type_name="gh_bool">false</item>
+							<item name="InstanceGuid">pln-instance</item>
+							<item name="NickName">Pln</item>
+						</items>
+					</chunk></chunks>
+				</chunk>
+			</chunks></chunk></chunks></chunk></chunks>
+		</Archive>`;
+
+	const parsed = buildGhJson(xml, { includeVisuals: true });
+	const { nodes } = generateFlowData(parsed);
+
+	expect(nodes.find((n) => n.data.label === "Srf")?.data.runtimeState).toBe(
+		"hidden"
+	);
+	expect(nodes.find((n) => n.data.label === "Rec")?.data.runtimeState).toBe(
+		"locked"
+	);
+	expect(nodes.find((n) => n.data.label === "Pln")?.data.runtimeState).toBe(
+		"normal"
+	);
+});

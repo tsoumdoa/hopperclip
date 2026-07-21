@@ -497,7 +497,8 @@ function parseComponentState(
 	containerItems: Record<string, unknown>
 ): ComponentState {
 	// Grasshopper only serializes Locked/Frozen when true; omission means false.
-	// Hidden falls back to true when the attribute is missing.
+	// Some plugin components (e.g. Hopper Code Backend) omit Hidden even when
+	// preview is off, so missing Hidden falls back to true.
 	const state: ComponentState = {
 		hidden:
 			containerItems.Hidden === undefined

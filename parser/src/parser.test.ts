@@ -293,6 +293,21 @@ describe("buildGhJson component state", () => {
 							</items></chunk></chunks>
 						</chunk></chunks>
 					</chunk>
+					<chunk name="Object" index="3">
+						<items><item name="GUID">relay-type</item><item name="Name">Rectangle</item></items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="Description">Contains a collection of rectangles</item>
+								<item name="Hidden" type_name="gh_bool">true</item>
+								<item name="Locked" type_name="gh_bool">true</item>
+								<item name="InstanceGuid">relay-instance</item>
+								<item name="NickName">Rec</item>
+							</items>
+							<chunks><chunk name="Attributes"><items>
+								<item name="Selected" type_name="gh_bool">true</item>
+							</items></chunk></chunks>
+						</chunk></chunks>
+					</chunk>
 				</chunks></chunk></chunks></chunk></chunks>
 			</Archive>`;
 
@@ -313,6 +328,12 @@ describe("buildGhJson component state", () => {
 		expect(parsed.components.MissingComp.state).toEqual({
 			hidden: true,
 			locked: false,
+			frozen: false,
+			selected: true,
+		});
+		expect(parsed.components.Rec.state).toEqual({
+			hidden: true,
+			locked: true,
 			frozen: false,
 			selected: true,
 		});
