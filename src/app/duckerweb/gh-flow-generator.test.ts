@@ -153,6 +153,40 @@ test("generateFlowData preserves Grasshopper bounds for nodes and groups", () =>
 	expect(groupNode?.data.groupColor).toBe("150;135;50;50");
 });
 
+test("generateFlowData preserves zero output width for input-only components", () => {
+	const preview = component(
+		"Preview",
+		"Custom Preview",
+		{ x: 1899, y: 276, width: 42, height: 57 },
+		{
+			geometry: {
+				nick: "G",
+				instanceGuid: "geometry-input",
+				visuals: {
+					bounds: { x: 1901, y: 278, width: 11, height: 26 },
+					pivot: { x: 1908, y: 291.25 },
+				},
+			},
+		},
+		{}
+	);
+
+	const parsed: ParsedGrasshopper = {
+		version: "0.2.2",
+		components: { preview },
+		wires: [],
+	};
+
+	const previewNode = generateFlowData(parsed).nodes[0];
+
+	expect(previewNode.data.outputs).toEqual([]);
+	expect(previewNode.data).toMatchObject({
+		inputWidth: 13,
+		outputWidth: 0,
+		usesGrasshopperBounds: true,
+	});
+});
+
 test("Grasshopper ARGB colors retain their encoded opacity", () => {
 	expect(grasshopperArgbToCss("150;135;50;50", "transparent")).toBe(
 		"rgba(135, 50, 50, 0.5882352941176471)"

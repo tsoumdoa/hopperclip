@@ -248,10 +248,50 @@ describe("buildGhJson parameter visuals", () => {
 			pivot: { x: 204, y: 544 },
 		});
 	});
+
+	it("does not synthesize an output for an input-only component", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items>
+							<item name="GUID">537b0419-bbc2-4ff4-bf08-afe526367b2c</item>
+							<item name="Name">Custom Preview</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">preview-instance</item>
+								<item name="NickName">Preview</item>
+							</items>
+							<chunks>
+								<chunk name="Attributes"><items>
+									<item name="Bounds" type_name="gh_drawing_rectanglef"><X>1899</X><Y>276</Y><W>42</W><H>57</H></item>
+								</items></chunk>
+								<chunk name="param_input" index="0">
+									<items>
+										<item name="NickName">G</item>
+										<item name="InstanceGuid">geometry-input</item>
+									</items>
+									<chunks><chunk name="Attributes"><items>
+										<item name="Bounds" type_name="gh_drawing_rectanglef"><X>1901</X><Y>278</Y><W>11</W><H>26</H></item>
+									</items></chunk></chunks>
+								</chunk>
+							</chunks>
+						</chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const preview = buildGhJson(xml, { includeVisuals: true }).components
+			.Preview;
+
+		expect(Object.keys(preview.inputs)).toEqual(["g"]);
+		expect(preview.outputs).toEqual({});
+	});
 });
 
 describe("buildGhJson component state", () => {
-	it("falls back Hidden to true when omitted, and reads Selected from Attributes", () => {
+	it("uses a targeted Hidden fallback without changing other components", () => {
 		const xml = `
 			<Archive name="Root">
 				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
@@ -308,6 +348,46 @@ describe("buildGhJson component state", () => {
 							</items></chunk></chunks>
 						</chunk></chunks>
 					</chunk>
+					<chunk name="Object" index="4">
+						<items>
+							<item name="GUID">a100bfa4-603d-4609-8657-184298e7194c</item>
+							<item name="Lib">cda2a25f-cd36-37cf-7e0c-a7860546323d</item>
+							<item name="Name">Hopper Wire</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">hopper-wire-instance</item>
+								<item name="NickName">HopperWire</item>
+							</items>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="5">
+						<items>
+							<item name="GUID">a100bfa4-603d-4609-8657-184298e7194c</item>
+							<item name="Lib">cda2a25f-cd36-37cf-7e0c-a7860546323d</item>
+							<item name="Name">Hopper Wire</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="Hidden" type_name="gh_bool">false</item>
+								<item name="InstanceGuid">visible-hopper-wire-instance</item>
+								<item name="NickName">VisibleHopperWire</item>
+							</items>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="6">
+						<items>
+							<item name="GUID">e07753b1-fdec-417a-b57a-83a95204a8dd</item>
+							<item name="Lib">a41e7f39-12f0-4cc2-9f84-fd3d6bf3eaef</item>
+							<item name="Name">Hopper Code Backend</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">hopper-code-backend-instance</item>
+								<item name="NickName">GHZMQ</item>
+							</items>
+						</chunk></chunks>
+					</chunk>
 				</chunks></chunk></chunks></chunk></chunks>
 			</Archive>`;
 
@@ -326,7 +406,7 @@ describe("buildGhJson component state", () => {
 			selected: true,
 		});
 		expect(parsed.components.MissingComp.state).toEqual({
-			hidden: true,
+			hidden: false,
 			locked: false,
 			frozen: false,
 			selected: true,
@@ -336,6 +416,21 @@ describe("buildGhJson component state", () => {
 			locked: true,
 			frozen: false,
 			selected: true,
+		});
+		expect(parsed.components.HopperWire.state).toEqual({
+			hidden: true,
+			locked: false,
+			frozen: false,
+		});
+		expect(parsed.components.VisibleHopperWire.state).toEqual({
+			hidden: false,
+			locked: false,
+			frozen: false,
+		});
+		expect(parsed.components.GHZMQ.state).toEqual({
+			hidden: true,
+			locked: false,
+			frozen: false,
 		});
 	});
 });

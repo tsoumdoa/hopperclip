@@ -494,15 +494,13 @@ function parseVisuals(
 
 function parseComponentState(
 	containerChunk: XmlChunk,
-	containerItems: Record<string, unknown>
+	containerItems: Record<string, unknown>,
+	hiddenWhenUnspecified: boolean
 ): ComponentState {
-	// Grasshopper only serializes Locked/Frozen when true; omission means false.
-	// Some plugin components (e.g. Hopper Code Backend) omit Hidden even when
-	// preview is off, so missing Hidden falls back to true.
 	const state: ComponentState = {
 		hidden:
 			containerItems.Hidden === undefined
-				? true
+				? hiddenWhenUnspecified
 				: containerItems.Hidden === true,
 		locked: containerItems.Locked === true,
 		frozen: containerItems.Frozen === true,
@@ -535,6 +533,10 @@ function parseComponent(
 	const typeGuid = items.GUID as string;
 	const name = items.Name as string;
 	const libGuid = items.Lib as string | undefined;
+	const isExternalPluginComponent =
+		typeof libGuid === "string" &&
+		libGuid.length > 0 &&
+		libGuid !== "00000000-0000-0000-0000-000000000000";
 
 	if (!typeGuid || !name) {
 		return null;
@@ -656,10 +658,15 @@ function parseComponent(
 		component.inputs["value"] = input;
 	}
 
-	// Value-type components (Panel, Slider, Number, etc.) have no param_output chunks
-	// but other components source their output via the component's InstanceGuid.
-	// Add a synthetic output so wires resolve to a proper handle ID.
-	if (Object.keys(component.outputs).length === 0) {
+	// Standalone parameters (Panel, Slider, Number, etc.) have no parameter
+	// chunks, but other objects source their output via the component's
+	// InstanceGuid. Components with explicit parameter structure can genuinely
+	// have no outputs (for example Custom Preview), so do not invent one there.
+	const isStandaloneParameter =
+		paramDataChunk === undefined &&
+		paramInputs.length === 0 &&
+		paramOutputs.length === 0;
+	if (isStandaloneParameter && Object.keys(component.outputs).length === 0) {
 		const output: OutputPort = {
 			nick: "V",
 			instanceGuid: instanceGuid,
@@ -712,7 +719,11 @@ function parseComponent(
 			component.visuals = visuals;
 		}
 
-		component.state = parseComponentState(containerChunk, containerItems);
+		component.state = parseComponentState(
+			containerChunk,
+			containerItems,
+			isExternalPluginComponent
+		);
 	}
 
 	return { component, instanceGuid, objectChunk };

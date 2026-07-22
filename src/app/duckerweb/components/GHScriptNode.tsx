@@ -239,6 +239,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 								port={input}
 								align={bounded ? "center" : "right"}
 								style={{ color: palette.text }}
+								runtimeState={data.runtimeState ?? "normal"}
 							/>
 						</div>
 					</div>
@@ -269,6 +270,7 @@ export function GHScriptNode({ data, selected }: GHNodeProps) {
 								port={output}
 								align={bounded ? "center" : "right"}
 								style={{ color: palette.text }}
+								runtimeState={data.runtimeState ?? "normal"}
 							/>
 						</div>
 

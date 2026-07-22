@@ -12,8 +12,16 @@ export const flowGalleryNodes: GHNode[] = [
 		data: {
 			label: "Addition",
 			type: "component",
-			inputs: [input("a", "A"), input("b", "B")],
-			outputs: [output("result", "Result")],
+			inputs: [
+				{ ...input("a", "A"), options: { mapping: "flatten" } },
+				{ ...input("b", "B"), options: { mapping: "graft", simplify: true } },
+			],
+			outputs: [
+				{
+					...output("result", "Result"),
+					options: { reverse: true, expression: "x * 2" },
+				},
+			],
 		},
 	},
 	{
@@ -25,8 +33,11 @@ export const flowGalleryNodes: GHNode[] = [
 			type: "component",
 			runtimeState: "hidden",
 			inputs: [
-				input("geometry", "Geometry"),
-				input("very-long", "Very long input label"),
+				{ ...input("geometry", "Geometry"), options: { mapping: "graft" } },
+				{
+					...input("very-long", "Very long input label"),
+					options: { reparameterize: true },
+				},
 			],
 			outputs: [output("out", "Output")],
 		},
@@ -40,8 +51,12 @@ export const flowGalleryNodes: GHNode[] = [
 			label: "Locked",
 			type: "component",
 			runtimeState: "locked",
-			inputs: [input("in", "Input")],
-			outputs: [output("out", "Output")],
+			inputs: [
+				{ ...input("in", "Input"), options: { mapping: "flatten" } },
+			],
+			outputs: [
+				{ ...output("out", "Output"), options: { simplify: true } },
+			],
 		},
 	},
 	{
