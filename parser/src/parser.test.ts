@@ -248,6 +248,45 @@ describe("buildGhJson parameter visuals", () => {
 			pivot: { x: 204, y: 544 },
 		});
 	});
+
+	it("does not synthesize an output for an input-only component", () => {
+		const xml = `
+			<Archive name="Root">
+				<chunks><chunk name="Clipboard"><chunks><chunk name="DefinitionObjects"><chunks>
+					<chunk name="Object" index="0">
+						<items>
+							<item name="GUID">537b0419-bbc2-4ff4-bf08-afe526367b2c</item>
+							<item name="Name">Custom Preview</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">preview-instance</item>
+								<item name="NickName">Preview</item>
+							</items>
+							<chunks>
+								<chunk name="Attributes"><items>
+									<item name="Bounds" type_name="gh_drawing_rectanglef"><X>1899</X><Y>276</Y><W>42</W><H>57</H></item>
+								</items></chunk>
+								<chunk name="param_input" index="0">
+									<items>
+										<item name="NickName">G</item>
+										<item name="InstanceGuid">geometry-input</item>
+									</items>
+									<chunks><chunk name="Attributes"><items>
+										<item name="Bounds" type_name="gh_drawing_rectanglef"><X>1901</X><Y>278</Y><W>11</W><H>26</H></item>
+									</items></chunk></chunks>
+								</chunk>
+							</chunks>
+						</chunk></chunks>
+					</chunk>
+				</chunks></chunk></chunks></chunk></chunks>
+			</Archive>`;
+
+		const preview = buildGhJson(xml, { includeVisuals: true }).components.Preview;
+
+		expect(Object.keys(preview.inputs)).toEqual(["g"]);
+		expect(preview.outputs).toEqual({});
+	});
 });
 
 describe("buildGhJson component state", () => {

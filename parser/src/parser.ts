@@ -656,10 +656,15 @@ function parseComponent(
 		component.inputs["value"] = input;
 	}
 
-	// Value-type components (Panel, Slider, Number, etc.) have no param_output chunks
-	// but other components source their output via the component's InstanceGuid.
-	// Add a synthetic output so wires resolve to a proper handle ID.
-	if (Object.keys(component.outputs).length === 0) {
+	// Standalone parameters (Panel, Slider, Number, etc.) have no parameter
+	// chunks, but other objects source their output via the component's
+	// InstanceGuid. Components with explicit parameter structure can genuinely
+	// have no outputs (for example Custom Preview), so do not invent one there.
+	const isStandaloneParameter =
+		paramDataChunk === undefined &&
+		paramInputs.length === 0 &&
+		paramOutputs.length === 0;
+	if (isStandaloneParameter && Object.keys(component.outputs).length === 0) {
 		const output: OutputPort = {
 			nick: "V",
 			instanceGuid: instanceGuid,
