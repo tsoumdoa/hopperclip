@@ -492,17 +492,25 @@ function parseVisuals(
 	return hasVisuals ? visuals : undefined;
 }
 
+const HIDDEN_WHEN_UNSPECIFIED_TYPE_GUIDS = new Set([
+	// HopperWire's component does not serialize Hidden even though it has no
+	// viewport preview of its own.
+	"a100bfa4-603d-4609-8657-184298e7194c",
+]);
+
 function parseComponentState(
 	containerChunk: XmlChunk,
-	containerItems: Record<string, unknown>
+	containerItems: Record<string, unknown>,
+	typeGuid: string
 ): ComponentState {
-	// Grasshopper only serializes Locked/Frozen when true; omission means false.
-	// Some plugin components (e.g. Hopper Code Backend) omit Hidden even when
-	// preview is off, so missing Hidden falls back to true.
+	const hiddenWhenUnspecified = HIDDEN_WHEN_UNSPECIFIED_TYPE_GUIDS.has(
+		typeGuid.toLowerCase()
+	);
+
 	const state: ComponentState = {
 		hidden:
 			containerItems.Hidden === undefined
-				? true
+				? hiddenWhenUnspecified
 				: containerItems.Hidden === true,
 		locked: containerItems.Locked === true,
 		frozen: containerItems.Frozen === true,
@@ -717,7 +725,11 @@ function parseComponent(
 			component.visuals = visuals;
 		}
 
-		component.state = parseComponentState(containerChunk, containerItems);
+		component.state = parseComponentState(
+			containerChunk,
+			containerItems,
+			typeGuid
+		);
 	}
 
 	return { component, instanceGuid, objectChunk };
