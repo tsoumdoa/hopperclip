@@ -492,21 +492,11 @@ function parseVisuals(
 	return hasVisuals ? visuals : undefined;
 }
 
-const HIDDEN_WHEN_UNSPECIFIED_TYPE_GUIDS = new Set([
-	// HopperWire's component does not serialize Hidden even though it has no
-	// viewport preview of its own.
-	"a100bfa4-603d-4609-8657-184298e7194c",
-]);
-
 function parseComponentState(
 	containerChunk: XmlChunk,
 	containerItems: Record<string, unknown>,
-	typeGuid: string
+	hiddenWhenUnspecified: boolean
 ): ComponentState {
-	const hiddenWhenUnspecified = HIDDEN_WHEN_UNSPECIFIED_TYPE_GUIDS.has(
-		typeGuid.toLowerCase()
-	);
-
 	const state: ComponentState = {
 		hidden:
 			containerItems.Hidden === undefined
@@ -543,6 +533,10 @@ function parseComponent(
 	const typeGuid = items.GUID as string;
 	const name = items.Name as string;
 	const libGuid = items.Lib as string | undefined;
+	const isExternalPluginComponent =
+		typeof libGuid === "string" &&
+		libGuid.length > 0 &&
+		libGuid !== "00000000-0000-0000-0000-000000000000";
 
 	if (!typeGuid || !name) {
 		return null;
@@ -728,7 +722,7 @@ function parseComponent(
 		component.state = parseComponentState(
 			containerChunk,
 			containerItems,
-			typeGuid
+			isExternalPluginComponent
 		);
 	}
 

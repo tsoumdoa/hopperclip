@@ -351,6 +351,7 @@ describe("buildGhJson component state", () => {
 					<chunk name="Object" index="4">
 						<items>
 							<item name="GUID">a100bfa4-603d-4609-8657-184298e7194c</item>
+							<item name="Lib">cda2a25f-cd36-37cf-7e0c-a7860546323d</item>
 							<item name="Name">Hopper Wire</item>
 						</items>
 						<chunks><chunk name="Container">
@@ -363,6 +364,7 @@ describe("buildGhJson component state", () => {
 					<chunk name="Object" index="5">
 						<items>
 							<item name="GUID">a100bfa4-603d-4609-8657-184298e7194c</item>
+							<item name="Lib">cda2a25f-cd36-37cf-7e0c-a7860546323d</item>
 							<item name="Name">Hopper Wire</item>
 						</items>
 						<chunks><chunk name="Container">
@@ -370,6 +372,19 @@ describe("buildGhJson component state", () => {
 								<item name="Hidden" type_name="gh_bool">false</item>
 								<item name="InstanceGuid">visible-hopper-wire-instance</item>
 								<item name="NickName">VisibleHopperWire</item>
+							</items>
+						</chunk></chunks>
+					</chunk>
+					<chunk name="Object" index="6">
+						<items>
+							<item name="GUID">e07753b1-fdec-417a-b57a-83a95204a8dd</item>
+							<item name="Lib">a41e7f39-12f0-4cc2-9f84-fd3d6bf3eaef</item>
+							<item name="Name">Hopper Code Backend</item>
+						</items>
+						<chunks><chunk name="Container">
+							<items>
+								<item name="InstanceGuid">hopper-code-backend-instance</item>
+								<item name="NickName">GHZMQ</item>
 							</items>
 						</chunk></chunks>
 					</chunk>
@@ -409,6 +424,11 @@ describe("buildGhJson component state", () => {
 		});
 		expect(parsed.components.VisibleHopperWire.state).toEqual({
 			hidden: false,
+			locked: false,
+			frozen: false,
+		});
+		expect(parsed.components.GHZMQ.state).toEqual({
+			hidden: true,
 			locked: false,
 			frozen: false,
 		});
