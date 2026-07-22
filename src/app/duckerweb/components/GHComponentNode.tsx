@@ -128,6 +128,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 							port={input}
 							align={usesGrasshopperBounds ? "center" : "right"}
 							style={{ color: palette.text }}
+							runtimeState={data.runtimeState ?? "normal"}
 						/>
 					</div>
 				</div>
@@ -158,6 +159,7 @@ export function GHComponentNode({ data, selected }: GHNodeProps) {
 							port={output}
 							align={usesGrasshopperBounds ? "center" : "right"}
 							style={{ color: palette.text }}
+							runtimeState={data.runtimeState ?? "normal"}
 						/>
 					</div>
 

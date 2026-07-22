@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { PortOptions as ParsedPortOptions } from "parser/src/types";
 import type { CSSProperties } from "react";
+import type { GHRuntimeState } from "../lib/runtime-palette";
 import type { Port } from "../types/type";
 
 type OptionBadge = {
@@ -118,17 +119,29 @@ function optionSummary(port: Port, badges: OptionBadge[]) {
 		: labels;
 }
 
+// Default (normal) nodes sit on a light body, so badges read best as a light
+// chip with a dark glyph. Hidden/locked nodes dim the body to mid/dark grey,
+// where the original dark chip with a light glyph keeps the icons legible.
+function badgeAppearanceClass(runtimeState: GHRuntimeState) {
+	return runtimeState === "normal"
+		? "border border-[#9a9a9a] bg-[#f4f4f4] text-[#333]"
+		: "bg-[#444] text-[#f2f2f2]";
+}
+
 export function PortLabel({
 	port,
 	align,
 	style,
+	runtimeState = "normal",
 }: {
 	port: Port;
 	align: "left" | "center" | "right";
 	style?: CSSProperties;
+	runtimeState?: GHRuntimeState;
 }) {
 	const badges = getOptionBadges(port.options);
 	const summary = optionSummary(port, badges);
+	const badgeClass = badgeAppearanceClass(runtimeState);
 
 	return (
 		<span
@@ -150,7 +163,7 @@ export function PortLabel({
 					{badges.map(({ key, label, Icon, appearance }) => (
 						<span
 							key={key}
-							className="flex size-3.5 items-center justify-center rounded-[3px] bg-[#444] text-[#f2f2f2]"
+							className={`flex size-3.5 items-center justify-center rounded-[3px] ${badgeClass}`}
 							data-port-option={key}
 							title={
 								key === "expression" && port.options?.expression

@@ -24,7 +24,11 @@ export function GHRelayNode({ data, selected }: GHNodeProps) {
 					style={{ color: palette.text }}
 				>
 					{output ? (
-						<PortLabel port={{ ...output, label: data.label }} align="center" />
+						<PortLabel
+							port={{ ...output, label: data.label }}
+							align="center"
+							runtimeState={data.runtimeState ?? "normal"}
+						/>
 					) : (
 						data.label
 					)}
