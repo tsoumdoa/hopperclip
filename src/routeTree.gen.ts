@@ -13,6 +13,7 @@ import { Route as ShareRouteImport } from './routes/share'
 import { Route as StaticRouteImport } from './routes/_static'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevLandingOptionsRouteImport } from './routes/dev/landing-options'
 import { Route as DevFlowGalleryRouteImport } from './routes/dev/flow-gallery'
 import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms-of-service'
 import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
@@ -35,6 +36,11 @@ const AuthedRoute = AuthedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevLandingOptionsRoute = DevLandingOptionsRouteImport.update({
+  id: '/dev/landing-options',
+  path: '/dev/landing-options',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevFlowGalleryRoute = DevFlowGalleryRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/dev/landing-options': typeof DevLandingOptionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/dev/landing-options': typeof DevLandingOptionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/_static/privacy': typeof StaticPrivacyRoute
   '/_static/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/dev/landing-options': typeof DevLandingOptionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-of-service'
     | '/dev/flow-gallery'
+    | '/dev/landing-options'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-of-service'
     | '/dev/flow-gallery'
+    | '/dev/landing-options'
   id:
     | '__root__'
     | '/'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_static/privacy'
     | '/_static/terms-of-service'
     | '/dev/flow-gallery'
+    | '/dev/landing-options'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   StaticRoute: typeof StaticRouteWithChildren
   ShareRoute: typeof ShareRoute
   DevFlowGalleryRoute: typeof DevFlowGalleryRoute
+  DevLandingOptionsRoute: typeof DevLandingOptionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/landing-options': {
+      id: '/dev/landing-options'
+      path: '/dev/landing-options'
+      fullPath: '/dev/landing-options'
+      preLoaderRoute: typeof DevLandingOptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/flow-gallery': {
@@ -233,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaticRoute: StaticRouteWithChildren,
   ShareRoute: ShareRoute,
   DevFlowGalleryRoute: DevFlowGalleryRoute,
+  DevLandingOptionsRoute: DevLandingOptionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
