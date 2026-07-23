@@ -121,10 +121,8 @@ export default function PrivacyPolicy() {
 									Clerk), to keep you logged in and ensure the secure operation
 									of your account. We also use cookies for web analytics (via
 									PostHog) to understand general usage patterns of the Service.
-									PostHog&apos;s analytics traffic is proxied through our own
-									domain to ensure reliability. We do not use cookies for
-									tracking purposes across other websites or for targeted
-									advertising.
+									We do not use cookies for tracking purposes across other
+									websites or for targeted advertising.
 								</li>
 							</ul>
 							<h2 className="mb-4 text-3xl font-bold text-neutral-300">

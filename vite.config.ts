@@ -39,23 +39,6 @@ export default defineConfig(({ mode }) => {
 		envPrefix: ["VITE_", "NEXT_PUBLIC_"],
 		server: {
 			port: 3000,
-			proxy: {
-				"/ingest/static": {
-					target: "https://us-assets.i.posthog.com",
-					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/ingest\/static/, "/static"),
-				},
-				"/ingest/decide": {
-					target: "https://us.i.posthog.com",
-					changeOrigin: true,
-					rewrite: () => "/decide",
-				},
-				"/ingest": {
-					target: "https://us.i.posthog.com",
-					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/ingest/, ""),
-				},
-			},
 		},
 		plugins: [
 			tailwindcss(),
