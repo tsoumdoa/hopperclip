@@ -8,13 +8,12 @@ import { GhCanvas } from "./ghmock";
 import { cases, heroCopy } from "./shared";
 
 /**
- * Option — "Mono Dark": the brutalist direction, stripped back and inverted.
- * Near-black, monospace, hairline borders, no gradients/shadows/glow, and a
- * fully monochrome canvas (no accent colors on any node).
+ * Option — "Dark Sans": the Mono Dark layout, but typeset in the site's normal
+ * sans font (Geist). Only the small structural labels stay monospace as accents.
  */
-export default function OptionMonoDark() {
+export default function OptionDarkSans() {
 	return (
-		<div className="min-h-screen bg-[#0a0a0a] font-mono text-neutral-200">
+		<div className="min-h-screen bg-[#0a0a0a] font-sans text-neutral-200">
 			<div className="mx-auto flex min-h-screen max-w-400 flex-col border-white/10 md:border-x">
 				<div className="border-b border-white/10 px-4 py-3 md:px-6">
 					<Header />
@@ -25,33 +24,33 @@ export default function OptionMonoDark() {
 					<section className="grid grid-cols-1 lg:grid-cols-2">
 						<div className="flex flex-col justify-between gap-10 border-b border-white/10 px-4 py-12 md:px-6 md:py-16 lg:border-r lg:border-b-0">
 							<Reveal>
-								<p className="text-[11px] tracking-[0.25em] text-neutral-500 uppercase">
+								<p className="font-mono text-[11px] tracking-[0.25em] text-neutral-500 uppercase">
 									[00] — {heroCopy.eyebrow}
 								</p>
 							</Reveal>
 							<Reveal delay={0.06}>
-								<h1 className="text-5xl leading-[0.92] font-bold tracking-[-0.03em] text-white uppercase md:text-7xl">
+								<h1 className="text-5xl leading-[0.98] font-semibold tracking-[-0.03em] text-white md:text-7xl">
 									Grasshopper,
 									<br />
-									<span className="text-neutral-600">Sorted.</span>
+									<span className="text-neutral-600">sorted.</span>
 								</h1>
 							</Reveal>
 							<Reveal delay={0.12}>
 								<div className="flex flex-col gap-7">
-									<p className="max-w-md text-sm leading-relaxed text-neutral-400 md:text-base">
+									<p className="max-w-md text-base leading-relaxed text-neutral-400">
 										{heroCopy.sub}
 									</p>
 									<div className="flex flex-col items-start gap-3">
 										<SignUpButton mode="modal">
 											<button
 												type="button"
-												className="group inline-flex items-center gap-3 border border-white/25 px-7 py-4 text-xs font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-white hover:text-black"
+												className="group inline-flex items-center gap-2 border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-black"
 											>
 												{heroCopy.cta}
 												<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
 											</button>
 										</SignUpButton>
-										<p className="max-w-xs text-[11px] leading-relaxed tracking-wide text-neutral-600 uppercase">
+										<p className="max-w-xs text-xs leading-relaxed text-neutral-600">
 											{heroCopy.trust}
 										</p>
 									</div>
@@ -61,7 +60,7 @@ export default function OptionMonoDark() {
 
 						{/* Figure */}
 						<div className="flex flex-col">
-							<div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-[11px] tracking-[0.2em] text-neutral-500 uppercase md:px-6">
+							<div className="flex items-center justify-between border-b border-white/10 px-4 py-2 font-mono text-[11px] tracking-[0.2em] text-neutral-500 uppercase md:px-6">
 								<span>Fig.01 — Definition canvas</span>
 								<span>Flow / List / JSON</span>
 							</div>
@@ -77,7 +76,7 @@ export default function OptionMonoDark() {
 
 					{/* Use cases */}
 					<section className="border-t border-white/10">
-						<div className="border-b border-white/10 px-4 py-2 text-[11px] tracking-[0.25em] text-neutral-500 uppercase md:px-6">
+						<div className="border-b border-white/10 px-4 py-2 font-mono text-[11px] tracking-[0.25em] text-neutral-500 uppercase md:px-6">
 							[01] — Use cases
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-3">
@@ -93,7 +92,7 @@ export default function OptionMonoDark() {
 					<section className="border-t border-white/10">
 						<div className="flex flex-col gap-8 px-4 py-14 md:flex-row md:items-end md:justify-between md:px-6 md:py-20">
 							<Reveal>
-								<h2 className="max-w-2xl text-4xl leading-[0.95] font-bold tracking-[-0.03em] text-white uppercase md:text-6xl">
+								<h2 className="max-w-2xl text-4xl leading-[1.02] font-semibold tracking-[-0.03em] text-white md:text-6xl">
 									Stop sending
 									<br />
 									<span className="text-neutral-600">.gh files.</span>
@@ -102,7 +101,7 @@ export default function OptionMonoDark() {
 							<Reveal delay={0.08}>
 								<Link
 									to="/duckerweb"
-									className="group inline-flex items-center gap-3 border border-white/25 px-7 py-4 text-xs font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-white hover:text-black"
+									className="group inline-flex items-center gap-2 border border-white/25 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-black"
 								>
 									Open DuckerWeb
 									<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -140,15 +139,15 @@ function Cell({
 			className={`group flex h-full flex-col gap-5 border-b border-white/10 px-4 py-8 transition-colors hover:bg-white/[0.02] md:px-6 md:py-10 ${last ? "" : "md:border-r"}`}
 		>
 			<div className="flex items-center justify-between">
-				<span className="text-4xl font-bold text-white tabular-nums">
+				<span className="font-mono text-4xl font-bold text-white tabular-nums">
 					0{index + 1}
 				</span>
 				<Icon className="h-6 w-6 text-neutral-400" />
 			</div>
-			<div className="text-[11px] tracking-[0.2em] text-neutral-500 uppercase">
+			<div className="font-mono text-[11px] tracking-[0.2em] text-neutral-500 uppercase">
 				{eyebrow}
 			</div>
-			<h3 className="text-xl leading-tight font-bold tracking-tight text-white uppercase">
+			<h3 className="text-xl leading-tight font-semibold tracking-tight text-white">
 				{title}
 			</h3>
 			<p className="text-sm leading-relaxed text-neutral-400">{body}</p>

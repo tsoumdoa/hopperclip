@@ -1,13 +1,14 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ChevronDown, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import OptionAuroraGlass from "@/app/dev/landing-options/option-a";
-import OptionBoldGradient from "@/app/dev/landing-options/option-e";
-import OptionBlueprint from "@/app/dev/landing-options/option-c";
-import OptionEditorialMono from "@/app/dev/landing-options/option-b";
-import OptionLightAir from "@/app/dev/landing-options/option-d";
+import OptionCanvas from "@/app/dev/landing-options/option-a";
+import OptionDiff from "@/app/dev/landing-options/option-b";
+import OptionStudio from "@/app/dev/landing-options/option-c";
+import OptionBrutalist from "@/app/dev/landing-options/option-d";
+import OptionMonoDark from "@/app/dev/landing-options/option-e";
+import OptionDarkSans from "@/app/dev/landing-options/option-f";
 
-type OptionKey = "A" | "B" | "C" | "D" | "E";
+type OptionKey = "A" | "B" | "C" | "D" | "E" | "F";
 
 const OPTIONS: {
 	key: OptionKey;
@@ -17,33 +18,39 @@ const OPTIONS: {
 }[] = [
 	{
 		key: "A",
-		name: "Aurora Glass",
-		blurb: "Dark glass · radial glows · gradient type",
-		Component: OptionAuroraGlass,
+		name: "Canvas",
+		blurb: "Dark · real GH canvas centerpiece",
+		Component: OptionCanvas,
 	},
 	{
 		key: "B",
-		name: "Editorial Mono",
-		blurb: "Stark B&W · oversized type · hairlines",
-		Component: OptionEditorialMono,
+		name: "Diff",
+		blurb: "Dark · split hero · version-diff view",
+		Component: OptionDiff,
 	},
 	{
 		key: "C",
-		name: "Blueprint",
-		blurb: "CAD navy · cyan · schematic",
-		Component: OptionBlueprint,
+		name: "Studio",
+		blurb: "Light · paper canvas · editorial",
+		Component: OptionStudio,
 	},
 	{
 		key: "D",
-		name: "Light Air",
-		blurb: "Light theme · whitespace · one accent",
-		Component: OptionLightAir,
+		name: "Brutalist",
+		blurb: "Raw · mono · hard borders · high-contrast",
+		Component: OptionBrutalist,
 	},
 	{
 		key: "E",
-		name: "Bold Gradient",
-		blurb: "Animated mesh · oversized · playful",
-		Component: OptionBoldGradient,
+		name: "Mono Dark",
+		blurb: "Dark · minimal · mono · monochrome canvas",
+		Component: OptionMonoDark,
+	},
+	{
+		key: "F",
+		name: "Dark Sans",
+		blurb: "Mono Dark, but in the site's sans font",
+		Component: OptionDarkSans,
 	},
 ];
 
@@ -75,6 +82,7 @@ function LandingOptionsHub() {
 				"3": "C",
 				"4": "D",
 				"5": "E",
+				"6": "F",
 			};
 			if (map[e.key]) setActive(map[e.key]);
 			if (e.key === "h") setBarOpen((v) => !v);
@@ -94,7 +102,7 @@ function LandingOptionsHub() {
 						<div className="hidden items-center gap-2 pr-2 text-xs text-neutral-500 sm:flex">
 							<Eye className="h-3.5 w-3.5" />
 							<span className="font-mono tracking-wide">
-								landing · 5 options
+								landing · {OPTIONS.length} options
 							</span>
 						</div>
 						<div className="flex flex-1 flex-wrap items-center gap-1.5">

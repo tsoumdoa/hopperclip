@@ -1,119 +1,121 @@
 import { SignUpButton } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Crosshair, MoveDiagonal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Footer from "@/app/components/footer";
 import Header from "@/app/components/header";
 import { Reveal } from "@/app/components/landing/reveal";
+import { GhCanvas } from "./ghmock";
 import { cases, heroCopy } from "./shared";
 
-export default function OptionBlueprint() {
+/**
+ * Option — "Studio": light, editorial. The whole page adopts Grasshopper's
+ * native paper-canvas aesthetic — warm neutrals, hairline rules, mono labels —
+ * with the real canvas embedded as a framed plate rather than a screenshot.
+ */
+export default function OptionStudio() {
 	return (
-		<div
-			className="relative min-h-screen overflow-hidden font-mono text-cyan-50"
-			style={{
-				backgroundColor: "#06121f",
-				backgroundImage:
-					"linear-gradient(rgba(56,189,248,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.07) 1px, transparent 1px)",
-				backgroundSize: "32px 32px",
-			}}
-		>
-			<div aria-hidden className="pointer-events-none absolute inset-0">
-				<div className="absolute -top-20 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.16),transparent_65%)] blur-2xl" />
-			</div>
-			<div className="relative mx-auto flex min-h-screen max-w-400 flex-col p-4 min-[2200px]:px-16 md:px-6 md:pt-6">
-				<Header />
-				<main className="flex flex-1 flex-col gap-20 py-12 md:py-20">
+		<div className="min-h-screen bg-[#f4f2ed] font-sans text-[#1c1b19]">
+			<div className="mx-auto flex min-h-screen max-w-400 flex-col px-4 min-[2200px]:px-16 md:px-8 md:pt-6">
+				<div className="[&_a]:text-[#1c1b19] [&_button]:text-[#1c1b19]">
+					<Header />
+				</div>
+				<main className="flex flex-1 flex-col">
 					{/* Hero */}
-					<section className="relative flex flex-col items-center gap-8 border border-cyan-400/20 bg-[#08172a]/60 p-8 text-center md:p-14">
-						<CornerTicks />
-						<Reveal>
-							<div className="inline-flex items-center gap-2 border border-cyan-400/30 bg-cyan-400/5 px-3 py-1 text-[11px] tracking-[0.25em] text-cyan-300 uppercase">
-								<Crosshair className="h-3.5 w-3.5" />
-								DWG · {heroCopy.eyebrow}
-							</div>
-						</Reveal>
-						<Reveal delay={0.06}>
-							<h1 className="max-w-4xl text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl">
-								{heroCopy.headline.split(",")[0]},
-								<span className="text-cyan-400">
-									{" "}
-									{heroCopy.headline.split(",")[1]?.trim()}.
-								</span>
-							</h1>
-						</Reveal>
-						<Reveal delay={0.12}>
-							<p className="max-w-2xl text-sm text-cyan-100/60 md:text-base">
-								{heroCopy.sub}
-							</p>
-						</Reveal>
-						<Reveal delay={0.18}>
-							<div className="flex flex-col items-center gap-4">
-								<SignUpButton mode="modal">
-									<button
-										type="button"
-										className="group inline-flex items-center gap-2 border border-cyan-400 bg-cyan-400 px-7 py-3 text-sm font-bold tracking-wider text-[#06121f] uppercase transition-all hover:bg-cyan-300"
-									>
-										{heroCopy.cta}
-										<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-									</button>
-								</SignUpButton>
-								<p className="flex items-center gap-2 text-[11px] tracking-wide text-cyan-100/50 uppercase">
-									<MoveDiagonal className="h-3.5 w-3.5" />
-									{heroCopy.trust}
+					<section className="grid grid-cols-1 gap-10 border-t border-[#1c1b19]/12 py-14 md:py-20 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-14">
+						<div className="flex flex-col gap-7">
+							<Reveal>
+								<div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.22em] text-[#6a675f] uppercase">
+									<span>{heroCopy.eyebrow}</span>
+									<span className="h-px flex-1 bg-[#1c1b19]/12" />
+								</div>
+							</Reveal>
+							<Reveal delay={0.06}>
+								<h1 className="text-5xl leading-[0.98] font-semibold tracking-[-0.03em] text-balance md:text-7xl">
+									Grasshopper,
+									<br />
+									<span className="text-[#8a8681]">sorted.</span>
+								</h1>
+							</Reveal>
+							<Reveal delay={0.12}>
+								<p className="max-w-xl text-lg text-[#55524b] md:text-xl">
+									{heroCopy.sub}
 								</p>
-							</div>
+							</Reveal>
+							<Reveal delay={0.18}>
+								<div className="flex flex-col items-start gap-4">
+									<SignUpButton mode="modal">
+										<button
+											type="button"
+											className="group inline-flex items-center gap-2 rounded-full bg-[#1c1b19] px-7 py-3.5 text-sm font-semibold text-[#f4f2ed] transition-colors hover:bg-[#33312d] md:text-base"
+										>
+											{heroCopy.cta}
+											<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+										</button>
+									</SignUpButton>
+									<p className="max-w-sm text-sm text-[#78756d]">
+										{heroCopy.trust}
+									</p>
+								</div>
+							</Reveal>
+						</div>
+
+						<Reveal delay={0.12}>
+							<figure className="rounded-xl border border-[#1c1b19]/15 bg-[#ebe9e4] p-2 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.4)]">
+								<GhCanvas className="rounded-md" />
+								<figcaption className="flex items-center justify-between px-2 pt-2.5 pb-1 font-mono text-[11px] text-[#6a675f]">
+									<span>panel-facade.gh</span>
+									<span>flow · list · json</span>
+								</figcaption>
+							</figure>
 						</Reveal>
 					</section>
 
 					{/* Use cases */}
-					<section className="grid grid-cols-1 gap-px overflow-hidden border border-cyan-400/20 bg-cyan-400/20 md:grid-cols-3">
-						{cases.map((c, i) => (
-							<Reveal key={c.eyebrow} delay={i * 0.06}>
-								<SpecCard {...c} index={i} />
-							</Reveal>
-						))}
+					<section className="border-t border-[#1c1b19]/12 py-14 md:py-20">
+						<Reveal>
+							<div className="mb-10 flex items-center gap-3 font-mono text-[11px] tracking-[0.22em] text-[#6a675f] uppercase">
+								<span>use cases</span>
+								<span className="h-px flex-1 bg-[#1c1b19]/12" />
+							</div>
+						</Reveal>
+						<div className="divide-y divide-[#1c1b19]/12 border-y border-[#1c1b19]/12">
+							{cases.map((c, i) => (
+								<Reveal key={c.eyebrow} delay={i * 0.06}>
+									<Row {...c} index={i} />
+								</Reveal>
+							))}
+						</div>
 					</section>
 
 					{/* Closing */}
-					<section>
+					<section className="border-t border-[#1c1b19]/12 py-16 md:py-24">
 						<Reveal>
-							<div className="relative flex flex-col items-center gap-6 border border-dashed border-cyan-400/30 bg-[#08172a]/40 p-10 text-center md:p-14">
-								<CornerTicks />
-								<h2 className="max-w-2xl text-2xl font-bold tracking-tight md:text-4xl">
+							<div className="flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
+								<h2 className="max-w-2xl text-4xl font-semibold tracking-[-0.03em] text-balance md:text-5xl">
 									Stop sending .gh files.
 									<br />
-									<span className="text-cyan-400">Start sending links.</span>
+									<span className="text-[#8a8681]">Start sending links.</span>
 								</h2>
 								<Link
 									to="/duckerweb"
-									className="inline-flex items-center gap-2 border border-cyan-400/50 px-6 py-3 text-xs font-bold tracking-wider text-cyan-300 uppercase transition-colors hover:bg-cyan-400/10"
+									className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-[#1c1b19]/25 px-6 py-3 text-sm font-semibold text-[#1c1b19] transition-colors hover:bg-[#1c1b19] hover:text-[#f4f2ed]"
 								>
-									Open DuckerWeb
-									<ArrowRight className="h-4 w-4" />
+									Try DuckerWeb free
+									<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
 								</Link>
 							</div>
 						</Reveal>
 					</section>
 				</main>
-				<Footer />
+				<div className="[&_a]:text-[#55524b]">
+					<Footer />
+				</div>
 			</div>
 		</div>
 	);
 }
 
-function CornerTicks() {
-	const cls = "absolute h-4 w-4 border-cyan-400/50 pointer-events-none";
-	return (
-		<>
-			<span className={`${cls} top-0 left-0 border-t-2 border-l-2`} />
-			<span className={`${cls} top-0 right-0 border-t-2 border-r-2`} />
-			<span className={`${cls} bottom-0 left-0 border-b-2 border-l-2`} />
-			<span className={`${cls} right-0 bottom-0 border-r-2 border-b-2`} />
-		</>
-	);
-}
-
-function SpecCard({
+function Row({
 	icon: Icon,
 	eyebrow,
 	title,
@@ -127,18 +129,22 @@ function SpecCard({
 	index: number;
 }) {
 	return (
-		<div className="group relative flex h-full flex-col gap-4 bg-[#08172a] p-8 transition-colors hover:bg-[#0a1d34]">
-			<div className="flex items-center justify-between text-[11px] tracking-[0.2em] text-cyan-400/70 uppercase">
-				<span className="inline-flex items-center gap-2">
-					<Icon className="h-4 w-4" />
+		<div className="group grid grid-cols-1 items-start gap-5 py-9 transition-colors hover:bg-[#1c1b19]/[0.02] md:grid-cols-[3rem_1fr_2fr] md:gap-10 md:px-2">
+			<div className="font-mono text-sm text-[#a29e95]">
+				0{index + 1}
+			</div>
+			<div className="flex items-center gap-3">
+				<Icon className="h-5 w-5 text-[#1c1b19]" />
+				<span className="font-mono text-[11px] tracking-[0.2em] text-[#6a675f] uppercase">
 					{eyebrow}
 				</span>
-				<span className="text-cyan-400/40">
-					R-{String(index + 1).padStart(2, "0")}
-				</span>
 			</div>
-			<h3 className="text-xl font-bold tracking-tight text-cyan-50">{title}</h3>
-			<p className="text-sm leading-relaxed text-cyan-100/55">{body}</p>
+			<div className="flex flex-col gap-2.5">
+				<h3 className="text-2xl font-semibold tracking-[-0.02em] md:text-3xl">
+					{title}
+				</h3>
+				<p className="max-w-xl text-[#55524b]">{body}</p>
+			</div>
 		</div>
 	);
 }
