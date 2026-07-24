@@ -16,6 +16,11 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 			capture_pageleave: true,
 			capture_exceptions: true,
 			debug: import.meta.env.DEV,
+			session_recording: {
+				// Explicitly mask all inputs; client config takes precedence over
+				// remote project masking settings.
+				maskAllInputs: true,
+			},
 		});
 	}, []);
 
