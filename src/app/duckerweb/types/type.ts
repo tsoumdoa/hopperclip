@@ -69,6 +69,8 @@ export type ViewMode = "list" | "flow" | "diff" | "json";
 
 export type GHDiffStatus = "added" | "modified" | "removed" | "unchanged";
 
+export type GHDiffMatchMode = "instance" | "type";
+
 export type GHComponentDiff = {
 	key: string;
 	label: string;
@@ -86,6 +88,7 @@ export type GHDiffResult = {
 	removedWires: number;
 	nodes: GHNode[];
 	edges: Edge[];
+	matchMode: GHDiffMatchMode;
 };
 
 export type DuckerwebState = {
@@ -103,6 +106,8 @@ export type DuckerwebState = {
 	fileName: string;
 	comparisonFileName: string;
 	comparisonRejected: boolean;
+	matchByTypeGuid: boolean;
+	diffNotice: string;
 };
 
 export type DuckerwebImportResult =

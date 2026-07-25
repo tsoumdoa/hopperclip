@@ -4,7 +4,11 @@ import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../../utils/gh-file";
 import { generateFlowData } from "../gh-flow-generator";
-import { assessDefinitionOverlap, diffGrasshopper } from "../gh-diff";
+import {
+	formatOverlapRejection,
+	resolveDiffComparison,
+	type DiffMatchMode,
+} from "../gh-diff";
 import type {
 	DuckerwebImportResult,
 	DuckerwebState,
@@ -74,6 +78,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	handleClearComparison: () => void;
 	handleClear: () => void;
 	setViewMode: React.Dispatch<React.SetStateAction<ViewMode>>;
+	setMatchByTypeGuid: (enabled: boolean) => void;
 } {
 	const [xmlData, setXmlData] = useState<string | undefined>();
 	const [isValidXml, setIsValidXml] = useState(false);
@@ -90,8 +95,48 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [fileName, setFileName] = useState("");
 	const [comparisonFileName, setComparisonFileName] = useState("");
 	const [comparisonRejected, setComparisonRejected] = useState(false);
+	const [matchByTypeGuid, setMatchByTypeGuidState] = useState(false);
+	const [diffNotice, setDiffNotice] = useState("");
 	const activeRequest = useRef(0);
 	const activeComparisonRequest = useRef(0);
+	// Clipboard and file imports resolve asynchronously, so the mode has to be
+	// read when the diff runs — not when the import callback was created — or a
+	// toggle made mid-read would be ignored by the diff it is meant to control.
+	const matchModeRef = useRef<DiffMatchMode>("instance");
+	const applyComparisonResult = useCallback(
+		(
+			before: ParsedGrasshopper,
+			after: ParsedGrasshopper,
+			mode: DiffMatchMode
+		) => {
+			const resolution = resolveDiffComparison(before, after, mode);
+			if (!resolution.result) {
+				setComparisonRejected(true);
+				setComparisonData(after);
+				setDiffResult(null);
+				setDiffNotice("");
+				setDiffError(
+					formatOverlapRejection(
+						resolution.overlap,
+						resolution.failedTypeOverlap
+					)
+				);
+				return false;
+			}
+
+			setComparisonData(after);
+			setComparisonRejected(false);
+			setDiffResult(resolution.result);
+			setDiffNotice(
+				resolution.fellBackToType
+					? "Instance IDs did not overlap enough, so Ducker matched components by type GUID instead."
+					: ""
+			);
+			setDiffError("");
+			return true;
+		},
+		[]
+	);
 
 	const resetFlowState = useCallback(() => {
 		setXmlData(undefined);
@@ -108,6 +153,9 @@ export function useDuckerwebState(): DuckerwebState & {
 		setFileName("");
 		setComparisonFileName("");
 		setComparisonRejected(false);
+		setMatchByTypeGuidState(false);
+		matchModeRef.current = "instance";
+		setDiffNotice("");
 	}, []);
 
 	/**
@@ -143,6 +191,7 @@ export function useDuckerwebState(): DuckerwebState & {
 			setFileName(name ?? "Clipboard GhXml");
 			setComparisonFileName("");
 			setComparisonRejected(false);
+			setDiffNotice("");
 		},
 		[]
 	);
@@ -153,30 +202,20 @@ export function useDuckerwebState(): DuckerwebState & {
 			const result = prepareDuckerwebImport(xml, source);
 
 			if (!result.ok) {
+				// Leave any notice in place: it still describes the diff on screen.
 				setComparisonRejected(false);
 				setDiffError(result.error);
 				return;
 			}
-			const overlap = assessDefinitionOverlap(parsedData, result.parsedData);
 			setComparisonFileName(name ?? "Clipboard GhXml");
-			if (!overlap.isComparable) {
-				setComparisonRejected(true);
-				setComparisonData(null);
-				setDiffResult(null);
-				setDiffError(
-					`Only ${Math.round(overlap.ratio * 100)}% component overlap (${overlap.matchedCount} of ${overlap.smallerCount} matched). Ducker requires at least 25% overlap${overlap.smallerCount > 5 ? " and 3 matched components" : ""}.`
-				);
-				setViewMode("diff");
-				return;
-			}
-
-			setComparisonData(result.parsedData);
-			setComparisonRejected(false);
-			setDiffResult(diffGrasshopper(parsedData, result.parsedData));
-			setDiffError("");
+			applyComparisonResult(
+				parsedData,
+				result.parsedData,
+				matchModeRef.current
+			);
 			setViewMode("diff");
 		},
-		[parsedData]
+		[applyComparisonResult, parsedData]
 	);
 	const applyPastedXml = useCallback(
 		(text: string, requestId: number) => {
@@ -308,7 +347,25 @@ export function useDuckerwebState(): DuckerwebState & {
 		setDiffError("");
 		setComparisonFileName("");
 		setComparisonRejected(false);
+		setDiffNotice("");
 	}, []);
+
+	const setMatchByTypeGuid = useCallback(
+		(enabled: boolean) => {
+			setMatchByTypeGuidState(enabled);
+			matchModeRef.current = enabled ? "type" : "instance";
+			if (!parsedData || !comparisonData) {
+				setDiffNotice("");
+				return;
+			}
+			applyComparisonResult(
+				parsedData,
+				comparisonData,
+				enabled ? "type" : "instance"
+			);
+		},
+		[applyComparisonResult, comparisonData, parsedData]
+	);
 
 	return {
 		xmlData,
@@ -325,6 +382,8 @@ export function useDuckerwebState(): DuckerwebState & {
 		fileName,
 		comparisonFileName,
 		comparisonRejected,
+		matchByTypeGuid,
+		diffNotice,
 		handlePasteFromClipboard,
 		handlePastedXml,
 		handleFileSelected,
@@ -334,5 +393,6 @@ export function useDuckerwebState(): DuckerwebState & {
 		handleClearComparison,
 		handleClear,
 		setViewMode,
+		setMatchByTypeGuid,
 	};
 }

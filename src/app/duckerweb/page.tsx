@@ -45,6 +45,8 @@ export default function DuckerWebPage() {
 		fileName,
 		comparisonFileName,
 		comparisonRejected,
+		matchByTypeGuid,
+		diffNotice,
 		handlePasteFromClipboard,
 		handlePastedXml,
 		handleFileSelected,
@@ -54,6 +56,7 @@ export default function DuckerWebPage() {
 		handleClearComparison,
 		handleClear,
 		setViewMode,
+		setMatchByTypeGuid,
 	} = useDuckerwebState();
 
 	const { handleCopyAll, isCopied } = useMarkdownExport(parsedData);
@@ -85,6 +88,9 @@ export default function DuckerWebPage() {
 				originalFileName={fileName}
 				comparisonFileName={comparisonFileName}
 				comparisonRejected={comparisonRejected}
+				matchByTypeGuid={matchByTypeGuid}
+				diffNotice={diffNotice}
+				onMatchByTypeGuidChange={setMatchByTypeGuid}
 			/>
 		),
 		list: parsedData && <ComponentList parsedData={parsedData} />,
