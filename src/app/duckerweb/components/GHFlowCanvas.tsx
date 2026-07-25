@@ -93,7 +93,7 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 	);
 
 	return (
-		<div className="gh-canvas-container">
+		<div className="gh-canvas-container" data-posthog-block>
 			<ReactFlow
 				nodes={nodes}
 				edges={visibleEdges}
