@@ -55,10 +55,20 @@ export function pairComponentsByType(
 	beforeComponents: Component[],
 	afterComponents: Component[]
 ): Array<{ before: Component; after: Component }> {
+	// Bucketing keeps the candidate scan quadratic only within a single type
+	// rather than across the whole definition, which matters on canvases that
+	// carry hundreds of components of many different types.
+	const afterByType = new Map<string, Component[]>();
+	for (const after of afterComponents) {
+		const identity = typeIdentity(after);
+		const bucket = afterByType.get(identity);
+		if (bucket) bucket.push(after);
+		else afterByType.set(identity, [after]);
+	}
+
 	const candidates: ComponentPair[] = [];
 	for (const before of beforeComponents) {
-		for (const after of afterComponents) {
-			if (typeIdentity(before) !== typeIdentity(after)) continue;
+		for (const after of afterByType.get(typeIdentity(before)) ?? []) {
 			candidates.push({
 				before,
 				after,
@@ -156,9 +166,13 @@ export function alignDefinitionsForMatchMode(
 		const beforeKeys = new Set(
 			Object.values(beforeDefinition.components).map(componentKey)
 		);
-		const matchedCount = Object.values(afterDefinition.components).filter(
-			(component) => beforeKeys.has(componentKey(component))
-		).length;
+		// Count distinct keys: the diff itself is keyed, so two after-side
+		// components sharing a key must not inflate the overlap ratio past 1.
+		const matchedCount = new Set(
+			Object.values(afterDefinition.components)
+				.map(componentKey)
+				.filter((key) => beforeKeys.has(key))
+		).size;
 		return {
 			before: beforeDefinition,
 			after: afterDefinition,

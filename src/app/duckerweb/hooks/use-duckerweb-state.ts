@@ -99,6 +99,10 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [diffNotice, setDiffNotice] = useState("");
 	const activeRequest = useRef(0);
 	const activeComparisonRequest = useRef(0);
+	// Clipboard and file imports resolve asynchronously, so the mode has to be
+	// read when the diff runs — not when the import callback was created — or a
+	// toggle made mid-read would be ignored by the diff it is meant to control.
+	const matchModeRef = useRef<DiffMatchMode>("instance");
 	const applyComparisonResult = useCallback(
 		(
 			before: ParsedGrasshopper,
@@ -150,6 +154,7 @@ export function useDuckerwebState(): DuckerwebState & {
 		setComparisonFileName("");
 		setComparisonRejected(false);
 		setMatchByTypeGuidState(false);
+		matchModeRef.current = "instance";
 		setDiffNotice("");
 	}, []);
 
@@ -206,11 +211,11 @@ export function useDuckerwebState(): DuckerwebState & {
 			applyComparisonResult(
 				parsedData,
 				result.parsedData,
-				matchByTypeGuid ? "type" : "instance"
+				matchModeRef.current
 			);
 			setViewMode("diff");
 		},
-		[applyComparisonResult, matchByTypeGuid, parsedData]
+		[applyComparisonResult, parsedData]
 	);
 	const applyPastedXml = useCallback(
 		(text: string, requestId: number) => {
@@ -348,6 +353,7 @@ export function useDuckerwebState(): DuckerwebState & {
 	const setMatchByTypeGuid = useCallback(
 		(enabled: boolean) => {
 			setMatchByTypeGuidState(enabled);
+			matchModeRef.current = enabled ? "type" : "instance";
 			if (!parsedData || !comparisonData) {
 				setDiffNotice("");
 				return;
