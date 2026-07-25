@@ -2,7 +2,11 @@ import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { describe, expect, test } from "vitest";
-import { assessDefinitionOverlap, diffGrasshopper } from "./gh-diff";
+import {
+	assessDefinitionOverlap,
+	diffGrasshopper,
+	resolveDiffComparison,
+} from "./gh-diff";
 
 function fixture(path: string): ParsedGrasshopper {
 	return buildGhJson(fs.readFileSync(path, "utf8"), {
@@ -14,12 +18,55 @@ function clone(parsed: ParsedGrasshopper): ParsedGrasshopper {
 	return structuredClone(parsed);
 }
 
+function reinstanceAll(definition: ParsedGrasshopper, prefix: string) {
+	const inputPortIds = new Set(
+		Object.values(definition.components).flatMap((component) =>
+			Object.values(component.inputs).map((port) => port.instanceGuid)
+		)
+	);
+	const outputPortIds = new Set(
+		Object.values(definition.components).flatMap((component) =>
+			Object.values(component.outputs).map((port) => port.instanceGuid)
+		)
+	);
+	const componentIds = new Set(
+		Object.values(definition.components).map(
+			(component) => component.instanceGuid || component.id
+		)
+	);
+	for (const component of Object.values(definition.components)) {
+		component.instanceGuid = `${prefix}-${component.instanceGuid}`;
+		for (const port of Object.values(component.inputs)) {
+			port.instanceGuid = `${prefix}-in-${port.instanceGuid}`;
+		}
+		for (const port of Object.values(component.outputs)) {
+			port.instanceGuid = `${prefix}-out-${port.instanceGuid}`;
+		}
+	}
+	for (const wire of definition.wires) {
+		if (wire.sourceComponentGuid) {
+			if (outputPortIds.has(wire.sourceComponentGuid)) {
+				wire.sourceComponentGuid = `${prefix}-out-${wire.sourceComponentGuid}`;
+			} else if (componentIds.has(wire.sourceComponentGuid)) {
+				wire.sourceComponentGuid = `${prefix}-${wire.sourceComponentGuid}`;
+			}
+		}
+		if (wire.targetPortGuid) {
+			const portPrefix = inputPortIds.has(wire.targetPortGuid)
+				? `${prefix}-in-`
+				: `${prefix}-out-`;
+			wire.targetPortGuid = `${portPrefix}${wire.targetPortGuid}`;
+		}
+	}
+}
+
 describe("diffGrasshopper", () => {
 	test("rejects definitions with less than 25% component overlap", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
 		for (const component of Object.values(after.components)) {
 			component.instanceGuid = `different-${component.instanceGuid}`;
+			component.typeGuid = `other-type-${component.typeGuid}`;
 		}
 
 		const overlap = assessDefinitionOverlap(before, after);
@@ -92,6 +139,7 @@ describe("diffGrasshopper", () => {
 		expect(diff.counts.added).toBe(0);
 		expect(diff.counts.removed).toBe(0);
 		expect(diff.layoutMoves).toBe(1);
+		expect(diff.matchMode).toBe("instance");
 	});
 
 	test("reports parameter changes as modified logic", () => {
@@ -222,5 +270,56 @@ describe("diffGrasshopper", () => {
 
 		expect(diff.counts.added).toBe(1);
 		expect(diff.counts.removed).toBe(1);
+	});
+
+	test("matches newly placed components by type GUID when asked", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		reinstanceAll(after, "placed");
+
+		const instanceOverlap = assessDefinitionOverlap(before, after, "instance");
+		const typeOverlap = assessDefinitionOverlap(before, after, "type");
+		const diff = diffGrasshopper(before, after, "type");
+
+		expect(instanceOverlap.isComparable).toBe(false);
+		expect(typeOverlap.isComparable).toBe(true);
+		expect(diff.matchMode).toBe("type");
+		expect(diff.counts.added).toBe(0);
+		expect(diff.counts.removed).toBe(0);
+		expect(diff.counts.modified).toBe(0);
+		expect(diff.addedWires).toBe(0);
+		expect(diff.removedWires).toBe(0);
+	});
+
+	test("auto-falls back to type GUID matching when instance overlap is too low", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		reinstanceAll(after, "placed");
+
+		const resolution = resolveDiffComparison(before, after, "instance");
+
+		expect(resolution.fellBackToType).toBe(true);
+		expect(resolution.matchMode).toBe("type");
+		expect(resolution.result).not.toBeNull();
+		expect(resolution.result?.matchMode).toBe("type");
+		expect(resolution.result?.counts.added).toBe(0);
+		expect(resolution.result?.counts.removed).toBe(0);
+		expect(resolution.result?.addedWires).toBe(0);
+		expect(resolution.result?.removedWires).toBe(0);
+	});
+
+	test("still rejects when neither instance nor type GUID overlap is enough", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		reinstanceAll(after, "placed");
+		for (const component of Object.values(after.components)) {
+			component.typeGuid = `other-type-${component.typeGuid}`;
+			component.type = `Other${component.type}`;
+		}
+
+		const resolution = resolveDiffComparison(before, after, "instance");
+
+		expect(resolution.result).toBeNull();
+		expect(resolution.failedTypeOverlap?.isComparable).toBe(false);
 	});
 });

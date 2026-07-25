@@ -9,6 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type {
+	GHDiffMatchMode,
 	GHDiffResult,
 	GHDiffStatus,
 	GHFlowCanvasFocus,
@@ -25,6 +26,9 @@ type GHDiffViewProps = {
 	originalFileName: string;
 	comparisonFileName: string;
 	comparisonRejected: boolean;
+	matchByTypeGuid: boolean;
+	diffFellBackToType: boolean;
+	onMatchByTypeGuidChange: (enabled: boolean) => void;
 };
 
 type DiffFilter = Exclude<GHDiffStatus, "unchanged"> | "layout" | "connections";
@@ -55,6 +59,53 @@ const statusStyles: Record<
 		dot: "bg-red-400",
 	},
 };
+
+function matchModeLabel(
+	mode: GHDiffMatchMode,
+	options?: { fellBack?: boolean; preferredType?: boolean }
+) {
+	if (mode === "type") {
+		if (options?.preferredType) return "matched by type GUID";
+		if (options?.fellBack) return "matched by type GUID (auto)";
+		return "matched by type GUID";
+	}
+	return "matched by instance ID";
+}
+
+function MatchModeToggle({
+	enabled,
+	onChange,
+}: {
+	enabled: boolean;
+	onChange: (enabled: boolean) => void;
+}) {
+	return (
+		<label className="inline-flex cursor-pointer items-center gap-2 text-xs text-neutral-400">
+			<span
+				className={cn(
+					"relative h-5 w-9 rounded-full border transition-colors",
+					enabled
+						? "border-yellow-400/40 bg-yellow-400/20"
+						: "border-neutral-700 bg-neutral-900"
+				)}
+			>
+				<input
+					type="checkbox"
+					checked={enabled}
+					onChange={(event) => onChange(event.target.checked)}
+					className="peer sr-only"
+				/>
+				<span
+					className={cn(
+						"absolute top-0.5 left-0.5 h-3.5 w-3.5 rounded-full bg-neutral-400 transition-transform",
+						enabled && "translate-x-4 bg-yellow-300"
+					)}
+				/>
+			</span>
+			Match by type GUID
+		</label>
+	);
+}
 
 export function ComparisonActions({
 	onPaste,
@@ -115,6 +166,9 @@ export function GHDiffView({
 	originalFileName,
 	comparisonFileName,
 	comparisonRejected,
+	matchByTypeGuid,
+	diffFellBackToType,
+	onMatchByTypeGuidChange,
 }: GHDiffViewProps) {
 	const [focus, setFocus] = useState<GHFlowCanvasFocus | null>(null);
 	const [filter, setFilter] = useState<DiffFilter | null>(null);
@@ -161,6 +215,17 @@ export function GHDiffView({
 							change.
 						</p>
 					)}
+					<div className="mt-5 flex justify-center">
+						<MatchModeToggle
+							enabled={matchByTypeGuid}
+							onChange={onMatchByTypeGuidChange}
+						/>
+					</div>
+					<p className="mx-auto mt-2 max-w-md text-xs leading-5 text-neutral-600">
+						Use type GUID matching when components were newly placed but still
+						do the same work. Instance matching falls back to type GUID
+						automatically when overlap is too low.
+					</p>
 					<div className="mt-6 flex justify-center">
 						<ComparisonActions
 							onPaste={onPasteComparison}
@@ -256,11 +321,19 @@ export function GHDiffView({
 							{comparisonFileName}
 						</span>
 						<span className="ml-2 text-neutral-600">
-							· matched by instance ID
+							·{" "}
+							{matchModeLabel(diff.matchMode, {
+								fellBack: diffFellBackToType,
+								preferredType: matchByTypeGuid,
+							})}
 						</span>
 					</p>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
+				<div className="flex flex-wrap items-center gap-3">
+					<MatchModeToggle
+						enabled={matchByTypeGuid}
+						onChange={onMatchByTypeGuidChange}
+					/>
 					<ComparisonActions
 						onPaste={onPasteComparison}
 						onFileSelected={onFileSelected}
@@ -342,7 +415,14 @@ export function GHDiffView({
 			</div>
 
 			{error && (
-				<p className="rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm font-medium text-red-300">
+				<p
+					className={cn(
+						"rounded-lg border px-4 py-3 text-sm font-medium",
+						diffFellBackToType
+							? "border-blue-900/60 bg-blue-950/40 text-blue-200"
+							: "border-red-900/60 bg-red-950/40 text-red-300"
+					)}
+				>
 					{error}
 				</p>
 			)}
