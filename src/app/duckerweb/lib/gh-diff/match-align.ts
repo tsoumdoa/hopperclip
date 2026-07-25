@@ -95,34 +95,43 @@ function remapPorts(
 	const afterList = Object.values(afterPorts).map((port) => ({
 		port,
 		originalGuid: port.instanceGuid,
-		used: false,
+		claimedBy: undefined as DiffablePort | undefined,
 	}));
-
-	const claim = (
-		beforePort: DiffablePort,
-		entry: (typeof afterList)[number] | undefined
-	) => {
-		if (!entry) return;
-		entry.used = true;
-		portRemap.set(entry.originalGuid, beforePort.instanceGuid);
-		entry.port.instanceGuid = beforePort.instanceGuid;
-	};
 
 	const unclaimedBefore: DiffablePort[] = [];
 	for (const beforePort of Object.values(beforePorts)) {
 		const byNick = afterList.find(
-			(entry) => !entry.used && entry.port.nick === beforePort.nick
+			(entry) => !entry.claimedBy && entry.port.nick === beforePort.nick
 		);
-		if (byNick) claim(beforePort, byNick);
+		if (byNick) byNick.claimedBy = beforePort;
 		else unclaimedBefore.push(beforePort);
 	}
 
 	// Renamed ports have no nickname anchor left, so pair the leftovers in
 	// declaration order rather than reporting them as removed plus added.
-	const unclaimedAfter = afterList.filter((entry) => !entry.used);
-	unclaimedBefore.forEach((beforePort, index) =>
-		claim(beforePort, unclaimedAfter[index])
+	const unclaimedAfter = afterList.filter((entry) => !entry.claimedBy);
+	unclaimedBefore.forEach((beforePort, index) => {
+		const entry = unclaimedAfter[index];
+		if (entry) entry.claimedBy = beforePort;
+	});
+
+	// Ports left over on the after side keep their own GUID, so renaming a
+	// claimed port onto one of those would produce two ports sharing a GUID and
+	// the GUID-indexed port diff would silently drop one of them.
+	const unclaimedGuids = new Set(
+		afterList
+			.filter((entry) => !entry.claimedBy)
+			.map((entry) => entry.originalGuid)
 	);
+
+	for (const entry of afterList) {
+		const beforePort = entry.claimedBy;
+		if (!beforePort) continue;
+		const target = beforePort.instanceGuid;
+		if (target !== entry.originalGuid && unclaimedGuids.has(target)) continue;
+		portRemap.set(entry.originalGuid, target);
+		entry.port.instanceGuid = target;
+	}
 }
 
 /**

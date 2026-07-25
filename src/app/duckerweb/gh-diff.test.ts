@@ -422,6 +422,54 @@ describe("diffGrasshopper", () => {
 		);
 	});
 
+	test("never drops a port when a reused GUID would collide", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const beforeArea = Object.values(before.components).find(
+			(component) => Object.keys(component.inputs).length === 1
+		);
+		const afterArea = Object.values(after.components).find(
+			(component) => component.id === beforeArea?.id
+		);
+		expect(beforeArea).toBeDefined();
+		if (!beforeArea || !afterArea) return;
+
+		// The component was re-placed, so it pairs by type. Its surviving port is
+		// renamed while a newly gained port reuses the old port's GUID: re-keying
+		// the renamed port would collide and silently drop the gained one.
+		const [portKey] = Object.keys(afterArea.inputs);
+		const reusedGuid = afterArea.inputs[portKey].instanceGuid;
+		afterArea.instanceGuid = "freshly-placed";
+		afterArea.inputs[portKey] = {
+			...afterArea.inputs[portKey],
+			nick: "Renamed",
+			instanceGuid: "freshly-placed-port",
+		};
+		afterArea.inputs.extra = {
+			...beforeArea.inputs[portKey],
+			nick: "Extra",
+			instanceGuid: reusedGuid,
+		};
+
+		const diff = diffGrasshopper(before, after, "type");
+		const area = diff.components.find(
+			(component) => component.key === beforeArea.instanceGuid
+		);
+
+		// Both after-side ports stay visible: the one holding the reused GUID reads
+		// as a rename, the other is reported as gained.
+		expect(
+			area?.changes.some((change) =>
+				change.startsWith("Input Extra: Renamed G → Extra")
+			)
+		).toBe(true);
+		expect(area?.changes).toContain("Input Renamed added");
+		expect(
+			new Set(Object.values(afterArea.inputs).map((port) => port.instanceGuid))
+				.size
+		).toBe(Object.keys(afterArea.inputs).length);
+	});
+
 	test("still rejects when neither instance nor type GUID overlap is enough", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
