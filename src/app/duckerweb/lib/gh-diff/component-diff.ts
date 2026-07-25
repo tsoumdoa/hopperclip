@@ -33,8 +33,19 @@ const COMPONENT_DETAIL_KEYS = [
 	"library",
 	"description",
 ] as const;
+const COMPONENT_DETAIL_LABELS: Record<
+	(typeof COMPONENT_DETAIL_KEYS)[number],
+	string
+> = {
+	type: "Type",
+	typeGuid: "Type GUID",
+	nickName: "Nickname",
+	library: "Library",
+	description: "Description",
+};
 const EXPRESSION_KEYS = ["expression", "internalExpression"] as const;
 const STATE_KEYS = ["hidden", "locked", "frozen"] as const;
+export const NEWLY_PLACED_CHANGE = "Same component, newly placed";
 
 const PORT_OPTION_LABELS: Record<
 	Exclude<keyof PortOptions, "mapping" | "expression">,
@@ -154,6 +165,20 @@ function componentFieldsChanged(
 	return keys.some((key) => before[key] !== after[key]);
 }
 
+function componentDetailChanges(before: Component, after: Component): string[] {
+	return COMPONENT_DETAIL_KEYS.flatMap((key) => {
+		if (before[key] === after[key]) return [];
+		const label = COMPONENT_DETAIL_LABELS[key];
+		if (key === "description") return descriptionChange(before[key], after[key]);
+		if (!before[key]) return [`${label} added`];
+		if (!after[key]) return [`${label} removed`];
+		if (key === "nickName" || key === "type" || key === "library") {
+			return [`${label} ${before[key]} → ${after[key]}`];
+		}
+		return [`${label} changed`];
+	});
+}
+
 function runtimeStateChanged(before: Component, after: Component): boolean {
 	return STATE_KEYS.some((key) => before.state?.[key] !== after.state?.[key]);
 }
@@ -178,13 +203,8 @@ function runtimeStateChanges(before: Component, after: Component): string[] {
  */
 const CHANGE_RULES: readonly ChangeRule[] = [
 	{
-		label: "Component details",
-		changed: (before, after) =>
-			componentFieldsChanged(
-				before.component,
-				after.component,
-				COMPONENT_DETAIL_KEYS
-			),
+		describe: (before, after) =>
+			componentDetailChanges(before.component, after.component),
 	},
 	{
 		describe: (before, after) =>
@@ -274,7 +294,8 @@ const STATUS_ORDER: Record<GHDiffStatus, number> = {
 
 export function diffComponents(
 	before: DefinitionIndex,
-	after: DefinitionIndex
+	after: DefinitionIndex,
+	replacedInstanceKeys: ReadonlySet<string> = new Set()
 ): { components: GHComponentDiff[]; layoutMoves: number } {
 	const keys = new Set([
 		...before.componentsByKey.keys(),
@@ -301,6 +322,9 @@ export function diffComponents(
 			{ component: oldComponent, definition: before },
 			{ component: newComponent, definition: after }
 		);
+		if (replacedInstanceKeys.has(key)) {
+			changes.unshift(NEWLY_PLACED_CHANGE);
+		}
 		const layoutMoved = hasMoved(oldComponent, newComponent);
 		if (layoutMoved) layoutMoves += 1;
 		components.push({

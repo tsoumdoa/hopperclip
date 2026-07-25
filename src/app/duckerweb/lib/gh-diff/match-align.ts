@@ -129,6 +129,9 @@ function remapPorts(
  * Align two definitions so the shared diff pipeline can key by instance GUID.
  * In `type` mode, after-side instance/port GUIDs are rewritten onto their
  * type-paired before counterparts (and wires are remapped accordingly).
+ *
+ * `replacedInstanceKeys` lists shared keys whose after-side instance GUID
+ * originally differed — i.e. same type, newly placed component.
  */
 export function alignDefinitionsForMatchMode(
 	beforeDefinition: ParsedGrasshopper,
@@ -138,6 +141,7 @@ export function alignDefinitionsForMatchMode(
 	before: ParsedGrasshopper;
 	after: ParsedGrasshopper;
 	matchedCount: number;
+	replacedInstanceKeys: Set<string>;
 } {
 	if (mode === "instance") {
 		const beforeKeys = new Set(
@@ -150,6 +154,7 @@ export function alignDefinitionsForMatchMode(
 			before: beforeDefinition,
 			after: afterDefinition,
 			matchedCount,
+			replacedInstanceKeys: new Set(),
 		};
 	}
 
@@ -161,11 +166,13 @@ export function alignDefinitionsForMatchMode(
 	);
 	const instanceRemap = new Map<string, string>();
 	const portRemap = new Map<string, string>();
+	const replacedInstanceKeys = new Set<string>();
 
 	for (const pair of pairs) {
 		const beforeKey = componentKey(pair.before);
 		const afterKey = componentKey(pair.after);
 		instanceRemap.set(afterKey, beforeKey);
+		if (beforeKey !== afterKey) replacedInstanceKeys.add(beforeKey);
 		pair.after.instanceGuid = beforeKey;
 		remapPorts(pair.before.inputs, pair.after.inputs, portRemap);
 		remapPorts(pair.before.outputs, pair.after.outputs, portRemap);
@@ -186,5 +193,5 @@ export function alignDefinitionsForMatchMode(
 		if (remappedTarget) wire.targetPortGuid = remappedTarget;
 	}
 
-	return { before, after, matchedCount: pairs.length };
+	return { before, after, matchedCount: pairs.length, replacedInstanceKeys };
 }

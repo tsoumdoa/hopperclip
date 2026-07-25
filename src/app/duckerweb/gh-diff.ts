@@ -95,7 +95,11 @@ export function diffGrasshopper(
 	);
 	const before = indexDefinition(aligned.before);
 	const after = indexDefinition(aligned.after);
-	const componentDiff = diffComponents(before, after);
+	const componentDiff = diffComponents(
+		before,
+		after,
+		aligned.replacedInstanceKeys
+	);
 	const overlay = buildGraphOverlay(before, after, componentDiff.components);
 
 	return {

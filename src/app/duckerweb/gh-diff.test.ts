@@ -7,6 +7,7 @@ import {
 	diffGrasshopper,
 	resolveDiffComparison,
 } from "./gh-diff";
+import { NEWLY_PLACED_CHANGE } from "./lib/gh-diff/component-diff";
 
 function fixture(path: string): ParsedGrasshopper {
 	return buildGhJson(fs.readFileSync(path, "utf8"), {
@@ -204,6 +205,7 @@ describe("diffGrasshopper", () => {
 		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
 		const after = clone(before);
 		const component = Object.values(after.components)[0];
+		const previousNick = component.nickName;
 		component.nickName = `${component.nickName} revised`;
 		component.state = { ...component.state, locked: !component.state?.locked };
 
@@ -212,7 +214,10 @@ describe("diffGrasshopper", () => {
 			(item) => item.key === component.instanceGuid
 		);
 
-		expect(modified?.changes).toEqual(["Component details", "Locked"]);
+		expect(modified?.changes).toEqual([
+			`Nickname ${previousNick} → ${component.nickName}`,
+			"Locked",
+		]);
 	});
 
 	test("reports rewiring independently from component changes", () => {
@@ -286,7 +291,14 @@ describe("diffGrasshopper", () => {
 		expect(diff.matchMode).toBe("type");
 		expect(diff.counts.added).toBe(0);
 		expect(diff.counts.removed).toBe(0);
-		expect(diff.counts.modified).toBe(0);
+		expect(diff.counts.modified).toBe(Object.keys(before.components).length);
+		expect(
+			diff.components
+				.filter((component) => component.status === "modified")
+				.every((component) =>
+					component.changes.includes(NEWLY_PLACED_CHANGE)
+				)
+		).toBe(true);
 		expect(diff.addedWires).toBe(0);
 		expect(diff.removedWires).toBe(0);
 	});
@@ -304,8 +316,36 @@ describe("diffGrasshopper", () => {
 		expect(resolution.result?.matchMode).toBe("type");
 		expect(resolution.result?.counts.added).toBe(0);
 		expect(resolution.result?.counts.removed).toBe(0);
+		expect(resolution.result?.counts.modified).toBe(
+			Object.keys(before.components).length
+		);
+		expect(
+			resolution.result?.components.every((component) =>
+				component.changes.includes(NEWLY_PLACED_CHANGE)
+			)
+		).toBe(true);
 		expect(resolution.result?.addedWires).toBe(0);
 		expect(resolution.result?.removedWires).toBe(0);
+	});
+
+	test("lists newly placed note alongside other type-matched changes", () => {
+		const before = fixture("parser/sand/xmls/slider.xml");
+		const after = clone(before);
+		reinstanceAll(after, "placed");
+		const slider = Object.values(after.components).find(
+			(component) => component.value?.type === "slider"
+		);
+		expect(slider?.value).toBeDefined();
+		if (!slider?.value) return;
+		slider.value.current = (slider.value.current ?? 0) + 1;
+
+		const diff = diffGrasshopper(before, after, "type");
+		const modified = diff.components.find(
+			(component) => component.changes.includes("Value")
+		);
+
+		expect(modified?.changes[0]).toBe(NEWLY_PLACED_CHANGE);
+		expect(modified?.changes).toContain("Value");
 	});
 
 	test("still rejects when neither instance nor type GUID overlap is enough", () => {
