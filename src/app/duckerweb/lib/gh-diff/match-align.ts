@@ -27,7 +27,12 @@ function componentPosition(
 	return point ? { x: point.x, y: point.y } : null;
 }
 
+// An identical instance GUID is proof of identity, so it must outrank every
+// heuristic below: a component the user never replaced always pairs with itself.
+const INSTANCE_MATCH_SCORE = 1_000_000;
+
 function pairScore(before: Component, after: Component): number {
+	if (componentKey(before) === componentKey(after)) return INSTANCE_MATCH_SCORE;
 	let score = 1;
 	if (before.nickName === after.nickName) score += 1000;
 	const beforePos = componentPosition(before);
@@ -87,7 +92,6 @@ function remapPorts(
 	afterPorts: Record<string, DiffablePort>,
 	portRemap: Map<string, string>
 ) {
-	const beforeList = Object.values(beforePorts);
 	const afterList = Object.values(afterPorts).map((port) => ({
 		port,
 		originalGuid: port.instanceGuid,
@@ -104,25 +108,21 @@ function remapPorts(
 		entry.port.instanceGuid = beforePort.instanceGuid;
 	};
 
-	for (const beforePort of beforeList) {
-		claim(
-			beforePort,
-			afterList.find(
-				(entry) => !entry.used && entry.port.nick === beforePort.nick
-			)
+	const unclaimedBefore: DiffablePort[] = [];
+	for (const beforePort of Object.values(beforePorts)) {
+		const byNick = afterList.find(
+			(entry) => !entry.used && entry.port.nick === beforePort.nick
 		);
+		if (byNick) claim(beforePort, byNick);
+		else unclaimedBefore.push(beforePort);
 	}
 
-	const unmatchedBefore = beforeList.filter(
-		(beforePort) =>
-			!afterList.some(
-				(entry) => entry.port.instanceGuid === beforePort.instanceGuid
-			)
+	// Renamed ports have no nickname anchor left, so pair the leftovers in
+	// declaration order rather than reporting them as removed plus added.
+	const unclaimedAfter = afterList.filter((entry) => !entry.used);
+	unclaimedBefore.forEach((beforePort, index) =>
+		claim(beforePort, unclaimedAfter[index])
 	);
-	const unmatchedAfter = afterList.filter((entry) => !entry.used);
-	for (let index = 0; index < unmatchedBefore.length; index += 1) {
-		claim(unmatchedBefore[index], unmatchedAfter[index]);
-	}
 }
 
 /**
@@ -167,10 +167,24 @@ export function alignDefinitionsForMatchMode(
 	const instanceRemap = new Map<string, string>();
 	const portRemap = new Map<string, string>();
 	const replacedInstanceKeys = new Set<string>();
+	// Keys still owned by an after-side component that stayed unpaired. Renaming
+	// a pair onto one of those would produce two components with the same key,
+	// and the key-indexed diff would silently drop one of them.
+	const pairedAfterKeys = new Set(
+		pairs.map((pair) => componentKey(pair.after))
+	);
+	const unpairedAfterKeys = new Set(
+		Object.values(after.components)
+			.map(componentKey)
+			.filter((key) => !pairedAfterKeys.has(key))
+	);
+	let matchedCount = 0;
 
 	for (const pair of pairs) {
 		const beforeKey = componentKey(pair.before);
 		const afterKey = componentKey(pair.after);
+		if (beforeKey !== afterKey && unpairedAfterKeys.has(beforeKey)) continue;
+		matchedCount += 1;
 		instanceRemap.set(afterKey, beforeKey);
 		if (beforeKey !== afterKey) replacedInstanceKeys.add(beforeKey);
 		pair.after.instanceGuid = beforeKey;
@@ -193,5 +207,5 @@ export function alignDefinitionsForMatchMode(
 		if (remappedTarget) wire.targetPortGuid = remappedTarget;
 	}
 
-	return { before, after, matchedCount: pairs.length, replacedInstanceKeys };
+	return { before, after, matchedCount, replacedInstanceKeys };
 }

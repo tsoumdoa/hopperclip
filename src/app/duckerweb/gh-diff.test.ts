@@ -295,9 +295,7 @@ describe("diffGrasshopper", () => {
 		expect(
 			diff.components
 				.filter((component) => component.status === "modified")
-				.every((component) =>
-					component.changes.includes(NEWLY_PLACED_CHANGE)
-				)
+				.every((component) => component.changes.includes(NEWLY_PLACED_CHANGE))
 		).toBe(true);
 		expect(diff.addedWires).toBe(0);
 		expect(diff.removedWires).toBe(0);
@@ -340,12 +338,88 @@ describe("diffGrasshopper", () => {
 		slider.value.current = (slider.value.current ?? 0) + 1;
 
 		const diff = diffGrasshopper(before, after, "type");
-		const modified = diff.components.find(
-			(component) => component.changes.includes("Value")
+		const modified = diff.components.find((component) =>
+			component.changes.includes("Value")
 		);
 
 		expect(modified?.changes[0]).toBe(NEWLY_PLACED_CHANGE);
 		expect(modified?.changes).toContain("Value");
+	});
+
+	test("keeps surviving instances paired with themselves in type mode", () => {
+		const before = fixture("parser/sand/xmls/multi-groups.xml");
+		const byType = new Map<string, string[]>();
+		for (const component of Object.values(before.components)) {
+			byType.set(component.typeGuid, [
+				...(byType.get(component.typeGuid) ?? []),
+				component.instanceGuid,
+			]);
+		}
+		const twins = [...byType.values()].find((guids) => guids.length >= 2);
+		expect(twins).toBeDefined();
+		if (!twins) return;
+
+		// Two same-type components keep their instance GUIDs but swap nicknames.
+		// Pairing must not cross them over just because the nicknames line up.
+		const [firstGuid, secondGuid] = twins;
+		const findIn = (definition: ParsedGrasshopper, guid: string) =>
+			Object.values(definition.components).find(
+				(component) => component.instanceGuid === guid
+			);
+		const beforeFirst = findIn(before, firstGuid);
+		const beforeSecond = findIn(before, secondGuid);
+		if (!beforeFirst || !beforeSecond) return;
+		beforeFirst.nickName = "alpha";
+		beforeSecond.nickName = "beta";
+
+		const after = clone(before);
+		const afterFirst = findIn(after, firstGuid);
+		const afterSecond = findIn(after, secondGuid);
+		if (!afterFirst || !afterSecond) return;
+		afterFirst.nickName = "beta";
+		afterSecond.nickName = "alpha";
+
+		const diff = diffGrasshopper(before, after, "type");
+		const changed = diff.components.filter(
+			(component) => component.status !== "unchanged"
+		);
+
+		expect(changed.map((component) => component.key).sort()).toEqual(
+			[firstGuid, secondGuid].sort()
+		);
+		expect(
+			changed.every(
+				(component) => !component.changes.includes(NEWLY_PLACED_CHANGE)
+			)
+		).toBe(true);
+		expect(changed.flatMap((component) => component.changes).sort()).toEqual([
+			"Nickname alpha → beta",
+			"Nickname beta → alpha",
+		]);
+	});
+
+	test("never drops a component when a reused GUID would collide", () => {
+		const before = fixture("parser/sand/xmls/brep-area-Wire.xml");
+		const after = clone(before);
+		const [firstBefore, secondBefore] = Object.values(before.components);
+		const [firstAfter, secondAfter] = Object.values(after.components);
+		// The after side has no counterpart for the first component's type, yet it
+		// reuses the second component's GUID. Re-keying the second pair onto that
+		// GUID would collide and silently drop one of the two from the diff.
+		firstAfter.typeGuid = "unrelated-type";
+		firstAfter.type = "UnrelatedType";
+		firstAfter.instanceGuid = secondBefore.instanceGuid;
+		secondAfter.instanceGuid = "freshly-placed";
+
+		const diff = diffGrasshopper(before, after, "type");
+
+		expect(diff.components.map((item) => item.key).sort()).toEqual(
+			[
+				firstBefore.instanceGuid,
+				secondBefore.instanceGuid,
+				"freshly-placed",
+			].sort()
+		);
 	});
 
 	test("still rejects when neither instance nor type GUID overlap is enough", () => {

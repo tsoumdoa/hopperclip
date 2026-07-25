@@ -96,17 +96,9 @@ export function useDuckerwebState(): DuckerwebState & {
 	const [comparisonFileName, setComparisonFileName] = useState("");
 	const [comparisonRejected, setComparisonRejected] = useState(false);
 	const [matchByTypeGuid, setMatchByTypeGuidState] = useState(false);
-	const [diffFellBackToType, setDiffFellBackToType] = useState(false);
+	const [diffNotice, setDiffNotice] = useState("");
 	const activeRequest = useRef(0);
 	const activeComparisonRequest = useRef(0);
-	const matchByTypeGuidRef = useRef(matchByTypeGuid);
-	matchByTypeGuidRef.current = matchByTypeGuid;
-
-	const preferredMatchMode = useCallback(
-		(): DiffMatchMode => (matchByTypeGuidRef.current ? "type" : "instance"),
-		[]
-	);
-
 	const applyComparisonResult = useCallback(
 		(
 			before: ParsedGrasshopper,
@@ -118,7 +110,7 @@ export function useDuckerwebState(): DuckerwebState & {
 				setComparisonRejected(true);
 				setComparisonData(after);
 				setDiffResult(null);
-				setDiffFellBackToType(false);
+				setDiffNotice("");
 				setDiffError(
 					formatOverlapRejection(
 						resolution.overlap,
@@ -131,12 +123,12 @@ export function useDuckerwebState(): DuckerwebState & {
 			setComparisonData(after);
 			setComparisonRejected(false);
 			setDiffResult(resolution.result);
-			setDiffFellBackToType(resolution.fellBackToType);
-			setDiffError(
+			setDiffNotice(
 				resolution.fellBackToType
 					? "Instance IDs did not overlap enough, so Ducker matched components by type GUID instead."
 					: ""
 			);
+			setDiffError("");
 			return true;
 		},
 		[]
@@ -158,7 +150,7 @@ export function useDuckerwebState(): DuckerwebState & {
 		setComparisonFileName("");
 		setComparisonRejected(false);
 		setMatchByTypeGuidState(false);
-		setDiffFellBackToType(false);
+		setDiffNotice("");
 	}, []);
 
 	/**
@@ -194,7 +186,7 @@ export function useDuckerwebState(): DuckerwebState & {
 			setFileName(name ?? "Clipboard GhXml");
 			setComparisonFileName("");
 			setComparisonRejected(false);
-			setDiffFellBackToType(false);
+			setDiffNotice("");
 		},
 		[]
 	);
@@ -205,8 +197,8 @@ export function useDuckerwebState(): DuckerwebState & {
 			const result = prepareDuckerwebImport(xml, source);
 
 			if (!result.ok) {
+				// Leave any notice in place: it still describes the diff on screen.
 				setComparisonRejected(false);
-				setDiffFellBackToType(false);
 				setDiffError(result.error);
 				return;
 			}
@@ -214,11 +206,11 @@ export function useDuckerwebState(): DuckerwebState & {
 			applyComparisonResult(
 				parsedData,
 				result.parsedData,
-				preferredMatchMode()
+				matchByTypeGuid ? "type" : "instance"
 			);
 			setViewMode("diff");
 		},
-		[applyComparisonResult, parsedData, preferredMatchMode]
+		[applyComparisonResult, matchByTypeGuid, parsedData]
 	);
 	const applyPastedXml = useCallback(
 		(text: string, requestId: number) => {
@@ -350,15 +342,14 @@ export function useDuckerwebState(): DuckerwebState & {
 		setDiffError("");
 		setComparisonFileName("");
 		setComparisonRejected(false);
-		setDiffFellBackToType(false);
+		setDiffNotice("");
 	}, []);
 
 	const setMatchByTypeGuid = useCallback(
 		(enabled: boolean) => {
 			setMatchByTypeGuidState(enabled);
-			matchByTypeGuidRef.current = enabled;
 			if (!parsedData || !comparisonData) {
-				setDiffFellBackToType(false);
+				setDiffNotice("");
 				return;
 			}
 			applyComparisonResult(
@@ -386,7 +377,7 @@ export function useDuckerwebState(): DuckerwebState & {
 		comparisonFileName,
 		comparisonRejected,
 		matchByTypeGuid,
-		diffFellBackToType,
+		diffNotice,
 		handlePasteFromClipboard,
 		handlePastedXml,
 		handleFileSelected,

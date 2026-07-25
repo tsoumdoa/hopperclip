@@ -107,7 +107,7 @@ export type DuckerwebState = {
 	comparisonFileName: string;
 	comparisonRejected: boolean;
 	matchByTypeGuid: boolean;
-	diffFellBackToType: boolean;
+	diffNotice: string;
 };
 
 export type DuckerwebImportResult =

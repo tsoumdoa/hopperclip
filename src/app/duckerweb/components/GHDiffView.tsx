@@ -27,7 +27,7 @@ type GHDiffViewProps = {
 	comparisonFileName: string;
 	comparisonRejected: boolean;
 	matchByTypeGuid: boolean;
-	diffFellBackToType: boolean;
+	diffNotice: string;
 	onMatchByTypeGuidChange: (enabled: boolean) => void;
 };
 
@@ -60,16 +60,12 @@ const statusStyles: Record<
 	},
 };
 
-function matchModeLabel(
-	mode: GHDiffMatchMode,
-	options?: { fellBack?: boolean; preferredType?: boolean }
-) {
-	if (mode === "type") {
-		if (options?.preferredType) return "matched by type GUID";
-		if (options?.fellBack) return "matched by type GUID (auto)";
-		return "matched by type GUID";
-	}
-	return "matched by instance ID";
+function matchModeLabel(mode: GHDiffMatchMode, requestedTypeGuid: boolean) {
+	if (mode !== "type") return "matched by instance ID";
+	// Type matching without the toggle on means the diff auto-fell back to it.
+	return requestedTypeGuid
+		? "matched by type GUID"
+		: "matched by type GUID (auto)";
 }
 
 function MatchModeToggle({
@@ -167,7 +163,7 @@ export function GHDiffView({
 	comparisonFileName,
 	comparisonRejected,
 	matchByTypeGuid,
-	diffFellBackToType,
+	diffNotice,
 	onMatchByTypeGuidChange,
 }: GHDiffViewProps) {
 	const [focus, setFocus] = useState<GHFlowCanvasFocus | null>(null);
@@ -321,11 +317,7 @@ export function GHDiffView({
 							{comparisonFileName}
 						</span>
 						<span className="ml-2 text-neutral-600">
-							·{" "}
-							{matchModeLabel(diff.matchMode, {
-								fellBack: diffFellBackToType,
-								preferredType: matchByTypeGuid,
-							})}
+							· {matchModeLabel(diff.matchMode, matchByTypeGuid)}
 						</span>
 					</p>
 				</div>
@@ -414,15 +406,14 @@ export function GHDiffView({
 				</button>
 			</div>
 
+			{diffNotice && (
+				<p className="rounded-lg border border-blue-900/60 bg-blue-950/40 px-4 py-3 text-sm font-medium text-blue-200">
+					{diffNotice}
+				</p>
+			)}
+
 			{error && (
-				<p
-					className={cn(
-						"rounded-lg border px-4 py-3 text-sm font-medium",
-						diffFellBackToType
-							? "border-blue-900/60 bg-blue-950/40 text-blue-200"
-							: "border-red-900/60 bg-red-950/40 text-red-300"
-					)}
-				>
+				<p className="rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm font-medium text-red-300">
 					{error}
 				</p>
 			)}

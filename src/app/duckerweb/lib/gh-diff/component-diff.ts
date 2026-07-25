@@ -169,7 +169,8 @@ function componentDetailChanges(before: Component, after: Component): string[] {
 	return COMPONENT_DETAIL_KEYS.flatMap((key) => {
 		if (before[key] === after[key]) return [];
 		const label = COMPONENT_DETAIL_LABELS[key];
-		if (key === "description") return descriptionChange(before[key], after[key]);
+		if (key === "description")
+			return descriptionChange(before[key], after[key]);
 		if (!before[key]) return [`${label} added`];
 		if (!after[key]) return [`${label} removed`];
 		if (key === "nickName" || key === "type" || key === "library") {

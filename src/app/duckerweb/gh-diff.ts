@@ -51,22 +51,39 @@ function overlapFromCounts(
 	};
 }
 
-export function assessDefinitionOverlap(
+type AlignedDefinitions = ReturnType<typeof alignDefinitionsForMatchMode>;
+
+/**
+ * Aligning is the expensive half of a comparison (it clones and re-keys the
+ * after side), so overlap and the diff itself always share a single pass.
+ */
+function alignForMode(
 	beforeDefinition: ParsedGrasshopper,
 	afterDefinition: ParsedGrasshopper,
-	matchMode: DiffMatchMode = "instance"
-): DefinitionOverlap {
+	matchMode: DiffMatchMode
+): { aligned: AlignedDefinitions; overlap: DefinitionOverlap } {
 	const aligned = alignDefinitionsForMatchMode(
 		beforeDefinition,
 		afterDefinition,
 		matchMode
 	);
-	return overlapFromCounts(
-		aligned.matchedCount,
-		Object.keys(beforeDefinition.components).length,
-		Object.keys(afterDefinition.components).length,
-		matchMode
-	);
+	return {
+		aligned,
+		overlap: overlapFromCounts(
+			aligned.matchedCount,
+			Object.keys(beforeDefinition.components).length,
+			Object.keys(afterDefinition.components).length,
+			matchMode
+		),
+	};
+}
+
+export function assessDefinitionOverlap(
+	beforeDefinition: ParsedGrasshopper,
+	afterDefinition: ParsedGrasshopper,
+	matchMode: DiffMatchMode = "instance"
+): DefinitionOverlap {
+	return alignForMode(beforeDefinition, afterDefinition, matchMode).overlap;
 }
 
 function countStatuses(
@@ -83,16 +100,10 @@ function countStatuses(
 	return counts;
 }
 
-export function diffGrasshopper(
-	beforeDefinition: ParsedGrasshopper,
-	afterDefinition: ParsedGrasshopper,
-	matchMode: DiffMatchMode = "instance"
+function diffFromAlignment(
+	aligned: AlignedDefinitions,
+	matchMode: DiffMatchMode
 ): GHDiffResult {
-	const aligned = alignDefinitionsForMatchMode(
-		beforeDefinition,
-		afterDefinition,
-		matchMode
-	);
 	const before = indexDefinition(aligned.before);
 	const after = indexDefinition(aligned.after);
 	const componentDiff = diffComponents(
@@ -110,6 +121,17 @@ export function diffGrasshopper(
 	};
 }
 
+export function diffGrasshopper(
+	beforeDefinition: ParsedGrasshopper,
+	afterDefinition: ParsedGrasshopper,
+	matchMode: DiffMatchMode = "instance"
+): GHDiffResult {
+	return diffFromAlignment(
+		alignDefinitionsForMatchMode(beforeDefinition, afterDefinition, matchMode),
+		matchMode
+	);
+}
+
 /**
  * Resolve a comparison using the preferred match mode. When preferring
  * instance IDs, automatically fall back to type GUID matching if instance
@@ -120,50 +142,42 @@ export function resolveDiffComparison(
 	afterDefinition: ParsedGrasshopper,
 	preferredMode: DiffMatchMode = "instance"
 ): DiffComparisonResolution {
-	const preferredOverlap = assessDefinitionOverlap(
+	const preferred = alignForMode(
 		beforeDefinition,
 		afterDefinition,
 		preferredMode
 	);
-	if (preferredOverlap.isComparable) {
+	if (preferred.overlap.isComparable) {
 		return {
-			overlap: preferredOverlap,
+			overlap: preferred.overlap,
 			matchMode: preferredMode,
 			fellBackToType: false,
-			result: diffGrasshopper(
-				beforeDefinition,
-				afterDefinition,
-				preferredMode
-			),
+			result: diffFromAlignment(preferred.aligned, preferredMode),
 		};
 	}
 
 	if (preferredMode === "instance") {
-		const typeOverlap = assessDefinitionOverlap(
-			beforeDefinition,
-			afterDefinition,
-			"type"
-		);
-		if (typeOverlap.isComparable) {
+		const byType = alignForMode(beforeDefinition, afterDefinition, "type");
+		if (byType.overlap.isComparable) {
 			return {
-				overlap: typeOverlap,
+				overlap: byType.overlap,
 				matchMode: "type",
 				fellBackToType: true,
-				result: diffGrasshopper(beforeDefinition, afterDefinition, "type"),
+				result: diffFromAlignment(byType.aligned, "type"),
 			};
 		}
 
 		return {
-			overlap: preferredOverlap,
+			overlap: preferred.overlap,
 			matchMode: preferredMode,
 			fellBackToType: false,
 			result: null,
-			failedTypeOverlap: typeOverlap,
+			failedTypeOverlap: byType.overlap,
 		};
 	}
 
 	return {
-		overlap: preferredOverlap,
+		overlap: preferred.overlap,
 		matchMode: preferredMode,
 		fellBackToType: false,
 		result: null,
@@ -174,8 +188,7 @@ export function formatOverlapRejection(
 	overlap: DefinitionOverlap,
 	failedTypeOverlap?: DefinitionOverlap
 ): string {
-	const modeLabel =
-		overlap.matchMode === "type" ? "type GUID" : "instance ID";
+	const modeLabel = overlap.matchMode === "type" ? "type GUID" : "instance ID";
 	const base = `Only ${Math.round(overlap.ratio * 100)}% component overlap (${overlap.matchedCount} of ${overlap.smallerCount} matched by ${modeLabel}). Ducker requires at least 25% overlap${overlap.smallerCount > 5 ? " and 3 matched components" : ""}.`;
 	if (failedTypeOverlap) {
 		return `${base} Type GUID matching also fell short (${Math.round(failedTypeOverlap.ratio * 100)}% overlap, ${failedTypeOverlap.matchedCount} of ${failedTypeOverlap.smallerCount}).`;

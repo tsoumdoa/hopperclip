@@ -46,7 +46,7 @@ export default function DuckerWebPage() {
 		comparisonFileName,
 		comparisonRejected,
 		matchByTypeGuid,
-		diffFellBackToType,
+		diffNotice,
 		handlePasteFromClipboard,
 		handlePastedXml,
 		handleFileSelected,
@@ -89,7 +89,7 @@ export default function DuckerWebPage() {
 				comparisonFileName={comparisonFileName}
 				comparisonRejected={comparisonRejected}
 				matchByTypeGuid={matchByTypeGuid}
-				diffFellBackToType={diffFellBackToType}
+				diffNotice={diffNotice}
 				onMatchByTypeGuidChange={setMatchByTypeGuid}
 			/>
 		),
