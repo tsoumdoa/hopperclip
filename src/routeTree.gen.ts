@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShareRouteImport } from './routes/share'
-import { Route as StaticRouteImport } from './routes/_static'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DevFlowGalleryRouteImport } from './routes/dev/flow-gallery'
@@ -22,10 +21,6 @@ import { Route as AuthedGhcardsRouteImport } from './routes/_authed/ghcards'
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StaticRoute = StaticRouteImport.update({
-  id: '/_static',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
@@ -43,19 +38,19 @@ const DevFlowGalleryRoute = DevFlowGalleryRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaticTermsOfServiceRoute = StaticTermsOfServiceRouteImport.update({
-  id: '/terms-of-service',
+  id: '/_static/terms-of-service',
   path: '/terms-of-service',
-  getParentRoute: () => StaticRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const StaticPrivacyRoute = StaticPrivacyRouteImport.update({
-  id: '/privacy',
+  id: '/_static/privacy',
   path: '/privacy',
-  getParentRoute: () => StaticRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const StaticDuckerwebRoute = StaticDuckerwebRouteImport.update({
-  id: '/duckerweb',
+  id: '/_static/duckerweb',
   path: '/duckerweb',
-  getParentRoute: () => StaticRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedGhcardsRoute = AuthedGhcardsRouteImport.update({
   id: '/ghcards',
@@ -85,7 +80,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
-  '/_static': typeof StaticRouteWithChildren
   '/share': typeof ShareRoute
   '/_authed/ghcards': typeof AuthedGhcardsRoute
   '/_static/duckerweb': typeof StaticDuckerwebRoute
@@ -116,7 +110,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
-    | '/_static'
     | '/share'
     | '/_authed/ghcards'
     | '/_static/duckerweb'
@@ -128,8 +121,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
-  StaticRoute: typeof StaticRouteWithChildren
   ShareRoute: typeof ShareRoute
+  StaticDuckerwebRoute: typeof StaticDuckerwebRoute
+  StaticPrivacyRoute: typeof StaticPrivacyRoute
+  StaticTermsOfServiceRoute: typeof StaticTermsOfServiceRoute
   DevFlowGalleryRoute: typeof DevFlowGalleryRoute
 }
 
@@ -140,13 +135,6 @@ declare module '@tanstack/react-router' {
       path: '/share'
       fullPath: '/share'
       preLoaderRoute: typeof ShareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_static': {
-      id: '/_static'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof StaticRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -175,21 +163,21 @@ declare module '@tanstack/react-router' {
       path: '/terms-of-service'
       fullPath: '/terms-of-service'
       preLoaderRoute: typeof StaticTermsOfServiceRouteImport
-      parentRoute: typeof StaticRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_static/privacy': {
       id: '/_static/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof StaticPrivacyRouteImport
-      parentRoute: typeof StaticRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_static/duckerweb': {
       id: '/_static/duckerweb'
       path: '/duckerweb'
       fullPath: '/duckerweb'
       preLoaderRoute: typeof StaticDuckerwebRouteImport
-      parentRoute: typeof StaticRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/ghcards': {
       id: '/_authed/ghcards'
@@ -212,26 +200,13 @@ const AuthedRouteChildren: AuthedRouteChildren = {
 const AuthedRouteWithChildren =
   AuthedRoute._addFileChildren(AuthedRouteChildren)
 
-interface StaticRouteChildren {
-  StaticDuckerwebRoute: typeof StaticDuckerwebRoute
-  StaticPrivacyRoute: typeof StaticPrivacyRoute
-  StaticTermsOfServiceRoute: typeof StaticTermsOfServiceRoute
-}
-
-const StaticRouteChildren: StaticRouteChildren = {
-  StaticDuckerwebRoute: StaticDuckerwebRoute,
-  StaticPrivacyRoute: StaticPrivacyRoute,
-  StaticTermsOfServiceRoute: StaticTermsOfServiceRoute,
-}
-
-const StaticRouteWithChildren =
-  StaticRoute._addFileChildren(StaticRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
-  StaticRoute: StaticRouteWithChildren,
   ShareRoute: ShareRoute,
+  StaticDuckerwebRoute: StaticDuckerwebRoute,
+  StaticPrivacyRoute: StaticPrivacyRoute,
+  StaticTermsOfServiceRoute: StaticTermsOfServiceRoute,
   DevFlowGalleryRoute: DevFlowGalleryRoute,
 }
 export const routeTree = rootRouteImport
