@@ -4,7 +4,7 @@ import { GHFlowCanvas } from "@/features/gh-flow/components/gh-flow-canvas";
 import {
 	flowGalleryEdges,
 	flowGalleryNodes,
-} from "@/app/dev/flow-gallery-fixtures";
+} from "@/features/gh-flow/flow-gallery-fixtures";
 
 export const Route = createFileRoute("/dev/flow-gallery")({
 	beforeLoad: () => {

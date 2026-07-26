@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
-import Footer from "@/app/components/footer";
-import Header from "@/app/components/header";
-import { Reveal } from "@/app/components/landing/reveal";
+import { AuthLoadingScreen } from "@/features/landing/auth-loading-screen";
+import Footer from "@/features/landing/footer";
+import Header from "@/components/header";
+import { Reveal } from "@/features/landing/reveal";
 import { fetchClerkAuth } from "./__root";
 
 export const Route = createFileRoute("/")({

@@ -7,11 +7,30 @@ import { validateGhXml } from "@/lib/gh/xml";
 import { GhFileError, ghFileToGhXml } from "@/lib/gh/file";
 import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 import { cn } from "@/lib/utils";
-import type {
-	GhCardXmlPasteProps,
-	IngestResult,
-	UseXmlPasteHandlerOptions,
-} from "@/types/gh-card";
+
+type GhCardXmlPasteProps = {
+	xmlData: string | undefined;
+	setXmlData: (data: string | undefined) => void;
+	isValidXml: boolean;
+	xmlError: string;
+	setXmlError: (error: string) => void;
+	handlePasteFromClipboard: () => void;
+	handleFileSelected: (file: File) => void;
+	onClearPastedXml?: () => void;
+	isEditMode?: boolean;
+	pasteShortcutEnabled?: boolean;
+};
+
+type IngestResult = {
+	isValid: boolean;
+	xml?: string;
+	errorMsg?: string;
+};
+
+type UseXmlPasteHandlerOptions = {
+	onSingleScriptComponent?: (nickName: string) => void;
+	onFilePicked?: (name: string) => void;
+};
 
 export function sanitizeGhCardName(raw: string): string {
 	return raw

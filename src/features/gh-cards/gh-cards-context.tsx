@@ -8,7 +8,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import { updateEditingCardIds } from "@/app/utils/gh-card-edit-state";
+import { updateEditingCardIds } from "@/features/gh-cards/gh-card-edit-state";
 
 export type PendingGhCardImportState = {
 	pendingFile: File | null;

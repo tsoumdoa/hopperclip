@@ -1,6 +1,6 @@
 import TagDisplay from "./gh-card-tag-display";
-import useTagFilters from "../ghcards/hooks/use-tag-filters";
-import { LoadingSpinner } from "../ghcards/components/loading-spinner";
+import useTagFilters from "../hooks/use-tag-filters";
+import { LoadingSpinner } from "./loading-spinner";
 
 export default function GhCardTags(props: {
 	tags: string[];

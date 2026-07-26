@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Header from "@/app/components/header";
+import Header from "@/components/header";
 import { useDuckerwebState } from "@/features/duckerweb/hooks/use-duckerweb-state";
 import { useMarkdownExport } from "@/features/duckerweb/hooks/use-markdown-export";
 import { DuckerwebMainZone } from "@/features/duckerweb/components/duckerweb-main-zone";

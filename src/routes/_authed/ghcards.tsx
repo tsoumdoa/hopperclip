@@ -1,19 +1,19 @@
 import { Suspense, type ReactNode } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import AddGHCard from "@/app/components/add-gh-card";
-import { GhPageFileDropLayer } from "@/app/components/gh-page-file-drop-layer";
+import AddGHCard from "@/features/gh-cards/components/add-gh-card";
+import { GhPageFileDropLayer } from "@/features/gh-cards/components/gh-page-file-drop-layer";
 import {
 	GhCardsPageProvider,
 	useGhCardsPageActions,
 	useGhCardsPageState,
-} from "@/app/ghcards/contexts/gh-cards-page-context";
-import Header from "@/app/components/header";
-import GhCardDisplay from "@/app/ghcards/components/gh-card-display";
-import { GhCardGridSkeleton } from "@/app/ghcards/components/gh-card-skeleton";
-import { ShortcutHint } from "@/app/ghcards/components/shortcut-hint";
-import SortDropDown from "@/app/ghcards/components/sort-drop-down";
-import UserTags from "@/app/ghcards/components/user-tags";
+} from "@/features/gh-cards/gh-cards-context";
+import Header from "@/components/header";
+import GhCardDisplay from "@/features/gh-cards/components/gh-card-display";
+import { GhCardGridSkeleton } from "@/features/gh-cards/components/gh-card-skeleton";
+import { ShortcutHint } from "@/features/gh-cards/components/shortcut-hint";
+import SortDropDown from "@/features/gh-cards/components/sort-drop-down";
+import UserTags from "@/features/gh-cards/components/user-tags";
 import { fetchGhcardsUser } from "@/server/r2-storage";
 import { SortOrderZenum } from "@/types/types";
 

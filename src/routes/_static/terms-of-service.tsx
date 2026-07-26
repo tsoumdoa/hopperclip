@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Header from "@/app/components/header";
+import Header from "@/components/header";
 
 export const Route = createFileRoute("/_static/terms-of-service")({
 	head: () => ({

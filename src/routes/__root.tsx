@@ -11,7 +11,7 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
-import { PostHogProvider } from "@/app/providers/PostHogProvider";
+import { PostHogProvider } from "@/components/posthog-provider";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/styles/app.css?url";
 import { env } from "@/env";

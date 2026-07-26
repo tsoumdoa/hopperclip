@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import useTagFilters from "../hooks/use-tag-filters";
 import { LoadingSpinner } from "./loading-spinner";
 import { useQuery } from "convex/react";
-import { api as convex } from "../../../../convex/_generated/api";
+import { api as convex } from "@convex/_generated/api";
 
 export default function UserTags(props: { tagFilters: string[] }) {
 	const [hideFilter, setHideFilter] = useState(false);

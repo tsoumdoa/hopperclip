@@ -24,17 +24,27 @@ import {
 import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { useMutation, useQuery } from "convex/react";
-import { api as convex } from "../../../convex/_generated/api";
+import { api as convex } from "@convex/_generated/api";
 import { nanoid } from "nanoid";
 import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
 import { compress } from "@/lib/gzip";
-import type { AddGhDialogProps } from "@/types/gh-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFlowPreview } from "@/features/gh-flow/flow-generator";
 import { GhFlowView } from "@/features/gh-flow/gh-flow-view";
 import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
 
 type AddDialogTab = "details" | "flow";
+
+type AddGhDialogProps = {
+	open: boolean;
+	setOpen: (open: boolean) => void;
+	adding: boolean;
+	setAdding: (adding: boolean) => void;
+	initialFile?: File | null;
+	onInitialFileConsumed?: () => void;
+	initialXml?: string | null;
+	onInitialXmlConsumed?: () => void;
+};
 
 export function AddGhDialog(props: AddGhDialogProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});

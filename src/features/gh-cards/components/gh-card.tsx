@@ -9,10 +9,10 @@ import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
 import { useEffect, useState } from "react";
-import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
+import { useGhCardsPageActions } from "@/features/gh-cards/gh-cards-context";
 import { GhPost } from "@/types/types";
 import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 export default function GHCard(props: {
 	cardInfo: GhPost;

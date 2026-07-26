@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Header from "@/app/components/header";
-import ShareView from "@/app/share/components/share-view";
-import ShareError from "@/app/share/error";
+import Header from "@/components/header";
+import ShareView from "@/features/share/components/share-view";
+import ShareError from "@/features/share/error";
 import { ShareLinkUidSchema } from "@/types/types";
 
 export const Route = createFileRoute("/share")({

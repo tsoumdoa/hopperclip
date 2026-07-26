@@ -1,9 +1,9 @@
-import GHCard from "@/app/components/gh-card";
-import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
+import GHCard from "@/features/gh-cards/components/gh-card";
+import { useGhCardsPageActions } from "@/features/gh-cards/gh-cards-context";
 import useFilter from "../hooks/use-filter";
 import Filter from "./filter";
 import { X } from "lucide-react";
-import { api as convex } from "../../../../convex/_generated/api";
+import { api as convex } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
 import { SortOrder } from "@/types/types";
 import useTagFilters from "../hooks/use-tag-filters";

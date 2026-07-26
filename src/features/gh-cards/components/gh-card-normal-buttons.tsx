@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useFetchGhXml } from "../hooks/use-fetch-gh-xml";
 import { ShareDialog } from "./gh-card-dialog";
-import { Id } from "../../../convex/_generated/dataModel";
+import { Id } from "@convex/_generated/dataModel";
 import { normalizeGhXmlForClipboard } from "@/lib/gh/xml";
 
 export function NormalButtons(props: {

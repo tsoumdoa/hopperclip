@@ -1,4 +1,4 @@
-import Header from "@/app/components/header";
+import Header from "@/components/header";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 

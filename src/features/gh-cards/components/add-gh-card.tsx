@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
 	useGhCardsPageActions,
 	useGhCardsPageState,
-} from "@/app/ghcards/contexts/gh-cards-page-context";
+} from "@/features/gh-cards/gh-cards-context";
 import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
 import { AddGhDialog } from "./add-gh-dialog";
 

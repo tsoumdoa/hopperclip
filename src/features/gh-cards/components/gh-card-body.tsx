@@ -8,7 +8,7 @@ import { useValidateNameDescriptionAndTags } from "../hooks/use-validate-name-an
 import { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { GhCardXmlPaste } from "./gh-card-xml-paste";
 import { useQuery } from "convex/react";
-import { api as convex } from "../../../convex/_generated/api";
+import { api as convex } from "@convex/_generated/api";
 
 export function NameDescriptionAndTags(props: {
 	editMode: boolean;

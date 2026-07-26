@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useMutation } from "convex/react";
-import { api as convex } from "../../../convex/_generated/api";
+import { api as convex } from "@convex/_generated/api";
 import { GhPost } from "@/types/types";
 import { deleteFromBucket, uploadToBucket } from "@/server/r2-storage";
 import { compress } from "@/lib/gzip";
