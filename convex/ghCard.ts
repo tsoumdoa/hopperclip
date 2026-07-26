@@ -7,7 +7,7 @@ import {
 	UserTag,
 	SortOrder,
 } from "../src/types/types";
-import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
+import { generateSharableLinkUid } from "../src/lib/share-link-uid";
 
 const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
 const MAX_SHARE_EXPIRY_HOURS = 24 * 30;

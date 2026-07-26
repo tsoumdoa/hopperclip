@@ -1,7 +1,7 @@
 import { useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { decompress } from "../../utils/gzip";
+import { decompress } from "@/lib/gzip";
 import { buildGhJson } from "parser/src/parser";
 import { generateFlowData } from "../../duckerweb/gh-flow-generator";
 import type { GHNode } from "../../duckerweb/types/type";

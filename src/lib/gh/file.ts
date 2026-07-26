@@ -1,12 +1,12 @@
 import pako from "pako";
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
-import { decompress } from "./gzip";
+import { decompress } from "../gzip";
 import {
 	GhSizeError,
 	grasshopperBinaryToXml,
 	inflateGrasshopperBinary,
-} from "./gh-binary";
-import { normalizeGhXmlForClipboard } from "./gh-xml";
+} from "./binary";
+import { normalizeGhXmlForClipboard } from "./xml";
 
 export type GhFileKind = "gh" | "ghx" | "unknown";
 

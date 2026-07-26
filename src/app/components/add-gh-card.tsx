@@ -4,7 +4,7 @@ import {
 	useGhCardsPageActions,
 	useGhCardsPageState,
 } from "@/app/ghcards/contexts/gh-cards-page-context";
-import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
+import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
 import { AddGhDialog } from "./add-gh-dialog";
 
 export default function AddGHCard() {

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useFetchGhXml } from "../hooks/use-fetch-gh-xml";
 import { ShareDialog } from "./gh-card-dialog";
 import { Id } from "../../../convex/_generated/dataModel";
-import { normalizeGhXmlForClipboard } from "../utils/gh-xml";
+import { normalizeGhXmlForClipboard } from "@/lib/gh/xml";
 
 export function NormalButtons(props: {
 	editMode: boolean;

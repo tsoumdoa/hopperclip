@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
-import { validateGhXml } from "../utils/gh-xml";
-import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
-import { useModifierKeyLabel } from "../hooks/use-modifier-key-label";
+import { validateGhXml } from "@/lib/gh/xml";
+import { GhFileError, ghFileToGhXml } from "@/lib/gh/file";
+import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 import { cn } from "@/lib/utils";
 import type {
 	GhCardXmlPasteProps,

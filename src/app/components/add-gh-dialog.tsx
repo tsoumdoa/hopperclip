@@ -27,12 +27,12 @@ import { useMutation, useQuery } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
 import { nanoid } from "nanoid";
 import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
-import { compress } from "../utils/gzip";
+import { compress } from "@/lib/gzip";
 import type { AddGhDialogProps } from "@/types/gh-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFlowPreview } from "../duckerweb/gh-flow-generator";
 import { GhFlowView } from "./gh-flow-view";
-import { useNativeGhXmlPaste } from "../hooks/use-native-gh-xml-paste";
+import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
 
 type AddDialogTab = "details" | "flow";
 

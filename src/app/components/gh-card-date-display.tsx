@@ -1,4 +1,4 @@
-import { formatTimeDiff } from "../utils/date-format";
+import { formatTimeDiff } from "@/lib/date-format";
 import {
 	Tooltip,
 	TooltipContent,

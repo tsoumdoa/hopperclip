@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { useState } from "react";
 import { toast } from "sonner";
-import { normalizeGhXmlForClipboard } from "../../utils/gh-xml";
+import { normalizeGhXmlForClipboard } from "@/lib/gh/xml";
 import { GetSharedPost } from "@/types/types";
 import { GhFlowView } from "../../components/gh-flow-view";
 import { GitBranch, List } from "lucide-react";

@@ -15,7 +15,7 @@ import type {
 	GHFlowCanvasFocus,
 } from "../types/type";
 import { GHFlowCanvas } from "./GHFlowCanvas";
-import { useModifierKeyLabel } from "../../hooks/use-modifier-key-label";
+import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 
 type GHDiffViewProps = {
 	diff: GHDiffResult | null;

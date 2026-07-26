@@ -1,4 +1,4 @@
-import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
+import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 
 export function ShortcutHint() {
 	const mod = useModifierKeyLabel();

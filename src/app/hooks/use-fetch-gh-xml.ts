@@ -1,7 +1,7 @@
 import { generatePresigneDownloadUrl } from "@/server/r2-storage";
 import { useMutation } from "@tanstack/react-query";
 import { useRef } from "react";
-import { decompress } from "../utils/gzip";
+import { decompress } from "@/lib/gzip";
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 
 export function useFetchGhXml() {

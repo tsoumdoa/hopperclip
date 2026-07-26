@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
 import { GhPost } from "@/types/types";
 import { deleteFromBucket, uploadToBucket } from "@/server/r2-storage";
-import { compress } from "../utils/gzip";
+import { compress } from "@/lib/gzip";
 import { useXmlPasteHandler } from "../components/gh-card-xml-paste";
 import { nanoid } from "nanoid";
 

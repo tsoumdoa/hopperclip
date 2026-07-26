@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
-import { validateGhXml } from "../../utils/gh-xml";
-import { GhFileError, ghFileToGhXml } from "../../utils/gh-file";
+import { validateGhXml } from "@/lib/gh/xml";
+import { GhFileError, ghFileToGhXml } from "@/lib/gh/file";
 import { generateFlowData } from "../gh-flow-generator";
 import {
 	formatOverlapRejection,

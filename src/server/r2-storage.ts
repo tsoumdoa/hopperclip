@@ -2,7 +2,7 @@ import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { r2Client } from "./bucket";
-import { bucketUrl } from "@/utils/utils";
+import { bucketUrl } from "@/server/bucket-url";
 import { MAX_COMPRESSED_GH_XML_BYTES, StorageKeySchema } from "@/types/types";
 
 async function requireAuthenticatedUserId() {

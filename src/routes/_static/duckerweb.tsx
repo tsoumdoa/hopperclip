@@ -12,7 +12,7 @@ import { GHDiffView } from "@/app/duckerweb/components/GHDiffView";
 import type { ViewMode } from "@/app/duckerweb/types/type";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
-import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
+import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
 import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
 const contentWidth =

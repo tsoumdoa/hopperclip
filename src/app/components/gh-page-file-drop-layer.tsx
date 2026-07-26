@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
 import type { GhPageFileDropLayerProps } from "@/types/gh-card";
-import { detectGhFileKind } from "../utils/gh-file";
-import { getFirstDroppedFile, isFileDragEvent } from "../utils/file-drag";
+import { detectGhFileKind } from "@/lib/gh/file";
+import { getFirstDroppedFile, isFileDragEvent } from "@/lib/file-drag";
 
 /**
  * Full-page drag target for importing Grasshopper `.gh` / `.ghx` files on the

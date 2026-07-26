@@ -1,4 +1,4 @@
-import { GhXml } from "../../types/types";
+import { GhXml } from "@/types/types";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
 type GhXmlChunk = {

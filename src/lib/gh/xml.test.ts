@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, test } from "vitest";
-import { normalizeGhXmlForClipboard, validateGhXml } from "./gh-xml";
+import { normalizeGhXmlForClipboard, validateGhXml } from "./xml";
 
 const CLIPBOARD_XML = fs.readFileSync(
 	"parser/sand/xmls/csharp-component.xml",

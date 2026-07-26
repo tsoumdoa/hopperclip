@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 import fs from "node:fs";
 import pako from "pako";
-import { GhFileError, ghFileToGhXml } from "./gh-file";
-import { validateGhXml } from "./gh-xml";
+import { GhFileError, ghFileToGhXml } from "./file";
+import { validateGhXml } from "./xml";
 import {
 	GhSizeError,
 	grasshopperBinaryToXml,
 	inflateGrasshopperBinary,
-} from "./gh-binary";
+} from "./binary";
 import { buildGhJson } from "parser/src/parser";
 
 const FIXTURE_XML = fs.readFileSync(

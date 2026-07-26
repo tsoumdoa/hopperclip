@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { validateGhXml } from "../utils/gh-xml";
+import { validateGhXml } from "./xml";
 
 type NativeGhXmlPasteDecision = {
 	enabled: boolean;

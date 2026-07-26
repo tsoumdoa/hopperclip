@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFirstDroppedFile, isFileDragEvent } from "../utils/file-drag";
+import { getFirstDroppedFile, isFileDragEvent } from "@/lib/file-drag";
 
 /**
  * Reusable drag-and-drop hook for accepting file drops on any element.

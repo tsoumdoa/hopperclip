@@ -2,7 +2,7 @@ import { Clipboard, FileUp, X } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { XmlPasteAreaProps } from "../types/type";
-import { useModifierKeyLabel } from "../../hooks/use-modifier-key-label";
+import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 
 const actionButtonClass =
 	"flex w-full items-center justify-center gap-2.5 rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-500 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black";
