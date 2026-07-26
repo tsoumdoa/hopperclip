@@ -1,4 +1,3 @@
-"use client";
 import GHCard from "@/app/components/gh-card";
 import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
 import useFilter from "../hooks/use-filter";

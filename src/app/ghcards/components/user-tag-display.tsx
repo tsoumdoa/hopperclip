@@ -1,4 +1,3 @@
-"use client";
 import { Toggle } from "@/components/ui/toggle";
 import { UserTag } from "@/types/types";
 import { useEffect, useState } from "react";

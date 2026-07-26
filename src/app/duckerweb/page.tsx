@@ -1,5 +1,3 @@
-"use client";
-
 import Header from "@/app/components/header";
 import { useDuckerwebState } from "./hooks/use-duckerweb-state";
 import { useMarkdownExport } from "./hooks/use-markdown-export";

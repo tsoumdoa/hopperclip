@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
