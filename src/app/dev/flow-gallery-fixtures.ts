@@ -51,12 +51,8 @@ export const flowGalleryNodes: GHNode[] = [
 			label: "Locked",
 			type: "component",
 			runtimeState: "locked",
-			inputs: [
-				{ ...input("in", "Input"), options: { mapping: "flatten" } },
-			],
-			outputs: [
-				{ ...output("out", "Output"), options: { simplify: true } },
-			],
+			inputs: [{ ...input("in", "Input"), options: { mapping: "flatten" } }],
+			outputs: [{ ...output("out", "Output"), options: { simplify: true } }],
 		},
 	},
 	{

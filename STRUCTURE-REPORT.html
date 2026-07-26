@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hopper Clip — Structure Audit</title>
+<style>
+  :root {
+    --bg: #0b0b0c; --panel: #131316; --line: #26262b; --line2: #35353c;
+    --fg: #e8e8ea; --dim: #9a9aa3; --dim2: #6e6e78;
+    --bad: #ff6b6b; --warn: #f0b429; --ok: #4ec9a0; --link: #7aa2ff;
+    --mono: ui-monospace, "Geist Mono", "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.65 ui-sans-serif, "Geist", system-ui, -apple-system, sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 28px 120px; }
+  h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 6px; }
+  h2 {
+    font-size: 20px; letter-spacing: -0.01em; margin: 56px 0 4px;
+    padding-top: 22px; border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 15px; margin: 30px 0 8px; color: var(--fg); }
+  p { color: var(--dim); margin: 10px 0; }
+  .sub { color: var(--dim2); font-size: 13px; margin: 0 0 8px; }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; }
+  code { background: #1c1c21; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: #cfcfd6; }
+  a { color: var(--link); }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim2); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12.5px; }
+  tbody tr:hover { background: #17171b; }
+
+  .tag { display: inline-block; font-size: 11px; font-family: var(--mono); padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line2); color: var(--dim); white-space: nowrap; }
+  .tag.pub { color: var(--ok); border-color: #23503f; }
+  .tag.auth { color: var(--warn); border-color: #4d3d13; }
+  .tag.dev { color: var(--dim2); }
+
+  pre {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px 18px; overflow-x: auto; font-family: var(--mono);
+    font-size: 12.5px; line-height: 1.6; color: #c9c9d1;
+  }
+  pre .c { color: var(--dim2); }
+  pre .g { color: var(--ok); }
+  pre .r { color: var(--bad); }
+  pre .y { color: var(--warn); }
+
+  .find {
+    border: 1px solid var(--line); border-left: 3px solid var(--line2);
+    background: var(--panel); border-radius: 0 8px 8px 0;
+    padding: 16px 20px; margin: 16px 0;
+  }
+  .find.hi { border-left-color: var(--bad); }
+  .find.md { border-left-color: var(--warn); }
+  .find.lo { border-left-color: var(--dim2); }
+  .find h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+  .find p { margin: 8px 0; font-size: 14px; }
+  .find ul { margin: 8px 0; padding-left: 20px; color: var(--dim); font-size: 14px; }
+  .find li { margin: 4px 0; }
+  .sev { float: right; font-size: 10.5px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim2); }
+  .sev.hi { color: var(--bad); }
+  .sev.md { color: var(--warn); }
+
+  .lede { font-size: 16px; color: var(--dim); border-left: 2px solid var(--line2); padding-left: 16px; margin: 20px 0 4px; }
+  strong { color: var(--fg); font-weight: 600; }
+  .foot { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim2); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Hopper Clip — structure audit</h1>
+<p class="sub">Generated 2026-07-26 · <code>src/</code>, <code>convex/</code>, <code>parser/src/</code> · ~17.5k lines across 140 files</p>
+
+<p class="lede">
+The single fact that explains almost everything that feels messy: <strong>this is a Next.js App Router
+tree that was migrated to TanStack Start, and the old tree was never dissolved.</strong>
+<code>src/routes/</code> is the real router. <code>src/app/</code> is the fossil — it still holds
+<em>every</em> component, hook, and util in the project, still organized by Next.js
+route-folder conventions, still carrying <code>page.tsx</code> filenames and
+<code>"use client"</code> directives that do nothing here.
+Fix that one thing and the "hooks are half per-route, half shared" problem dissolves with it.
+</p>
+
+<h2>1. What the routes actually do</h2>
+<p>
+Seven real routes. TanStack file-routing: <code>_authed</code> and <code>_static</code> are
+<em>pathless layouts</em> — they wrap children without adding a URL segment, which is why
+<code>/_static/privacy</code> serves at <code>/privacy</code>.
+</p>
+
+<table>
+<thead><tr><th>URL</th><th>Route file</th><th>Access</th><th>What it does</th></tr></thead>
+<tbody>
+<tr>
+  <td class="mono">/</td>
+  <td class="mono">routes/index.tsx</td>
+  <td><span class="tag pub">public</span></td>
+  <td>Marketing landing page. Redirects signed-in users to <code>/ghcards</code> in <code>beforeLoad</code>. Prerendered. 300 lines — the largest route file, and it's ~250 lines of inline JSX components (<code>CaseCard</code>, <code>DuckerWebCard</code>, <code>Pill</code>, <code>BottomFade</code>).</td>
+</tr>
+<tr>
+  <td class="mono">/ghcards</td>
+  <td class="mono">routes/_authed/ghcards.tsx</td>
+  <td><span class="tag auth">auth</span></td>
+  <td><strong>The core app.</strong> Your saved Grasshopper snippet library — grid of cards, sort dropdown, tag filters, add-card dialog, page-wide <code>.gh</code> file drop layer. Search params (<code>sort</code>, <code>tagFilter</code>) are Zod-validated. Loader fetches the Clerk username.</td>
+</tr>
+<tr>
+  <td class="mono">/share</td>
+  <td class="mono">routes/share.tsx</td>
+  <td><span class="tag pub">public</span></td>
+  <td>Read-only view of one shared definition via <code>?token=</code> (10-char nanoid). SSR off. Resolves the token to a presigned R2 URL through a Convex action, decompresses, renders the flow canvas.</td>
+</tr>
+<tr>
+  <td class="mono">/duckerweb</td>
+  <td class="mono">routes/_static/duckerweb.tsx</td>
+  <td><span class="tag pub">public</span></td>
+  <td><strong>The second app.</strong> Account-free local <code>.gh</code> viewer: drop or paste a file, browse it as a node graph / flat list / JSON, or diff two versions. Entirely client-side. Prerendered. This is ~45% of the codebase by volume.</td>
+</tr>
+<tr>
+  <td class="mono">/privacy</td>
+  <td class="mono">routes/_static/privacy.tsx</td>
+  <td><span class="tag pub">public</span></td>
+  <td>Static legal copy. 353 lines of hardcoded JSX.</td>
+</tr>
+<tr>
+  <td class="mono">/terms-of-service</td>
+  <td class="mono">routes/_static/terms-of-service.tsx</td>
+  <td><span class="tag pub">public</span></td>
+  <td>Static legal copy. 390 lines of hardcoded JSX.</td>
+</tr>
+<tr>
+  <td class="mono">/dev/flow-gallery</td>
+  <td class="mono">routes/dev/flow-gallery.tsx</td>
+  <td><span class="tag dev">dev only</span></td>
+  <td>Visual fixture gallery for every node renderer. <code>notFound()</code> outside <code>import.meta.env.DEV</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Five of the seven route files are <strong>2–9 line shims</strong> that import a
+<code>page.tsx</code> from <code>src/app/</code> and re-export it. That indirection is pure
+migration residue — the route file is the page, and TanStack has no reason for the split.
+</p>
+
+<h3>Layouts &amp; entrypoints</h3>
+<table>
+<thead><tr><th>File</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td class="mono">routes/__root.tsx</td><td>HTML shell + the full provider stack: Clerk → PostHog → React Query → Convex. Also exports <code>fetchClerkAuth</code>, a server fn that two other routes import.</td></tr>
+<tr><td class="mono">routes/_authed.tsx</td><td>Auth gate. Throws <code>"Not authenticated"</code>, caught by its own <code>errorComponent</code>, which renders Clerk's <code>&lt;SignIn&gt;</code>. Only <code>/ghcards</code> lives under it.</td></tr>
+<tr><td class="mono">routes/_static.tsx</td><td>Pass-through <code>&lt;Outlet/&gt;</code>. Exists purely to group prerendered pages; adds no behaviour.</td></tr>
+<tr><td class="mono">src/start.ts</td><td>Clerk + CSRF request middleware.</td></tr>
+<tr><td class="mono">src/router.tsx</td><td>Router factory.</td></tr>
+<tr><td class="mono">src/lib/static-pages.ts</td><td>Prerender path list, shared with <code>vite.config.ts</code>. <strong>Duplicates</strong> what the <code>_static</code> folder already encodes — <code>/</code> is in the list but isn't under <code>_static</code>, so the two can silently drift.</td></tr>
+</tbody>
+</table>
+
+<h2>2. Current shape</h2>
+<pre>src/
+├── routes/          <span class="c">7 routes — 5 are thin shims into src/app/</span>
+├── app/             <span class="r">← Next.js fossil. Everything real lives here.</span>
+│   ├── components/  <span class="c">21 files — "shared", but 90% are gh-card internals</span>
+│   ├── hooks/       <span class="c">8 hooks — "shared", but 5 are gh-card-only</span>
+│   ├── utils/       <span class="c">7 files (gh-xml, gh-file, gh-binary, gzip, …)</span>
+│   ├── providers/   <span class="c">PostHogProvider</span>
+│   ├── duckerweb/   <span class="c">the viewer app: components/ hooks/ lib/ types/ + page.tsx</span>
+│   ├── ghcards/     <span class="c">components/ hooks/ contexts/  (no page.tsx — route owns it)</span>
+│   ├── share/       <span class="c">components/ hooks/ + error.tsx</span>
+│   ├── dev/         <span class="c">flow gallery + fixtures</span>
+│   ├── privacy/page.tsx
+│   └── terms-of-service/page.tsx
+├── components/ui/   <span class="c">12 shadcn primitives ✓ correct</span>
+├── server/          <span class="c">r2-storage.ts (server fns) + bucket.ts ✓ correct</span>
+├── types/           <span class="c">types.ts + gh-card.ts</span>
+├── utils/           <span class="y">← 2 files. Third utils dir.</span>
+├── lib/             <span class="y">← 2 files. Fourth utils dir.</span>
+├── styles/app.css
+└── env.js           <span class="y">← .js in a strict-TS project</span>
+
+convex/    <span class="c">ghCard.ts (484 lines), ghPublicAction, ghInternalQuery, schema ✓</span>
+parser/    <span class="c">standalone GH XML parser, own workspace ✓ genuinely well-separated</span></pre>
+
+<p>
+Two things are already right and should not be touched: <strong><code>parser/</code></strong> is a
+clean, tested, dependency-free boundary, and <strong><code>src/components/ui/</code></strong> is
+stock shadcn. The rot is entirely inside <code>src/app/</code>.
+</p>
+
+<h2>3. Findings</h2>
+
+<div class="find hi">
+<span class="sev hi">high</span>
+<h4>① <code>src/app/components/</code> and <code>src/app/hooks/</code> are not shared — they're the ghcards feature</h4>
+<p>
+This is the exact thing you're feeling. These two folders read as "global", so anything
+vaguely reusable got dumped there. But the import graph says otherwise:
+</p>
+<ul>
+<li><strong>Used by exactly one feature (ghcards):</strong> <code>add-gh-card</code>, <code>add-gh-dialog</code>, <code>add-gh-tag-display</code>, <code>gh-card*.tsx</code> (9 files), <code>gh-page-file-drop-layer</code>, <code>metrics-dialog</code>, <code>drop-overlay</code>, and the hooks <code>use-gh-card-control</code>, <code>use-validate-name-and-description</code>, <code>use-fetch-gh-xml</code>, <code>use-script-metrics</code>, <code>use-drop-zone</code>.</li>
+<li><strong>Genuinely shared (2+ features):</strong> only <code>header.tsx</code> (4 callers), <code>use-modifier-key-label</code> (3), <code>gh-flow-view.tsx</code> (share + ghcards), and the utils <code>gh-xml</code> / <code>gh-file</code> / <code>gzip</code>.</li>
+</ul>
+<p>
+So <strong>~26 of 29 files in the "shared" folders belong to ghcards.</strong> Meanwhile
+<code>src/app/ghcards/</code> holds only 8 view components and 2 hooks. The feature is split
+across two directories with the larger half in the folder named "shared" — which is why
+you can't tell where anything lives.
+</p>
+<p>
+Worse, it flows backwards too: <code>ghcards/components/gh-card-display.tsx</code> imports
+<code>components/gh-card.tsx</code>, which imports back into
+<code>ghcards/contexts/gh-cards-page-context.tsx</code>. A cycle between the two halves of one feature.
+</p>
+</div>
+
+<div class="find hi">
+<span class="sev hi">high</span>
+<h4>② The fetch → decompress → parse → build-flow pipeline is written three times</h4>
+<p>Three hooks, three features, one pipeline — each with its own copy of the <code>Content-Encoding: gzip</code> headers, the size guard, the <code>TextDecoder</code>, and the <code>buildGhJson</code> → <code>generateFlowData</code> → <code>setNodes/setEdges</code> tail:</p>
+<table>
+<thead><tr><th>Hook</th><th>Source of URL</th><th>Duplicated body</th></tr></thead>
+<tbody>
+<tr><td class="mono">app/hooks/use-fetch-gh-xml.ts</td><td>R2 presigned (server fn)</td><td>fetch + size check + decompress + decode</td></tr>
+<tr><td class="mono">app/share/hooks/use-share-flow-state.ts</td><td>Convex action</td><td><span class="mono">↑ verbatim</span> + parse + generateFlowData</td></tr>
+<tr><td class="mono">app/hooks/use-script-metrics.ts</td><td>via use-fetch-gh-xml</td><td>parse + generateFlowData + metrics</td></tr>
+</tbody>
+</table>
+<p>
+<code>use-share-flow-state</code> re-implements <code>use-fetch-gh-xml</code>'s entire body rather
+than calling it, purely because the presigned URL comes from a different place. That's the
+<em>only</em> real difference — one URL source. It wants to be one
+<code>fetchAndParseGhXml(urlPromise)</code> function plus a thin hook.
+</p>
+<p>
+<code>use-fetch-gh-xml</code> also returns a <code>decodedRef</code> that it never writes to —
+dead surface area.
+</p>
+</div>
+
+<div class="find md">
+<span class="sev md">medium</span>
+<h4>③ Four directories for utilities, split by no rule at all</h4>
+<ul>
+<li><code>src/lib/</code> — <code>cn()</code>, <code>static-pages.ts</code></li>
+<li><code>src/utils/</code> — <code>bucketUrl()</code>, <code>generateSharableLinkUid()</code></li>
+<li><code>src/app/utils/</code> — the 7 that actually matter (gh-xml, gh-file, gh-binary, gzip, date-format, file-drag, gh-card-edit-state)</li>
+<li><code>src/types/</code> vs <code>src/app/duckerweb/types/type.ts</code> — and <code>types/gh-card.ts</code> is <em>prop types for four specific components</em>, which is why those components' props live 3 directories from the components themselves.</li>
+</ul>
+<p>
+<code>src/utils/utils.ts</code> is the worst of it: 4 lines, named <code>utils/utils</code>, reads
+<code>process.env.R2_URL!</code> directly (everything else uses the validated
+<code>@/env</code>), is <strong>server-only</strong>, and is imported by both
+<code>src/server/r2-storage.ts</code> and <code>convex/ghInternalQuery.ts</code> — Convex reaching
+up into <code>src/</code>. It belongs in <code>src/server/</code>, or the Convex copy should be local.
+</p>
+</div>
+
+<div class="find md">
+<span class="sev md">medium</span>
+<h4>④ Dead and inert code left by the migration</h4>
+<ul>
+<li><strong>25 files still carry <code>"use client"</code></strong> — a Next.js directive that is a no-op in TanStack Start. It reads as meaningful ("this is a client component") and isn't. Delete all 25.</li>
+<li><strong><code>duckerweb/components/PasteButton.tsx</code> is dead</strong> — zero importers, unreachable from any route.</li>
+<li><strong>5 route files are 2–9 line re-export shims</strong> (finding ①'s sibling): <code>_static/privacy</code>, <code>_static/terms-of-service</code>, <code>_static/duckerweb</code>, <code>dev/flow-gallery</code>, plus <code>_static.tsx</code> itself.</li>
+<li><strong><code>src/env.js</code> is JavaScript</strong> in an otherwise strict-TS codebase.</li>
+<li><strong><code>tsconfig.tsbuildinfo</code> (1.1 MB) and <code>.DS_Store</code> (18 KB) are committed</strong>; <code>.next/</code> still sits in the repo root from the old framework.</li>
+</ul>
+</div>
+
+<div class="find md">
+<span class="sev md">medium</span>
+<h4>⑤ File naming flips convention at the duckerweb boundary</h4>
+<p>
+Every folder in the project is kebab-case — <code>gh-card-display.tsx</code>,
+<code>use-tag-filters.ts</code>, <code>share-view.tsx</code> — except
+<code>duckerweb/components/</code>, which is PascalCase for all 24 files
+(<code>GHComponentNode.tsx</code>, <code>ViewControls.tsx</code>). Both are defensible; having
+both is what costs you. Since kebab-case is 3:1 the majority and matches shadcn, standardize on it.
+</p>
+<p>Same story for <code>types/type.ts</code> (singular, duckerweb) vs <code>types/types.ts</code> (plural, root).</p>
+</div>
+
+<div class="find lo">
+<span class="sev">low</span>
+<h4>⑥ Smaller things worth a pass</h4>
+<ul>
+<li><code>Fuse.js</code> is constructed on <em>every render</em> in both <code>use-filter.ts</code> and <code>use-validate-name-and-description.ts</code> (no <code>useMemo</code>), each with its own near-identical <code>fuseOptions</code> literal differing only in <code>threshold</code>.</li>
+<li><code>SORT_ORDERS</code> and <code>SortOrderZenum</code> in <code>types/types.ts</code> declare the same six values twice — the file's own comment admits it: <em>"this is not good idea...duplicating typing with zod"</em>. Derive the enum from the const array.</li>
+<li><code>routes/index.tsx</code> at 300 lines and the two 350–390-line legal pages are the three biggest non-feature files; the landing page's inline sub-components want their own file.</li>
+<li><code>convex/ghCard.ts</code> is 484 lines — the largest backend file, worth splitting by concern (posts / sharing / tags).</li>
+</ul>
+</div>
+
+<h2>4. Target shape</h2>
+<p>
+The T3 instinct is: <strong>routes are thin, features are self-contained, and "shared" means
+literally used by 2+ features.</strong> Applied here that means deleting
+<code>src/app/</code> as a concept and letting the four features stand on their own.
+</p>
+
+<pre>src/
+├── routes/                       <span class="c">the ONLY place a page is defined</span>
+│   ├── __root.tsx
+│   ├── index.tsx                 <span class="c">landing (sub-components → features/landing/)</span>
+│   ├── share.tsx
+│   ├── privacy.tsx               <span class="g">← page moved in, shim deleted</span>
+│   ├── terms-of-service.tsx      <span class="g">← page moved in, shim deleted</span>
+│   ├── duckerweb.tsx             <span class="g">← page moved in, shim deleted</span>
+│   ├── _authed.tsx
+│   ├── _authed/ghcards.tsx
+│   └── dev/flow-gallery.tsx
+│
+├── features/
+│   ├── gh-cards/                 <span class="g">absorbs ~26 files from app/components + app/hooks</span>
+│   │   ├── components/  hooks/  gh-cards-context.tsx
+│   ├── duckerweb/                <span class="c">already correct — just rename files to kebab-case</span>
+│   │   ├── components/  hooks/  lib/  types.ts
+│   ├── share/
+│   │   ├── components/  hooks/
+│   └── landing/                  <span class="c">CaseCard, DuckerWebCard, Pill, Reveal, BottomFade</span>
+│
+├── components/
+│   ├── ui/                       <span class="c">shadcn, untouched</span>
+│   └── header.tsx  footer.tsx  gh-flow-view.tsx  drop-overlay.tsx   <span class="c">← actually shared</span>
+│
+├── lib/                          <span class="g">ONE utils home</span>
+│   ├── gh/  (xml.ts  file.ts  binary.ts  flow.ts)
+│   ├── gzip.ts  date-format.ts  file-drag.ts  utils.ts
+│   └── use-modifier-key-label.ts
+│
+├── server/                       <span class="c">r2-storage.ts  bucket.ts  bucket-url.ts</span>
+├── types.ts                      <span class="c">app-wide types only; prop types go beside components</span>
+├── env.ts                        <span class="g">← .js → .ts</span>
+└── styles/app.css</pre>
+
+<h3>Order to do it in</h3>
+<p>Each step is independently shippable, and the early ones are nearly free:</p>
+<table>
+<thead><tr><th style="width:1%">#</th><th>Step</th><th>Effort</th><th>Why here</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Strip 25 <code>"use client"</code>, delete <code>PasteButton.tsx</code>, gitignore <code>.DS_Store</code> / <code>tsbuildinfo</code>, drop <code>.next/</code></td><td>trivial</td><td>Pure deletion, zero risk, removes the loudest migration noise.</td></tr>
+<tr><td>2</td><td>Collapse the 5 route shims — move <code>page.tsx</code> bodies into their route files</td><td>small</td><td>Makes <code>routes/</code> honest: one file per page. Also kills <code>_static.tsx</code>.</td></tr>
+<tr><td>3</td><td>Merge <code>lib/</code> + <code>utils/</code> + <code>app/utils/</code> into one <code>lib/</code>; move <code>bucketUrl</code> to <code>server/</code>; <code>env.js</code> → <code>env.ts</code></td><td>small</td><td>Mechanical, import-path-only. Removes the "which utils folder?" decision permanently.</td></tr>
+<tr><td>4</td><td><strong>Move ghcards' 26 files out of <code>app/components</code>+<code>app/hooks</code> into <code>features/gh-cards/</code></strong></td><td>medium</td><td>The main event — fixes finding ①. Whatever's left behind is, by definition, genuinely shared.</td></tr>
+<tr><td>5</td><td>Extract one <code>fetchAndParseGhXml()</code>; rewrite the three hooks on top of it</td><td>medium</td><td>Only step with real logic change — do it after the moves so the diff is readable.</td></tr>
+<tr><td>6</td><td>Rename duckerweb's 24 PascalCase files to kebab-case; <code>type.ts</code> → <code>types.ts</code></td><td>small</td><td>Noisy diff, so do it last and alone.</td></tr>
+<tr><td>7</td><td>Derive <code>SortOrderZenum</code> from <code>SORT_ORDERS</code>; <code>useMemo</code> the two Fuse instances; split <code>convex/ghCard.ts</code></td><td>small</td><td>Cleanup tail.</td></tr>
+</tbody>
+</table>
+
+<p>
+Steps 1–4 are where the "I have no idea where anything is" feeling actually goes away.
+5–7 are quality, not navigability.
+</p>
+
+<div class="foot">
+Generated by static import-graph analysis (resolving <code>@/</code>, <code>@convex/</code>,
+<code>parser/</code> aliases) with reachability computed from route and Convex entrypoints.
+Line counts from <code>wc -l</code>. No files were modified.
+</div>
+
+</div>
+</body>
+</html>

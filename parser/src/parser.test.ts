@@ -196,10 +196,12 @@ describe("buildGhJson wire display", () => {
 			wireStyle: "faint",
 		});
 		expect(
-			parsed.wires.filter((wire) => wire.to === "Num.value").map((wire) => ({
-				from: wire.from,
-				style: wire.style,
-			}))
+			parsed.wires
+				.filter((wire) => wire.to === "Num.value")
+				.map((wire) => ({
+					from: wire.from,
+					style: wire.style,
+				}))
 		).toEqual([
 			{ from: "Z.v", style: "faint" },
 			{ from: "Extr.e", style: "faint" },

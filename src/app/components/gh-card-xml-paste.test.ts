@@ -1,10 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
-import {
-	getSingleScriptNickName,
-	ingestGhXml,
-} from "./gh-card-xml-paste";
+import { getSingleScriptNickName, ingestGhXml } from "./gh-card-xml-paste";
 
 describe("getSingleScriptNickName", () => {
 	test("returns sanitized nickName only for a single script component", () => {
