@@ -1,4 +1,3 @@
-import pako from "pako";
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 import { decompress } from "./gzip";
 import {
@@ -149,16 +148,4 @@ export async function ghFileToGhXml(
 	}
 
 	return normalizeGhXmlForClipboard(await decodeGhFile(buffer, file.name));
-}
-
-/**
- * Convenience: build the app's legacy gzip-compressed XML `.gh` blob from raw
- * GhXml. Native Grasshopper `.gh` files use a different binary archive format;
- * this helper is kept for existing tests and app-generated download flows.
- */
-export function ghXmlToGhFile(xml: string, filename = "definition.gh"): Blob {
-	const gzipped = pako.gzip(xml);
-	return new Blob([gzipped as Uint8Array<ArrayBuffer>], {
-		type: "application/octet-stream",
-	});
 }

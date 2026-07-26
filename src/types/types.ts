@@ -22,8 +22,6 @@ export const StorageKeySchema = z.string().regex(StorageKeyRegex, {
 	message: "Invalid storage key format.",
 });
 
-export type StorageKey = z.infer<typeof StorageKeySchema>;
-
 export const GhXml = z.object({
 	Archive: z.object({
 		comments: z
@@ -39,7 +37,6 @@ export const ShareLinkUidSchema = z.string().regex(ShareLinkUidRegex, {
 
 export type ShareLinkUid = z.infer<typeof ShareLinkUidSchema>;
 
-//this is not good idea...duplicating typing with zod
 export const SORT_ORDERS = [
 	{ value: "ascAZ", label: "A-Z" },
 	{ value: "descZA", label: "Z-A" },
@@ -49,16 +46,13 @@ export const SORT_ORDERS = [
 	{ value: "descCreated", label: "Creation Date (Oldest)" },
 ] as const;
 
-export const SortOrderZenum = z.enum([
-	"ascAZ",
-	"descZA",
-	"ascLastEdited",
-	"descLastEdited",
-	"ascCreated",
-	"descCreated",
-]);
 export type SortOrder = (typeof SORT_ORDERS)[number]["value"];
 export type SortOrderValue = (typeof SORT_ORDERS)[number]["label"];
+
+// Derived from SORT_ORDERS so the values live in exactly one place.
+export const SortOrderZenum = z.enum(
+	SORT_ORDERS.map((o) => o.value) as [SortOrder, ...SortOrder[]]
+);
 export type UserTag = {
 	tag: string;
 	count: number;

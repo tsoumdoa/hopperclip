@@ -1,5 +1,5 @@
 import { GhCardSchema, UserTag } from "@/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Fuse from "fuse.js";
 
 const fuseOptions = {
@@ -20,8 +20,10 @@ export const useValidateNameDescriptionAndTags = (
 	const [tags, setTags] = useState<string[]>([]);
 	const [availableTags, setAvailableTags] = useState<string[]>([]);
 	const [isValid, setIsValid] = useState(false);
-	const currentTags = userTags.map((userTag) => userTag.tag);
-	const fuse = new Fuse(currentTags, fuseOptions);
+	const fuse = useMemo(
+		() => new Fuse(userTags.map((userTag) => userTag.tag), fuseOptions),
+		[userTags]
+	);
 
 	const handleAddTag = (tag: string) => {
 		const trimedTag = tag.trim();

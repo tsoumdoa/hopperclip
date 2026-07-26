@@ -1,11 +1,9 @@
 import { generatePresigneDownloadUrl } from "@/server/r2-storage";
 import { useMutation } from "@tanstack/react-query";
-import { useRef } from "react";
 import { decompress } from "../utils/gzip";
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 
 export function useFetchGhXml() {
-	const decodedRef = useRef<string | undefined>(undefined);
 	const { mutateAsync: downloadData } = useMutation({
 		mutationFn: async (bucketId: string) => {
 			const presignedUrl = await generatePresigneDownloadUrl({
@@ -30,5 +28,5 @@ export function useFetchGhXml() {
 			return decoded;
 		},
 	});
-	return { downloadData, decodedRef };
+	return { downloadData };
 }

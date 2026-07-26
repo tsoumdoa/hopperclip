@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Fuse from "fuse.js";
 import { GhPost } from "@/types/types";
 
@@ -20,19 +20,19 @@ export default function useFilter(
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
-	const nameFuse = new Fuse(
-		ghCards.map((card) => card.name ?? ""),
-		fuseOptions
+	const nameFuse = useMemo(
+		() => new Fuse(ghCards.map((card) => card.name ?? ""), fuseOptions),
+		[ghCards]
 	);
 
-	const tagFuse = new Fuse(
-		ghCards.map((card) => card.tags ?? []).flat(),
-		fuseOptions
+	const tagFuse = useMemo(
+		() => new Fuse(ghCards.map((card) => card.tags ?? []).flat(), fuseOptions),
+		[ghCards]
 	);
 
-	const descriptionFuse = new Fuse(
-		ghCards.map((card) => card.description ?? ""),
-		fuseOptions
+	const descriptionFuse = useMemo(
+		() => new Fuse(ghCards.map((card) => card.description ?? ""), fuseOptions),
+		[ghCards]
 	);
 
 	const clearFilter = () => {
