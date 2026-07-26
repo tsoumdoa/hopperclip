@@ -37,76 +37,52 @@ export const Route = createFileRoute("/_static/duckerweb")({
 });
 
 function DuckerWebPage() {
-	const {
-		xmlData,
-		isValidXml,
-		xmlError,
-		parsedData,
-		viewMode,
-		nodes,
-		edges,
-		error,
-		diffResult,
-		diffError,
-		fileName,
-		comparisonFileName,
-		comparisonRejected,
-		matchByTypeGuid,
-		diffNotice,
-		handlePasteFromClipboard,
-		handlePastedXml,
-		handleFileSelected,
-		handlePasteComparison,
-		handlePastedComparisonXml,
-		handleComparisonFileSelected,
-		handleClearComparison,
-		handleClear,
-		setViewMode,
-		setMatchByTypeGuid,
-	} = useDuckerwebState();
+	const { state, actions } = useDuckerwebState();
 
-	const { handleCopyAll, isCopied } = useMarkdownExport(parsedData);
+	const { handleCopyAll, isCopied } = useMarkdownExport(state.parsedData);
 
-	const isDiff = viewMode === "diff";
-	const layout = viewLayouts[viewMode];
-	const nativePasteTarget = resolveDuckerwebPasteTarget(viewMode);
+	const isDiff = state.viewMode === "diff";
+	const layout = viewLayouts[state.viewMode];
+	const nativePasteTarget = resolveDuckerwebPasteTarget(state.viewMode);
 	const handleNativePaste = useCallback(
 		(text: string) => {
 			if (nativePasteTarget === "comparison") {
-				handlePastedComparisonXml(text);
+				actions.handlePastedComparisonXml(text);
 			} else {
-				handlePastedXml(text);
+				actions.handlePastedXml(text);
 			}
 		},
-		[nativePasteTarget, handlePastedComparisonXml, handlePastedXml]
+		[nativePasteTarget, actions]
 	);
 	useNativeGhXmlPaste({ enabled: true, onPasteText: handleNativePaste });
 
 	const views: Record<ViewMode, React.ReactNode> = {
-		flow: <GHFlowCanvas nodes={nodes} edges={edges} />,
+		flow: <GHFlowCanvas nodes={state.nodes} edges={state.edges} />,
 		diff: (
 			<GHDiffView
-				diff={diffResult}
-				error={diffError}
-				onPasteComparison={handlePasteComparison}
-				onFileSelected={handleComparisonFileSelected}
-				onClearComparison={handleClearComparison}
-				originalFileName={fileName}
-				comparisonFileName={comparisonFileName}
-				comparisonRejected={comparisonRejected}
-				matchByTypeGuid={matchByTypeGuid}
-				diffNotice={diffNotice}
-				onMatchByTypeGuidChange={setMatchByTypeGuid}
+				diff={state.diffResult}
+				error={state.diffError}
+				onPasteComparison={actions.handlePasteComparison}
+				onFileSelected={actions.handleComparisonFileSelected}
+				onClearComparison={actions.handleClearComparison}
+				originalFileName={state.fileName}
+				comparisonFileName={state.comparisonFileName}
+				comparisonRejected={state.comparisonRejected}
+				matchByTypeGuid={state.matchByTypeGuid}
+				diffNotice={state.diffNotice}
+				onMatchByTypeGuidChange={actions.setMatchByTypeGuid}
 			/>
 		),
-		list: parsedData && <ComponentList parsedData={parsedData} />,
-		json: parsedData && <GHJsonView data={parsedData} />,
+		list: state.parsedData && <ComponentList parsedData={state.parsedData} />,
+		json: state.parsedData && <GHJsonView data={state.parsedData} />,
 	};
 
 	return (
 		<DuckerwebMainZone
 			onFileSelected={
-				isDiff ? handleComparisonFileSelected : handleFileSelected
+				isDiff
+					? actions.handleComparisonFileSelected
+					: actions.handleFileSelected
 			}
 			dropTitle={isDiff ? "Drop changed .gh or .ghx definition" : undefined}
 			className={cn(
@@ -129,46 +105,46 @@ function DuckerWebPage() {
 						</a>
 					</div>
 
-					{parsedData ? (
+					{state.parsedData ? (
 						<div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-950/60 p-2">
 							<XmlPasteArea
-								xmlData={xmlData}
-								isValidXml={isValidXml}
-								xmlError={xmlError}
-								fileName={fileName}
+								xmlData={state.xmlData}
+								isValidXml={state.isValidXml}
+								xmlError={state.xmlError}
+								fileName={state.fileName}
 								compact
-								onPaste={handlePasteFromClipboard}
-								onFileSelected={handleFileSelected}
-								onClear={handleClear}
+								onPaste={actions.handlePasteFromClipboard}
+								onFileSelected={actions.handleFileSelected}
+								onClear={actions.handleClear}
 							/>
 							<ViewControls
-								viewMode={viewMode}
+								viewMode={state.viewMode}
 								isCopied={isCopied}
 								onCopyAll={handleCopyAll}
-								onSetViewMode={setViewMode}
+								onSetViewMode={actions.setViewMode}
 							/>
 						</div>
 					) : (
 						<XmlPasteArea
-							xmlData={xmlData}
-							isValidXml={isValidXml}
-							xmlError={xmlError}
-							fileName={fileName}
-							onPaste={handlePasteFromClipboard}
-							onFileSelected={handleFileSelected}
-							onClear={handleClear}
+							xmlData={state.xmlData}
+							isValidXml={state.isValidXml}
+							xmlError={state.xmlError}
+							fileName={state.fileName}
+							onPaste={actions.handlePasteFromClipboard}
+							onFileSelected={actions.handleFileSelected}
+							onClear={actions.handleClear}
 						/>
 					)}
 
 					<div className="py-2" />
-					{error && <p className="mb-4 text-red-400">{error}</p>}
+					{state.error && <p className="mb-4 text-red-400">{state.error}</p>}
 				</div>
 			</div>
 
-			{parsedData && (
+			{state.parsedData && (
 				<div className={layout.outer}>
 					<div className={cn(contentWidth, layout.inner)}>
-						{views[viewMode]}
+						{views[state.viewMode]}
 					</div>
 				</div>
 			)}

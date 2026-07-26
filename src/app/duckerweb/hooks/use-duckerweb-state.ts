@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useMemo, useReducer, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../../utils/gh-xml";
@@ -10,6 +11,7 @@ import {
 	type DiffMatchMode,
 } from "../gh-diff";
 import type {
+	DuckerwebActions,
 	DuckerwebImportResult,
 	DuckerwebState,
 	GHDiffResult,
@@ -68,95 +70,179 @@ export function resolveDuckerwebImportView(
 	}
 }
 
-export function useDuckerwebState(): DuckerwebState & {
-	handlePasteFromClipboard: () => Promise<void>;
-	handlePastedXml: (text: string) => void;
-	handleFileSelected: (file: File) => Promise<void>;
-	handlePasteComparison: () => Promise<void>;
-	handlePastedComparisonXml: (text: string) => void;
-	handleComparisonFileSelected: (file: File) => Promise<void>;
-	handleClearComparison: () => void;
-	handleClear: () => void;
-	setViewMode: React.Dispatch<React.SetStateAction<ViewMode>>;
-	setMatchByTypeGuid: (enabled: boolean) => void;
+const DEFAULT_FILE_NAME = "Clipboard GhXml";
+
+const initialState: DuckerwebState = {
+	xmlData: undefined,
+	isValidXml: false,
+	xmlError: "",
+	parsedData: null,
+	viewMode: "flow",
+	nodes: [],
+	edges: [],
+	error: "",
+	comparisonData: null,
+	diffResult: null,
+	diffError: "",
+	fileName: "",
+	comparisonFileName: "",
+	comparisonRejected: false,
+	matchByTypeGuid: false,
+	diffNotice: "",
+};
+
+type DuckerwebAction =
+	// Clear the original-import errors before a new paste/file read begins.
+	| { type: "importStart" }
+	| { type: "importError"; message: string }
+	| {
+			type: "ingestOriginal";
+			xml: string;
+			source: "clipboard" | "file";
+			parsedData: ParsedGrasshopper;
+			nodes: GHNode[];
+			edges: Edge[];
+			name?: string;
+	  }
+	// Clear the diff errors before a new comparison paste/file read begins.
+	| { type: "comparisonStart" }
+	| { type: "comparisonError"; message: string }
+	| { type: "startComparisonView"; name?: string }
+	| {
+			type: "comparisonApplied";
+			after: ParsedGrasshopper;
+			result: GHDiffResult;
+			notice: string;
+	  }
+	| { type: "comparisonRejected"; after: ParsedGrasshopper; message: string }
+	| { type: "clearComparison" }
+	| { type: "setViewMode"; value: SetStateAction<ViewMode> }
+	| { type: "setMatchByTypeGuid"; enabled: boolean }
+	| { type: "clearDiffNotice" }
+	| { type: "reset" };
+
+function duckerwebReducer(
+	state: DuckerwebState,
+	action: DuckerwebAction
+): DuckerwebState {
+	switch (action.type) {
+		case "importStart":
+			return { ...state, xmlError: "", error: "" };
+		case "importError":
+			return { ...state, xmlError: action.message };
+		case "ingestOriginal":
+			return {
+				...state,
+				xmlData: action.xml,
+				isValidXml: true,
+				xmlError: "",
+				parsedData: action.parsedData,
+				viewMode: resolveDuckerwebImportView(state.viewMode, action.source),
+				nodes: action.nodes,
+				edges: action.edges,
+				error: "",
+				comparisonData: null,
+				diffResult: null,
+				diffError: "",
+				fileName: action.name ?? DEFAULT_FILE_NAME,
+				comparisonFileName: "",
+				comparisonRejected: false,
+				diffNotice: "",
+			};
+		case "comparisonStart":
+			return { ...state, diffError: "", comparisonRejected: false };
+		case "comparisonError":
+			return { ...state, diffError: action.message, comparisonRejected: false };
+		case "startComparisonView":
+			return {
+				...state,
+				comparisonFileName: action.name ?? DEFAULT_FILE_NAME,
+				viewMode: "diff",
+			};
+		case "comparisonApplied":
+			return {
+				...state,
+				comparisonData: action.after,
+				comparisonRejected: false,
+				diffResult: action.result,
+				diffNotice: action.notice,
+				diffError: "",
+			};
+		case "comparisonRejected":
+			return {
+				...state,
+				comparisonRejected: true,
+				comparisonData: action.after,
+				diffResult: null,
+				diffNotice: "",
+				diffError: action.message,
+			};
+		case "clearComparison":
+			return {
+				...state,
+				comparisonData: null,
+				diffResult: null,
+				diffError: "",
+				comparisonFileName: "",
+				comparisonRejected: false,
+				diffNotice: "",
+			};
+		case "setViewMode":
+			return {
+				...state,
+				viewMode:
+					typeof action.value === "function"
+						? action.value(state.viewMode)
+						: action.value,
+			};
+		case "setMatchByTypeGuid":
+			return { ...state, matchByTypeGuid: action.enabled };
+		case "clearDiffNotice":
+			return { ...state, diffNotice: "" };
+		case "reset":
+			return initialState;
+	}
+}
+
+export function useDuckerwebState(): {
+	state: DuckerwebState;
+	actions: DuckerwebActions;
 } {
-	const [xmlData, setXmlData] = useState<string | undefined>();
-	const [isValidXml, setIsValidXml] = useState(false);
-	const [xmlError, setXmlError] = useState("");
-	const [parsedData, setParsedData] = useState<ParsedGrasshopper | null>(null);
-	const [viewMode, setViewMode] = useState<ViewMode>("flow");
-	const [nodes, setNodes] = useState<GHNode[]>([]);
-	const [edges, setEdges] = useState<Edge[]>([]);
-	const [error, setError] = useState("");
-	const [comparisonData, setComparisonData] =
-		useState<ParsedGrasshopper | null>(null);
-	const [diffResult, setDiffResult] = useState<GHDiffResult | null>(null);
-	const [diffError, setDiffError] = useState("");
-	const [fileName, setFileName] = useState("");
-	const [comparisonFileName, setComparisonFileName] = useState("");
-	const [comparisonRejected, setComparisonRejected] = useState(false);
-	const [matchByTypeGuid, setMatchByTypeGuidState] = useState(false);
-	const [diffNotice, setDiffNotice] = useState("");
+	const [state, dispatch] = useReducer(duckerwebReducer, initialState);
+	const { parsedData, comparisonData } = state;
+
 	const activeRequest = useRef(0);
 	const activeComparisonRequest = useRef(0);
 	// Clipboard and file imports resolve asynchronously, so the mode has to be
 	// read when the diff runs — not when the import callback was created — or a
 	// toggle made mid-read would be ignored by the diff it is meant to control.
 	const matchModeRef = useRef<DiffMatchMode>("instance");
+
 	const applyComparisonResult = useCallback(
-		(
-			before: ParsedGrasshopper,
-			after: ParsedGrasshopper,
-			mode: DiffMatchMode
-		) => {
+		(before: ParsedGrasshopper, after: ParsedGrasshopper, mode: DiffMatchMode) => {
 			const resolution = resolveDiffComparison(before, after, mode);
 			if (!resolution.result) {
-				setComparisonRejected(true);
-				setComparisonData(after);
-				setDiffResult(null);
-				setDiffNotice("");
-				setDiffError(
-					formatOverlapRejection(
+				dispatch({
+					type: "comparisonRejected",
+					after,
+					message: formatOverlapRejection(
 						resolution.overlap,
 						resolution.failedTypeOverlap
-					)
-				);
-				return false;
+					),
+				});
+				return;
 			}
-
-			setComparisonData(after);
-			setComparisonRejected(false);
-			setDiffResult(resolution.result);
-			setDiffNotice(
-				resolution.fellBackToType
+			dispatch({
+				type: "comparisonApplied",
+				after,
+				result: resolution.result,
+				notice: resolution.fellBackToType
 					? "Instance IDs did not overlap enough, so Ducker matched components by type GUID instead."
-					: ""
-			);
-			setDiffError("");
-			return true;
+					: "",
+			});
 		},
 		[]
 	);
-
-	const resetFlowState = useCallback(() => {
-		setXmlData(undefined);
-		setXmlError("");
-		setIsValidXml(false);
-		setParsedData(null);
-		setViewMode("flow");
-		setNodes([]);
-		setEdges([]);
-		setError("");
-		setComparisonData(null);
-		setDiffResult(null);
-		setDiffError("");
-		setFileName("");
-		setComparisonFileName("");
-		setComparisonRejected(false);
-		setMatchByTypeGuidState(false);
-		matchModeRef.current = "instance";
-		setDiffNotice("");
-	}, []);
 
 	/**
 	 * Shared validation+state-update path used by both clipboard paste and
@@ -165,33 +251,23 @@ export function useDuckerwebState(): DuckerwebState & {
 	const ingestXml = useCallback(
 		(xml: string, source: "clipboard" | "file", name?: string) => {
 			const result = prepareDuckerwebImport(xml, source);
-
 			if (!result.ok) {
-				setXmlError(result.error);
+				dispatch({ type: "importError", message: result.error });
 				return;
 			}
-
-			setXmlData(xml);
 			// Any comparison already being read captured the previous original.
 			// Invalidate it before committing this replacement so it cannot publish
 			// a stale diff after the new original is visible.
 			activeComparisonRequest.current += 1;
-			setIsValidXml(true);
-			setParsedData(result.parsedData);
-			setNodes(result.nodes);
-			setEdges(result.edges);
-			setViewMode((currentView) =>
-				resolveDuckerwebImportView(currentView, source)
-			);
-			setXmlError("");
-			setError("");
-			setComparisonData(null);
-			setDiffResult(null);
-			setDiffError("");
-			setFileName(name ?? "Clipboard GhXml");
-			setComparisonFileName("");
-			setComparisonRejected(false);
-			setDiffNotice("");
+			dispatch({
+				type: "ingestOriginal",
+				xml,
+				source,
+				parsedData: result.parsedData,
+				nodes: result.nodes,
+				edges: result.edges,
+				name,
+			});
 		},
 		[]
 	);
@@ -200,39 +276,33 @@ export function useDuckerwebState(): DuckerwebState & {
 		(xml: string, source: "clipboard" | "file", name?: string) => {
 			if (!parsedData) return;
 			const result = prepareDuckerwebImport(xml, source);
-
 			if (!result.ok) {
 				// Leave any notice in place: it still describes the diff on screen.
-				setComparisonRejected(false);
-				setDiffError(result.error);
+				dispatch({ type: "comparisonError", message: result.error });
 				return;
 			}
-			setComparisonFileName(name ?? "Clipboard GhXml");
-			applyComparisonResult(
-				parsedData,
-				result.parsedData,
-				matchModeRef.current
-			);
-			setViewMode("diff");
+			dispatch({ type: "startComparisonView", name });
+			applyComparisonResult(parsedData, result.parsedData, matchModeRef.current);
 		},
 		[applyComparisonResult, parsedData]
 	);
+
 	const applyPastedXml = useCallback(
 		(text: string, requestId: number) => {
 			if (requestId !== activeRequest.current) return;
 			if (text.length === 0) {
-				setXmlError("Clipboard is empty");
+				dispatch({ type: "importError", message: "Clipboard is empty" });
 				return;
 			}
 			ingestXml(text, "clipboard");
 		},
 		[ingestXml]
 	);
+
 	const handlePastedXml = useCallback(
 		(text: string) => {
 			const requestId = ++activeRequest.current;
-			setXmlError("");
-			setError("");
+			dispatch({ type: "importStart" });
 			applyPastedXml(text, requestId);
 		},
 		[applyPastedXml]
@@ -240,38 +310,38 @@ export function useDuckerwebState(): DuckerwebState & {
 
 	const handlePasteFromClipboard = useCallback(async () => {
 		const requestId = ++activeRequest.current;
-		setXmlError("");
-		setError("");
-
+		dispatch({ type: "importStart" });
 		try {
 			const text = await navigator.clipboard.readText();
 			applyPastedXml(text, requestId);
 		} catch (err) {
 			if (requestId !== activeRequest.current) return;
-			setXmlError("Failed to read clipboard contents: \n" + String(err));
+			dispatch({
+				type: "importError",
+				message: "Failed to read clipboard contents: \n" + String(err),
+			});
 		}
 	}, [applyPastedXml]);
 
 	const handleFileSelected = useCallback(
 		async (file: File) => {
 			const requestId = ++activeRequest.current;
-			setXmlError("");
-			setError("");
+			dispatch({ type: "importStart" });
 			try {
 				const xml = await ghFileToGhXml(file);
 				if (requestId !== activeRequest.current) return;
 				ingestXml(xml, "file", file.name);
 			} catch (err) {
 				if (requestId !== activeRequest.current) return;
-				if (err instanceof GhFileError) {
-					setXmlError(err.message);
-				} else {
-					setXmlError(
-						`Failed to read file "${file.name}": \n${
-							err instanceof Error ? err.message : String(err)
-						}`
-					);
-				}
+				dispatch({
+					type: "importError",
+					message:
+						err instanceof GhFileError
+							? err.message
+							: `Failed to read file "${file.name}": \n${
+									err instanceof Error ? err.message : String(err)
+								}`,
+				});
 			}
 		},
 		[ingestXml]
@@ -280,24 +350,26 @@ export function useDuckerwebState(): DuckerwebState & {
 	const handleClear = useCallback(() => {
 		activeRequest.current += 1;
 		activeComparisonRequest.current += 1;
-		resetFlowState();
-	}, [resetFlowState]);
+		matchModeRef.current = "instance";
+		dispatch({ type: "reset" });
+	}, []);
+
 	const applyPastedComparisonXml = useCallback(
 		(text: string, requestId: number) => {
 			if (requestId !== activeComparisonRequest.current) return;
 			if (text.length === 0) {
-				setDiffError("Clipboard is empty");
+				dispatch({ type: "comparisonError", message: "Clipboard is empty" });
 				return;
 			}
 			ingestComparisonXml(text, "clipboard");
 		},
 		[ingestComparisonXml]
 	);
+
 	const handlePastedComparisonXml = useCallback(
 		(text: string) => {
 			const requestId = ++activeComparisonRequest.current;
-			setDiffError("");
-			setComparisonRejected(false);
+			dispatch({ type: "comparisonStart" });
 			applyPastedComparisonXml(text, requestId);
 		},
 		[applyPastedComparisonXml]
@@ -305,36 +377,38 @@ export function useDuckerwebState(): DuckerwebState & {
 
 	const handlePasteComparison = useCallback(async () => {
 		const requestId = ++activeComparisonRequest.current;
-		setDiffError("");
-		setComparisonRejected(false);
-
+		dispatch({ type: "comparisonStart" });
 		try {
 			const text = await navigator.clipboard.readText();
 			applyPastedComparisonXml(text, requestId);
 		} catch (err) {
 			if (requestId !== activeComparisonRequest.current) return;
-			setDiffError("Failed to read clipboard contents: \n" + String(err));
+			dispatch({
+				type: "comparisonError",
+				message: "Failed to read clipboard contents: \n" + String(err),
+			});
 		}
 	}, [applyPastedComparisonXml]);
 
 	const handleComparisonFileSelected = useCallback(
 		async (file: File) => {
 			const requestId = ++activeComparisonRequest.current;
-			setDiffError("");
-			setComparisonRejected(false);
+			dispatch({ type: "comparisonStart" });
 			try {
 				const xml = await ghFileToGhXml(file);
 				if (requestId !== activeComparisonRequest.current) return;
 				ingestComparisonXml(xml, "file", file.name);
 			} catch (err) {
 				if (requestId !== activeComparisonRequest.current) return;
-				setDiffError(
-					err instanceof GhFileError
-						? err.message
-						: `Failed to read file "${file.name}": \n${
-								err instanceof Error ? err.message : String(err)
-							}`
-				);
+				dispatch({
+					type: "comparisonError",
+					message:
+						err instanceof GhFileError
+							? err.message
+							: `Failed to read file "${file.name}": \n${
+									err instanceof Error ? err.message : String(err)
+								}`,
+				});
 			}
 		},
 		[ingestComparisonXml]
@@ -342,20 +416,20 @@ export function useDuckerwebState(): DuckerwebState & {
 
 	const handleClearComparison = useCallback(() => {
 		activeComparisonRequest.current += 1;
-		setComparisonData(null);
-		setDiffResult(null);
-		setDiffError("");
-		setComparisonFileName("");
-		setComparisonRejected(false);
-		setDiffNotice("");
+		dispatch({ type: "clearComparison" });
 	}, []);
+
+	const setViewMode = useCallback<Dispatch<SetStateAction<ViewMode>>>(
+		(value) => dispatch({ type: "setViewMode", value }),
+		[]
+	);
 
 	const setMatchByTypeGuid = useCallback(
 		(enabled: boolean) => {
-			setMatchByTypeGuidState(enabled);
 			matchModeRef.current = enabled ? "type" : "instance";
+			dispatch({ type: "setMatchByTypeGuid", enabled });
 			if (!parsedData || !comparisonData) {
-				setDiffNotice("");
+				dispatch({ type: "clearDiffNotice" });
 				return;
 			}
 			applyComparisonResult(
@@ -367,32 +441,32 @@ export function useDuckerwebState(): DuckerwebState & {
 		[applyComparisonResult, comparisonData, parsedData]
 	);
 
-	return {
-		xmlData,
-		isValidXml,
-		xmlError,
-		parsedData,
-		viewMode,
-		nodes,
-		edges,
-		error,
-		comparisonData,
-		diffResult,
-		diffError,
-		fileName,
-		comparisonFileName,
-		comparisonRejected,
-		matchByTypeGuid,
-		diffNotice,
-		handlePasteFromClipboard,
-		handlePastedXml,
-		handleFileSelected,
-		handlePasteComparison,
-		handlePastedComparisonXml,
-		handleComparisonFileSelected,
-		handleClearComparison,
-		handleClear,
-		setViewMode,
-		setMatchByTypeGuid,
-	};
+	const actions = useMemo<DuckerwebActions>(
+		() => ({
+			handlePasteFromClipboard,
+			handlePastedXml,
+			handleFileSelected,
+			handlePasteComparison,
+			handlePastedComparisonXml,
+			handleComparisonFileSelected,
+			handleClearComparison,
+			handleClear,
+			setViewMode,
+			setMatchByTypeGuid,
+		}),
+		[
+			handlePasteFromClipboard,
+			handlePastedXml,
+			handleFileSelected,
+			handlePasteComparison,
+			handlePastedComparisonXml,
+			handleComparisonFileSelected,
+			handleClearComparison,
+			handleClear,
+			setViewMode,
+			setMatchByTypeGuid,
+		]
+	);
+
+	return { state, actions };
 }

@@ -1,6 +1,6 @@
 import type { Node, Edge, Position } from "@xyflow/react";
 import type { ParsedGrasshopper, PortOptions } from "parser/src/types";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
 import type { GHRuntimeState } from "../lib/runtime-palette";
 
 export type GHNodeType =
@@ -108,6 +108,19 @@ export type DuckerwebState = {
 	comparisonRejected: boolean;
 	matchByTypeGuid: boolean;
 	diffNotice: string;
+};
+
+export type DuckerwebActions = {
+	handlePasteFromClipboard: () => Promise<void>;
+	handlePastedXml: (text: string) => void;
+	handleFileSelected: (file: File) => Promise<void>;
+	handlePasteComparison: () => Promise<void>;
+	handlePastedComparisonXml: (text: string) => void;
+	handleComparisonFileSelected: (file: File) => Promise<void>;
+	handleClearComparison: () => void;
+	handleClear: () => void;
+	setViewMode: Dispatch<SetStateAction<ViewMode>>;
+	setMatchByTypeGuid: (enabled: boolean) => void;
 };
 
 export type DuckerwebImportResult =
