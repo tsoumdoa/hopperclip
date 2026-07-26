@@ -1,5 +1,5 @@
-import type { GHToggleNodeProps } from "../types/type";
-import { GHHandle } from "./Handle";
+import type { GHToggleNodeProps } from "../types";
+import { GHHandle } from "./handle";
 
 export function GHToggleNode({ data, selected }: GHToggleNodeProps) {
 	const bounded = data.usesGrasshopperBounds === true;

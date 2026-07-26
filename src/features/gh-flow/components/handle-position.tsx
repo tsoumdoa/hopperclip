@@ -1,4 +1,4 @@
-import type { GHHandlePositionProps } from "../types/type";
+import type { GHHandlePositionProps } from "../types";
 
 export function HandlePosition({
 	position,

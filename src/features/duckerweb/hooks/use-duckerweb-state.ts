@@ -3,7 +3,7 @@ import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "@/lib/gh/xml";
 import { GhFileError, ghFileToGhXml } from "@/lib/gh/file";
-import { generateFlowData } from "../gh-flow-generator";
+import { generateFlowData } from "@/features/gh-flow/flow-generator";
 import {
 	formatOverlapRejection,
 	resolveDiffComparison,
@@ -13,9 +13,9 @@ import type {
 	DuckerwebImportResult,
 	DuckerwebState,
 	GHDiffResult,
-	GHNode,
 	ViewMode,
-} from "../types/type";
+} from "../types";
+import type { GHNode } from "@/features/gh-flow/types";
 import type { Edge } from "@xyflow/react";
 
 export function prepareDuckerwebImport(

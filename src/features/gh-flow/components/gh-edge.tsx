@@ -1,5 +1,5 @@
 import { BaseEdge, getBezierPath } from "@xyflow/react";
-import type { GHEdgeProps } from "../types/type";
+import type { GHEdgeProps } from "../types";
 
 export function GHEdge({
 	sourceX,

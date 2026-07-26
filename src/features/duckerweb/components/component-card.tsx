@@ -1,4 +1,4 @@
-import type { ParsedComponent } from "../types/type";
+import type { ParsedComponent } from "../types";
 
 export function ComponentCard({ component }: { component: ParsedComponent }) {
 	const inputs = Object.values(component.inputs);

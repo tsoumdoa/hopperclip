@@ -1,7 +1,7 @@
 import { Clipboard, FileUp, X } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
-import type { XmlPasteAreaProps } from "../types/type";
+import type { XmlPasteAreaProps } from "../types";
 import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 
 const actionButtonClass =

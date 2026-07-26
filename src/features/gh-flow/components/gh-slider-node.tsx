@@ -1,5 +1,5 @@
-import type { GHSliderNodeProps } from "../types/type";
-import { GHHandle } from "./Handle";
+import type { GHSliderNodeProps } from "../types";
+import { GHHandle } from "./handle";
 
 export function GHSliderNode({ data }: GHSliderNodeProps) {
 	const percent = data.percent ?? 50;

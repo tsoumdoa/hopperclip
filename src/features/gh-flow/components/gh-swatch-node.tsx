@@ -1,6 +1,6 @@
-import type { GHSwatchNodeProps } from "../types/type";
+import type { GHSwatchNodeProps } from "../types";
 import { grasshopperArgbToCss } from "../lib/grasshopper-color";
-import { GHHandle } from "./Handle";
+import { GHHandle } from "./handle";
 
 export function GHSwatchNode({ data }: GHSwatchNodeProps) {
 	const bg = grasshopperArgbToCss(data.color, "#ddd");

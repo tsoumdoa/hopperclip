@@ -1,5 +1,5 @@
 import { GitBranch, GitCompareArrows, List, Code } from "lucide-react";
-import type { ViewControlsProps, ViewTab } from "../types/type";
+import type { ViewControlsProps, ViewTab } from "../types";
 import { cn } from "@/lib/utils";
 
 const tabs: ViewTab[] = [

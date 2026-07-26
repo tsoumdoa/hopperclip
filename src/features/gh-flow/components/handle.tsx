@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { HANDLE_SIZE, HANDLE_STROKE } from "./constants";
-import type { GHHandleProps } from "../types/type";
+import type { GHHandleProps } from "../types";
 
 export function GHHandle({
 	variant,

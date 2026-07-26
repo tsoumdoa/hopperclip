@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { Edge } from "@xyflow/react";
-import type { GHNode } from "../duckerweb/types/type";
-import { GHFlowCanvas } from "../duckerweb/components/GHFlowCanvas";
+import type { GHNode } from "./types";
+import { GHFlowCanvas } from "./components/gh-flow-canvas";
 
 export function GhFlowView(props: {
 	nodes: GHNode[];

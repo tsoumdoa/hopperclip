@@ -9,7 +9,7 @@ import {
 import type { PortOptions as ParsedPortOptions } from "parser/src/types";
 import type { CSSProperties } from "react";
 import type { GHRuntimeState } from "../lib/runtime-palette";
-import type { Port } from "../types/type";
+import type { Port } from "../types";
 
 type OptionBadge = {
 	key: string;

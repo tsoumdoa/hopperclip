@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
 import { useFetchGhXml } from "./use-fetch-gh-xml";
 import { buildGhJson } from "parser/src/parser";
-import { generateFlowData } from "../duckerweb/gh-flow-generator";
+import { generateFlowData } from "@/features/gh-flow/flow-generator";
 import type { ParsedGrasshopper } from "parser/src/types";
-import type { GHNode } from "../duckerweb/types/type";
+import type { GHNode } from "@/features/gh-flow/types";
 import type { Edge } from "@xyflow/react";
 
 export interface ScriptMetrics {

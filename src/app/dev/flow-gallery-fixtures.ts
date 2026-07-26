@@ -1,5 +1,5 @@
 import type { Edge } from "@xyflow/react";
-import type { GHNode } from "@/app/duckerweb/types/type";
+import type { GHNode } from "@/features/gh-flow/types";
 
 const input = (id: string, label: string) => ({ id, label });
 const output = (id: string, label: string) => ({ id, label });

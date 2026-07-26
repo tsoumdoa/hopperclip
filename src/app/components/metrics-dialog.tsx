@@ -5,9 +5,9 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { GhFlowView } from "./gh-flow-view";
+import { GhFlowView } from "@/features/gh-flow/gh-flow-view";
 import type { ScriptMetrics } from "../hooks/use-script-metrics";
-import type { GHNode } from "../duckerweb/types/type";
+import type { GHNode } from "@/features/gh-flow/types";
 import type { Edge } from "@xyflow/react";
 
 export function MetricsDialog(props: {

@@ -1,7 +1,8 @@
 import type { Edge } from "@xyflow/react";
 import type { Component, Wire } from "parser/src/types";
-import { generateFlowData } from "../../gh-flow-generator";
-import type { GHComponentDiff, GHDiffStatus, GHNode } from "../../types/type";
+import { generateFlowData } from "@/features/gh-flow/flow-generator";
+import type { GHComponentDiff, GHDiffStatus } from "../../types";
+import type { GHNode } from "@/features/gh-flow/types";
 import {
 	endpointPortKey,
 	resolveEndpointComponent,

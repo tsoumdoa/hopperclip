@@ -1,8 +1,8 @@
-import type { GHNodeProps, Port } from "../types/type";
+import type { GHNodeProps, Port } from "../types";
 import { HANDLE_SIZE } from "./constants";
-import { GHHandle } from "./Handle";
+import { GHHandle } from "./handle";
 import { runtimePalette } from "../lib/runtime-palette";
-import { getPortContentWidth, PortLabel } from "./PortOptions";
+import { getPortContentWidth, PortLabel } from "./port-options";
 const SIDE_PADDING_X = 8;
 const LABEL_GAP = 4;
 const APPROX_CHAR_WIDTH = 5.5;

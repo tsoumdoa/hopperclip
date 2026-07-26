@@ -1,5 +1,5 @@
-import type { GHButtonNodeProps } from "../types/type";
-import { GHHandle } from "./Handle";
+import type { GHButtonNodeProps } from "../types";
+import { GHHandle } from "./handle";
 
 export function GHButtonNode({ data, selected }: GHButtonNodeProps) {
 	const bounded = data.usesGrasshopperBounds === true;

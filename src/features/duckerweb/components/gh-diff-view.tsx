@@ -8,13 +8,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type {
-	GHDiffMatchMode,
-	GHDiffResult,
-	GHDiffStatus,
-	GHFlowCanvasFocus,
-} from "../types/type";
-import { GHFlowCanvas } from "./GHFlowCanvas";
+import type { GHDiffMatchMode, GHDiffResult, GHDiffStatus } from "../types";
+import type { GHFlowCanvasFocus } from "@/features/gh-flow/types";
+import { GHFlowCanvas } from "@/features/gh-flow/components/gh-flow-canvas";
 import { useModifierKeyLabel } from "@/lib/use-modifier-key-label";
 
 type GHDiffViewProps = {

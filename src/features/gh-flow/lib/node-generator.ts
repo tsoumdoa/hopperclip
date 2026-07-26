@@ -1,5 +1,5 @@
 import type { Component } from "parser/src/types";
-import type { GHNode } from "../types/type";
+import type { GHNode } from "../types";
 import { getComponentNodeType } from "./node-classifier";
 import { buildNodePositions } from "./node-positions";
 import { handleGroup } from "./group-handler";

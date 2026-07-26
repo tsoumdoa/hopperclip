@@ -4,7 +4,7 @@ import GhShareCard from "./share-card";
 import { useQuery } from "convex/react";
 import { useShareFlowState } from "../hooks/use-share-flow-state";
 import { useState } from "react";
-import type { ViewMode } from "../../duckerweb/types/type";
+import type { ShareViewMode } from "./share-card";
 
 export default function ShareView() {
 	const { isValidToken, validatedToken } = useValidateShareToken();
@@ -17,7 +17,7 @@ export default function ShareView() {
 }
 
 function ShareContent({ token }: { token: string }) {
-	const [viewMode, setViewMode] = useState<ViewMode>("list");
+	const [viewMode, setViewMode] = useState<ShareViewMode>("list");
 
 	const sharedPost = useQuery(api.ghCard.getSharedPost, {
 		shareToken: token,

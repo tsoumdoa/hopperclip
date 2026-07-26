@@ -12,19 +12,19 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
-import { GHPanelNode } from "./GHPanelNode";
-import { GHComponentNode } from "./GHComponentNode";
-import { GHScriptNode } from "./GHScriptNode";
-import { GHSliderNode } from "./GHSliderNode";
-import { GHValueListNode } from "./GHValueListNode";
-import { GHToggleNode } from "./GHToggleNode";
-import { GHSwatchNode } from "./GHSwatchNode";
-import { GHButtonNode } from "./GHButtonNode";
-import { GHGroupNode } from "./GHGroupNode";
-import { GHRelayNode } from "./GHRelayNode";
-import { GHScribbleNode } from "./GHScribbleNode";
-import { GHEdge } from "./GHEdge";
-import type { GHFlowCanvasProps } from "../types/type";
+import { GHPanelNode } from "./gh-panel-node";
+import { GHComponentNode } from "./gh-component-node";
+import { GHScriptNode } from "./gh-script-node";
+import { GHSliderNode } from "./gh-slider-node";
+import { GHValueListNode } from "./gh-value-list-node";
+import { GHToggleNode } from "./gh-toggle-node";
+import { GHSwatchNode } from "./gh-swatch-node";
+import { GHButtonNode } from "./gh-button-node";
+import { GHGroupNode } from "./gh-group-node";
+import { GHRelayNode } from "./gh-relay-node";
+import { GHScribbleNode } from "./gh-scribble-node";
+import { GHEdge } from "./gh-edge";
+import type { GHFlowCanvasProps } from "../types";
 
 const nodeTypes: NodeTypes = {
 	panel: GHPanelNode as NodeTypes[string],

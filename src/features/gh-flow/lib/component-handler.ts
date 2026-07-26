@@ -1,5 +1,5 @@
 import type { Component } from "parser/src/types";
-import type { GHNode, GHNodeData, GHNodeType } from "../types/type";
+import type { GHNode, GHNodeData, GHNodeType } from "../types";
 import type { NodePosition } from "./node-positions";
 import { getAccentColor } from "./node-classifier";
 import { extractValue } from "./value-extractor";

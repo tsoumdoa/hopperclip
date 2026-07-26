@@ -3,7 +3,7 @@ import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
 import { generateNodes } from "./lib/node-generator";
 import { generateEdges } from "./lib/edge-generator";
-import type { GHNode } from "./types/type";
+import type { GHNode } from "./types";
 
 export function generateFlowData(parsed: ParsedGrasshopper): {
 	nodes: GHNode[];

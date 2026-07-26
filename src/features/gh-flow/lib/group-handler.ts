@@ -1,5 +1,5 @@
 import type { Component } from "parser/src/types";
-import type { GHNode, GHNodeData } from "../types/type";
+import type { GHNode, GHNodeData } from "../types";
 import type { NodePosition } from "./node-positions";
 
 export function handleGroup(

@@ -1,6 +1,6 @@
-import type { GHValueListNodeProps } from "../types/type";
-import { GHHandle } from "./Handle";
-import { HandlePosition } from "./HandlePosition";
+import type { GHValueListNodeProps } from "../types";
+import { GHHandle } from "./handle";
+import { HandlePosition } from "./handle-position";
 
 export function GHValueListNode({ data, selected }: GHValueListNodeProps) {
 	const outputs = data.outputs ?? [];

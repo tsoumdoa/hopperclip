@@ -1,8 +1,8 @@
-import type { GHNodeProps } from "../types/type";
+import type { GHNodeProps } from "../types";
 import { runtimePalette } from "../lib/runtime-palette";
-import { GHHandle } from "./Handle";
-import { HandlePosition } from "./HandlePosition";
-import { PortLabel } from "./PortOptions";
+import { GHHandle } from "./handle";
+import { HandlePosition } from "./handle-position";
+import { PortLabel } from "./port-options";
 
 export function GHRelayNode({ data, selected }: GHNodeProps) {
 	const output = data.outputs[0];

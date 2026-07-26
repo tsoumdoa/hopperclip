@@ -1,4 +1,4 @@
-import type { GHGroupNodeProps } from "../types/type";
+import type { GHGroupNodeProps } from "../types";
 import { grasshopperArgbToCss } from "../lib/grasshopper-color";
 
 export function GHGroupNode({ data }: GHGroupNodeProps) {

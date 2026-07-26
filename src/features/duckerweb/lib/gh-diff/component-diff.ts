@@ -5,7 +5,7 @@ import type {
 	OutputPort,
 	PortOptions,
 } from "parser/src/types";
-import type { GHComponentDiff, GHDiffStatus } from "../../types/type";
+import type { GHComponentDiff, GHDiffStatus } from "../../types";
 import type { DefinitionIndex } from "./definition-index";
 import { deepEqual } from "./deep-equal";
 

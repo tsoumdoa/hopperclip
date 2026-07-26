@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowDownToLine } from "lucide-react";
-import { GHFlowCanvas } from "@/app/duckerweb/components/GHFlowCanvas";
+import { GHFlowCanvas } from "@/features/gh-flow/components/gh-flow-canvas";
 import {
 	flowGalleryEdges,
 	flowGalleryNodes,

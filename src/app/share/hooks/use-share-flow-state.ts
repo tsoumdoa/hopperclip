@@ -3,8 +3,8 @@ import { api } from "@convex/_generated/api";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { decompress } from "@/lib/gzip";
 import { buildGhJson } from "parser/src/parser";
-import { generateFlowData } from "../../duckerweb/gh-flow-generator";
-import type { GHNode } from "../../duckerweb/types/type";
+import { generateFlowData } from "@/features/gh-flow/flow-generator";
+import type { GHNode } from "@/features/gh-flow/types";
 import type { Edge } from "@xyflow/react";
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
 

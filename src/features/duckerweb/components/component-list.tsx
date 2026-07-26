@@ -1,6 +1,6 @@
 import type { ParsedGrasshopper } from "parser/src/types";
-import type { ParsedComponent } from "../types/type";
-import { ComponentCard } from "./ComponentCard";
+import type { ParsedComponent } from "../types";
+import { ComponentCard } from "./component-card";
 
 interface ComponentListProps {
 	parsedData: ParsedGrasshopper;

@@ -6,7 +6,7 @@ import {
 	alignDefinitionsForMatchMode,
 	type DiffMatchMode,
 } from "./lib/gh-diff/match-align";
-import type { GHDiffResult, GHDiffStatus } from "./types/type";
+import type { GHDiffResult, GHDiffStatus } from "./types";
 
 export type { DiffMatchMode };
 

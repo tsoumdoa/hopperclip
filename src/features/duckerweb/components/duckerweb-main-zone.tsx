@@ -1,7 +1,7 @@
 import { FileUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { DuckerwebMainZoneProps } from "../types/type";
+import type { DuckerwebMainZoneProps } from "../types";
 
 function isFileDragEvent(event: React.DragEvent): boolean {
 	return Array.from(event.dataTransfer.types).includes("Files");

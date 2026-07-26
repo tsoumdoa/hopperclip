@@ -1,0 +1,241 @@
+import type { Node, Edge, Position } from "@xyflow/react";
+import type { PortOptions } from "parser/src/types";
+import type { CSSProperties, ReactNode } from "react";
+import type { GHRuntimeState } from "./lib/runtime-palette";
+
+export type GHNodeType =
+	| "value"
+	| "panel"
+	| "scribble"
+	| "component"
+	| "script"
+	| "slider"
+	| "valueList"
+	| "toggle"
+	| "swatch"
+	| "button"
+	| "group"
+	| "relay";
+
+export type GHNodeData = {
+	label: string;
+	type: GHNodeType;
+	inputs: Port[];
+	outputs: Port[];
+	accentColor?: string;
+	selected?: boolean;
+	runtimeState?: GHRuntimeState;
+	members?: string[];
+	containerBounds?: Bounds;
+	groupColor?: string;
+	value?: string;
+	percent?: number;
+	height?: number;
+	inputWidth?: number;
+	outputWidth?: number;
+	usesGrasshopperBounds?: boolean;
+	scribble?: GHScribbleData;
+} & Record<string, unknown>;
+
+export type GHNode = Node<GHNodeData>;
+
+export type Port = {
+	id: string;
+	label: string;
+	options?: PortOptions;
+	position?: number;
+	labelOffset?: number;
+	labelWidth?: number;
+};
+
+export type Bounds = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+};
+
+export type GHFlowCanvasFocus = {
+	nodeId: string;
+	nonce: number;
+};
+
+export type GHFlowCanvasProps = {
+	nodes: GHNode[];
+	edges: Edge[];
+	focus?: GHFlowCanvasFocus | null;
+};
+
+export type ScriptData = {
+	language?: string;
+	code: string;
+	title?: string;
+};
+
+export type GHScribbleData = {
+	font: string;
+	size: number;
+	bold: boolean;
+	italic: boolean;
+	corners?: {
+		a: { x: number; y: number };
+		b: { x: number; y: number };
+		c: { x: number; y: number };
+		d: { x: number; y: number };
+	};
+	componentBounds?: Bounds;
+};
+
+export type GHScribbleNodeProps = {
+	data: {
+		value?: string;
+		scribble?: GHScribbleData;
+	};
+};
+
+export type GHNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		runtimeState?: GHRuntimeState;
+		inputWidth?: number;
+		outputWidth?: number;
+		value?: string;
+		height?: number;
+		script?: ScriptData;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHGroupNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		members?: string[];
+		containerBounds?: Bounds;
+		groupColor?: string;
+		accentColor?: string;
+		selected?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHSliderNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		value?: string;
+		percent?: number;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHValueListItem = {
+	name: string;
+	expression: string | number;
+	selected: boolean;
+};
+
+export type GHValueListNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		value?: string;
+		items?: GHValueListItem[];
+		selectedIndex?: number;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHToggleNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		value?: string;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHSwatchNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		value?: string;
+		color?: string;
+		outputWidth?: number;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHButtonNodeProps = {
+	data: {
+		label: string;
+		type: string;
+		inputs: Port[];
+		outputs: Port[];
+		accentColor?: string;
+		selected?: boolean;
+		usesGrasshopperBounds?: boolean;
+	};
+	selected?: boolean;
+};
+
+export type GHEdgeProps = {
+	sourceX: number;
+	sourceY: number;
+	targetX: number;
+	targetY: number;
+	sourcePosition: Position;
+	targetPosition: Position;
+	selected?: boolean;
+	style?: CSSProperties;
+	data?: {
+		wireStyle?: "normal" | "faint" | "hidden";
+		isRevealed?: boolean;
+	};
+};
+
+export type HandleVariant = "detailed" | "compact";
+export type HandleSide = "left" | "right";
+export type HandlePortType = "source" | "target";
+
+export type GHHandleProps = {
+	variant: HandleVariant;
+	position: HandleSide;
+	type: HandlePortType;
+	id?: string;
+	className?: string;
+	detached?: boolean;
+};
+
+export type GHHandlePositionProps = {
+	position: HandleSide;
+	children: ReactNode;
+	className?: string;
+	top?: string;
+};

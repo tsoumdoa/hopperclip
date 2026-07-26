@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import fs from "node:fs";
 import { buildGhJson } from "parser/src/parser";
 import type { Component, ParsedGrasshopper } from "parser/src/types";
-import { generateFlowData } from "./gh-flow-generator";
+import { generateFlowData } from "./flow-generator";
 import { grasshopperArgbToCss } from "./lib/grasshopper-color";
 
 function component(

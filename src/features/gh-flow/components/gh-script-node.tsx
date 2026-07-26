@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Check, Code2, Copy } from "lucide-react";
-import type { GHNodeProps, Port, ScriptData } from "../types/type";
+import type { GHNodeProps, Port, ScriptData } from "../types";
 import { HANDLE_SIZE } from "./constants";
-import { GHHandle } from "./Handle";
+import { GHHandle } from "./handle";
 import { runtimePalette } from "../lib/runtime-palette";
 import {
 	Dialog,
@@ -10,7 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { getPortContentWidth, PortLabel } from "./PortOptions";
+import { getPortContentWidth, PortLabel } from "./port-options";
 const SIDE_PADDING_X = 8;
 const LABEL_GAP = 4;
 const APPROX_CHAR_WIDTH = 5.5;

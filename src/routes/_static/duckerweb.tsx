@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Header from "@/app/components/header";
-import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
-import { useMarkdownExport } from "@/app/duckerweb/hooks/use-markdown-export";
-import { DuckerwebMainZone } from "@/app/duckerweb/components/DuckerwebMainZone";
-import { XmlPasteArea } from "@/app/duckerweb/components/XmlPasteArea";
-import { ViewControls } from "@/app/duckerweb/components/ViewControls";
-import { ComponentList } from "@/app/duckerweb/components/ComponentList";
-import { GHFlowCanvas } from "@/app/duckerweb/components/GHFlowCanvas";
-import { GHJsonView } from "@/app/duckerweb/components/GHJsonView";
-import { GHDiffView } from "@/app/duckerweb/components/GHDiffView";
-import type { ViewMode } from "@/app/duckerweb/types/type";
+import { useDuckerwebState } from "@/features/duckerweb/hooks/use-duckerweb-state";
+import { useMarkdownExport } from "@/features/duckerweb/hooks/use-markdown-export";
+import { DuckerwebMainZone } from "@/features/duckerweb/components/duckerweb-main-zone";
+import { XmlPasteArea } from "@/features/duckerweb/components/xml-paste-area";
+import { ViewControls } from "@/features/duckerweb/components/view-controls";
+import { ComponentList } from "@/features/duckerweb/components/component-list";
+import { GHFlowCanvas } from "@/features/gh-flow/components/gh-flow-canvas";
+import { GHJsonView } from "@/features/duckerweb/components/gh-json-view";
+import { GHDiffView } from "@/features/duckerweb/components/gh-diff-view";
+import type { ViewMode } from "@/features/duckerweb/types";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { useNativeGhXmlPaste } from "@/lib/gh/use-native-gh-xml-paste";
-import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
+import { resolveDuckerwebPasteTarget } from "@/features/duckerweb/hooks/use-duckerweb-state";
 
 const contentWidth =
 	"mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]";

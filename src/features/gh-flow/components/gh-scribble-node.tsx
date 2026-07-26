@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { GHScribbleNodeProps } from "../types/type";
+import type { GHScribbleNodeProps } from "../types";
 
 export function GHScribbleNode({ data }: GHScribbleNodeProps) {
 	const scribble = data.scribble;

@@ -1,5 +1,5 @@
 import type { Component } from "parser/src/types";
-import type { GHNodeType } from "../types/type";
+import type { GHNodeType } from "../types";
 
 export function getComponentNodeType(component: Component): GHNodeType {
 	if (component.type === "Group") return "group";

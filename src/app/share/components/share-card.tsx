@@ -11,16 +11,19 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { normalizeGhXmlForClipboard } from "@/lib/gh/xml";
 import { GetSharedPost } from "@/types/types";
-import { GhFlowView } from "../../components/gh-flow-view";
+import { GhFlowView } from "@/features/gh-flow/gh-flow-view";
 import { GitBranch, List } from "lucide-react";
-import type { ViewMode } from "../../duckerweb/types/type";
-import type { GHNode } from "../../duckerweb/types/type";
+import type { GHNode } from "@/features/gh-flow/types";
+
+/** Share renders only these two views; DuckerWeb's ViewMode is a superset. */
+export type ShareViewMode = "list" | "flow";
 import type { Edge } from "@xyflow/react";
 
-const viewTabs: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
-	{ key: "list", label: "Card", icon: <List size={16} /> },
-	{ key: "flow", label: "Flow", icon: <GitBranch size={16} /> },
-];
+const viewTabs: { key: ShareViewMode; label: string; icon: React.ReactNode }[] =
+	[
+		{ key: "list", label: "Card", icon: <List size={16} /> },
+		{ key: "flow", label: "Flow", icon: <GitBranch size={16} /> },
+	];
 
 export default function GhShareCard(props: {
 	sharedPost: GetSharedPost;
@@ -29,8 +32,8 @@ export default function GhShareCard(props: {
 	flowLoading: boolean;
 	flowError: string | null;
 	decodedXml?: string;
-	viewMode: ViewMode;
-	onSetViewMode: (mode: ViewMode) => void;
+	viewMode: ShareViewMode;
+	onSetViewMode: (mode: ShareViewMode) => void;
 }) {
 	const [isLoading, setIsLoading] = useState(false);
 
