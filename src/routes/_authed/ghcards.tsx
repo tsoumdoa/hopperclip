@@ -1,5 +1,3 @@
-"use client";
-
 import { Suspense, type ReactNode } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";

@@ -1,4 +1,3 @@
-"use client";
 import { api } from "@convex/_generated/api";
 import { useValidateShareToken } from "../hooks/use-validate-uid";
 import GhShareCard from "./share-card";

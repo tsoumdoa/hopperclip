@@ -1,4 +1,3 @@
-"use client";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
 
 export function ShortcutHint() {

@@ -1,4 +1,3 @@
-"use client";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef } from "react";
 

@@ -1,4 +1,3 @@
-"use client";
 import FilterTagDisplay from "./user-tag-display";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";

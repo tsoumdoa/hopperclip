@@ -1,4 +1,3 @@
-"use client";
 import { InvalidValueDialog } from "./gh-card-dialog";
 import { NormalButtons } from "./gh-card-normal-buttons";
 import { EditButtons } from "./gh-card-edit-buttons";
