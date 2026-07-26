@@ -1,18 +1,19 @@
+import { createFileRoute } from "@tanstack/react-router";
 import Header from "@/app/components/header";
-import { useDuckerwebState } from "./hooks/use-duckerweb-state";
-import { useMarkdownExport } from "./hooks/use-markdown-export";
-import { DuckerwebMainZone } from "./components/DuckerwebMainZone";
-import { XmlPasteArea } from "./components/XmlPasteArea";
-import { ViewControls } from "./components/ViewControls";
-import { ComponentList } from "./components/ComponentList";
-import { GHFlowCanvas } from "./components/GHFlowCanvas";
-import { GHJsonView } from "./components/GHJsonView";
-import { GHDiffView } from "./components/GHDiffView";
-import type { ViewMode } from "./types/type";
+import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
+import { useMarkdownExport } from "@/app/duckerweb/hooks/use-markdown-export";
+import { DuckerwebMainZone } from "@/app/duckerweb/components/DuckerwebMainZone";
+import { XmlPasteArea } from "@/app/duckerweb/components/XmlPasteArea";
+import { ViewControls } from "@/app/duckerweb/components/ViewControls";
+import { ComponentList } from "@/app/duckerweb/components/ComponentList";
+import { GHFlowCanvas } from "@/app/duckerweb/components/GHFlowCanvas";
+import { GHJsonView } from "@/app/duckerweb/components/GHJsonView";
+import { GHDiffView } from "@/app/duckerweb/components/GHDiffView";
+import type { ViewMode } from "@/app/duckerweb/types/type";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
-import { useNativeGhXmlPaste } from "../hooks/use-native-gh-xml-paste";
-import { resolveDuckerwebPasteTarget } from "./hooks/use-duckerweb-state";
+import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
+import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
 const contentWidth =
 	"mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]";
@@ -28,7 +29,14 @@ const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
 	json: { outer: "min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6" },
 };
 
-export default function DuckerWebPage() {
+export const Route = createFileRoute("/_static/duckerweb")({
+	head: () => ({
+		meta: [{ title: "DuckerWeb | Hopper Clip" }],
+	}),
+	component: DuckerWebPage,
+});
+
+function DuckerWebPage() {
 	const {
 		xmlData,
 		isValidXml,

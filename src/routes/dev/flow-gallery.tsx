@@ -1,3 +1,4 @@
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowDownToLine } from "lucide-react";
 import { GHFlowCanvas } from "@/app/duckerweb/components/GHFlowCanvas";
 import {
@@ -5,7 +6,19 @@ import {
 	flowGalleryNodes,
 } from "@/app/dev/flow-gallery-fixtures";
 
-export default function FlowGallery() {
+export const Route = createFileRoute("/dev/flow-gallery")({
+	beforeLoad: () => {
+		if (!import.meta.env.DEV) {
+			throw notFound();
+		}
+	},
+	head: () => ({
+		meta: [{ title: "Flow Gallery | Hopper Clip" }],
+	}),
+	component: FlowGallery,
+});
+
+function FlowGallery() {
 	return (
 		<main className="relative h-screen min-h-[600px] w-screen">
 			<GHFlowCanvas nodes={flowGalleryNodes} edges={flowGalleryEdges} />

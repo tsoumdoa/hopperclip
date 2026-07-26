@@ -1,6 +1,14 @@
-import Header from "../components/header";
+import { createFileRoute } from "@tanstack/react-router";
+import Header from "@/app/components/header";
 
-export default function PrivacyPolicy() {
+export const Route = createFileRoute("/_static/privacy")({
+	head: () => ({
+		meta: [{ title: "Privacy Policy | Hopper Clip" }],
+	}),
+	component: PrivacyPolicy,
+});
+
+function PrivacyPolicy() {
 	return (
 		<div className="min-h-screen bg-black font-sans text-white [&_h2]:text-neutral-200 [&_h3]:text-neutral-200 [&_li]:text-neutral-300 [&_p]:text-neutral-300">
 			<div className="mx-auto max-w-[100rem] p-4 md:px-6 md:pt-6 md:pb-2">
