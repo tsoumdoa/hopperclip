@@ -53,13 +53,19 @@ function normalizeArray<T>(item: T | T[] | undefined): T[] {
 	return Array.isArray(item) ? item : [item];
 }
 
+const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function isSafeKey(key: string) {
+	return !DANGEROUS_KEYS.has(key);
+}
+
 function extractItems(chunk: XmlChunk): Record<string, unknown> {
-	const result: Record<string, unknown> = {};
+	const result = Object.create(null) as Record<string, unknown>;
 	const items = normalizeArray(chunk.items?.item);
 
 	for (const item of items) {
 		const name = item.name;
-		if (!name) continue;
+		if (!name || !isSafeKey(name)) continue;
 
 		const typeName = item.type_name;
 		const text = item["#text"];
@@ -68,6 +74,7 @@ function extractItems(chunk: XmlChunk): Record<string, unknown> {
 		if (text !== undefined) {
 			// Handle indexed items (e.g., ID_0, ID_1 for groups)
 			const key = index !== undefined ? `${name}_${index}` : name;
+			if (!isSafeKey(key)) continue;
 
 			// Try to parse as number or boolean
 			if (text === "true") {

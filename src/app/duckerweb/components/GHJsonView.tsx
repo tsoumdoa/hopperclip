@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import type { ParsedGrasshopper } from "parser/src/types";
 
 interface GHJsonViewProps {
@@ -22,7 +23,7 @@ export function GHJsonView({ data }: GHJsonViewProps) {
 					lang: "json",
 					theme: "catppuccin-mocha",
 				});
-				setHtml(rendered);
+				setHtml(DOMPurify.sanitize(rendered));
 			}
 		}
 
