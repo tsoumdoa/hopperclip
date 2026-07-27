@@ -5,7 +5,7 @@ import {
 	ShareLinkUidSchema,
 	StorageKeySchema,
 	UserTag,
-	SortOrder,
+	SortOrderZenum,
 } from "../src/types/types";
 import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
 
@@ -145,7 +145,7 @@ export const getAll = query({
 		}
 
 		const tags = args.tags ?? [];
-		const sortOrder = args.sortOrder || "descLastEdited";
+		const sortOrder = SortOrderZenum.parse(args.sortOrder ?? "descLastEdited");
 
 		if (tags.length === 0 && sortOrder === "ascLastEdited") {
 			return await ctx.db
@@ -158,7 +158,7 @@ export const getAll = query({
 		}
 
 		let posts;
-		switch (sortOrder as SortOrder) {
+		switch (sortOrder) {
 			case "ascAZ":
 				posts = await ctx.db
 					.query("post")
@@ -219,15 +219,10 @@ export const getAll = query({
 					.collect();
 				break;
 
-			default:
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_name", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
-					.order("asc")
-					.collect();
-				break;
+			default: {
+				const _exhaustive: never = sortOrder;
+				throw new Error(`Unhandled sortOrder: ${_exhaustive}`);
+			}
 		}
 
 		if (tags.length === 0) return posts;
