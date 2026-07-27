@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="no-referrer" />
+    <title>HopperClip · Security Audit · 2026-07-27</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --bg-soft: #161b22;
+        --bg-row: #0f141b;
+        --border: #30363d;
+        --text: #e6edf3;
+        --text-dim: #8b949e;
+        --text-mute: #6e7681;
+        --accent: #58a6ff;
+        --sev-crit: #ff6b6b;
+        --sev-high: #ff8c42;
+        --sev-med: #f0c674;
+        --sev-low: #7cb7ff;
+        --sev-info: #6e7681;
+        --sev-good: #3fb950;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+          "Liberation Mono", monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.55;
+        padding: 0 env(safe-area-inset-right) 8rem env(safe-area-inset-left);
+      }
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+      header {
+        padding: 2.75rem 0 1.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 0.5rem;
+      }
+      h1 {
+        font-size: 1.85rem;
+        line-height: 1.2;
+        margin: 0 0 0.75rem;
+        letter-spacing: -0.01em;
+      }
+      .meta {
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin: 0;
+      }
+      .meta span + span::before {
+        content: " · ";
+        color: var(--text-mute);
+        padding: 0 0.25rem;
+      }
+      main { padding: 1.75rem 0 0; }
+      h2 {
+        font-size: 1.2rem;
+        margin: 2.5rem 0 0.85rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+        letter-spacing: -0.005em;
+      }
+      h2 .count {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--text-mute);
+        font-weight: 400;
+        margin-left: 0.5rem;
+      }
+      h3 {
+        font-size: 1rem;
+        margin: 1.5rem 0 0.4rem;
+        color: var(--text);
+      }
+      p { margin: 0.5rem 0; }
+      .lead {
+        font-size: 1.02rem;
+        color: var(--text);
+        margin: 0.75rem 0 1.25rem;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat {
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+      }
+      .stat .n {
+        font-family: var(--mono);
+        font-size: 1.6rem;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .stat .l {
+        display: block;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-top: 0.35rem;
+      }
+      .stat.crit .n { color: var(--sev-crit); }
+      .stat.high .n { color: var(--sev-high); }
+      .stat.med .n { color: var(--sev-med); }
+      .stat.low .n { color: var(--sev-low); }
+      .stat.good .n { color: var(--sev-good); }
+
+      /* Severity badge */
+      .badge {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+      .badge.crit {
+        color: var(--sev-crit);
+        background: rgba(255, 107, 107, 0.12);
+        border-color: rgba(255, 107, 107, 0.4);
+      }
+      .badge.high {
+        color: var(--sev-high);
+        background: rgba(255, 140, 66, 0.12);
+        border-color: rgba(255, 140, 66, 0.4);
+      }
+      .badge.med {
+        color: var(--sev-med);
+        background: rgba(240, 198, 116, 0.12);
+        border-color: rgba(240, 198, 116, 0.4);
+      }
+      .badge.low {
+        color: var(--sev-low);
+        background: rgba(124, 183, 255, 0.12);
+        border-color: rgba(124, 183, 255, 0.4);
+      }
+      .badge.info {
+        color: var(--sev-info);
+        background: rgba(110, 118, 129, 0.15);
+        border-color: rgba(110, 118, 129, 0.4);
+      }
+      .badge.good {
+        color: var(--sev-good);
+        background: rgba(63, 185, 80, 0.12);
+        border-color: rgba(63, 185, 80, 0.4);
+      }
+
+      /* Findings table */
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin: 0.75rem 0 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 760px;
+      }
+      th, td {
+        text-align: left;
+        padding: 0.65rem 0.85rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tbody tr:nth-child(even) { background: var(--bg-row); }
+      tbody tr:last-child td { border-bottom: 0; }
+      th {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        background: var(--bg-soft);
+        position: sticky;
+        top: 0;
+      }
+      td.id {
+        font-family: var(--mono);
+        color: var(--text-mute);
+        white-space: nowrap;
+      }
+      td.loc {
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      td.loc span { color: var(--text-mute); }
+
+      /* Detail cards */
+      .card {
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.15rem 1.1rem;
+        margin: 1rem 0;
+      }
+      .card > .head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.6rem;
+      }
+      .card > .head .fid {
+        font-family: var(--mono);
+        color: var(--text-mute);
+        font-size: 0.82rem;
+      }
+      .card > .head .title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text);
+        margin: 0;
+      }
+      .card .loc-line {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        color: var(--accent);
+        margin: 0 0 0.65rem;
+        word-break: break-word;
+      }
+      .card dl {
+        margin: 0.4rem 0 0;
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 0.35rem 0.85rem;
+      }
+      .card dt {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-dim);
+        padding-top: 0.1rem;
+      }
+      .card dd { margin: 0; font-size: 0.92rem; }
+      .card dd code,
+      .card p code,
+      .card li code,
+      table code,
+      .lead code {
+        font-family: var(--mono);
+        font-size: 0.84em;
+        background: rgba(110, 118, 129, 0.18);
+        padding: 0.08rem 0.35rem;
+        border-radius: 4px;
+        color: var(--text);
+      }
+      .card .fix {
+        margin-top: 0.7rem;
+        padding-top: 0.7rem;
+        border-top: 1px dashed var(--border);
+      }
+
+      /* Verified-secure list */
+      ul.checks {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+        display: grid;
+        gap: 0.5rem;
+      }
+      ul.checks li {
+        position: relative;
+        padding: 0.55rem 0.7rem 0.55rem 2rem;
+        background: var(--bg-row);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.92rem;
+      }
+      ul.checks li::before {
+        content: "✓";
+        position: absolute;
+        left: 0.6rem;
+        top: 0.55rem;
+        color: var(--sev-good);
+        font-weight: 700;
+        font-family: var(--mono);
+      }
+      ul.checks li strong { color: var(--text); }
+      ul.checks li code {
+        font-family: var(--mono);
+        font-size: 0.84em;
+        color: var(--accent);
+        background: rgba(110, 118, 129, 0.18);
+        padding: 0.05rem 0.3rem;
+        border-radius: 3px;
+      }
+
+      footer {
+        margin-top: 3rem;
+        padding: 1.25rem 0 0;
+        border-top: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--text-mute);
+      }
+      footer a { color: var(--accent); text-decoration: none; }
+
+      @media print {
+        body { background: #fff; color: #000; }
+        .card, .stat, th { background: #f6f8fa !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <p class="eyebrow">Security Audit Report</p>
+        <h1>HopperClip — Security Audit</h1>
+        <p class="meta">
+          <span>Date: 2026-07-27</span>
+          <span>Scope: full repo</span>
+          <span>Stack: TanStack Start · Convex · Clerk · Vite</span>
+          <span>Mode: read-only static analysis</span>
+        </p>
+      </header>
+
+      <main>
+        <section>
+          <h2>Executive summary</h2>
+          <p class="lead">
+            No <strong>Critical</strong> issues were found. The codebase is
+            notably well-defended for its attack surface: every Convex
+            mutation/query enforces authentication <em>and</em> per-user
+            ownership (no IDOR), the XML parser is XXE-proof by library design,
+            decompression-bomb limits are applied at every layer, no secrets are
+            committed, and the client/server environment split is clean.
+          </p>
+          <p class="lead">
+            The largest remaining gap is the
+            <strong>complete absence of HTTP security response headers</strong>
+            (CSP, HSTS, X-Frame-Options, etc.). Everything else is Low or
+            Informational hardening.
+          </p>
+
+          <div class="summary-grid">
+            <div class="stat crit"><div class="n">0</div><span class="l">Critical</span></div>
+            <div class="stat high"><div class="n">1</div><span class="l">High</span></div>
+            <div class="stat med"><div class="n">5</div><span class="l">Medium</span></div>
+            <div class="stat low"><div class="n">8</div><span class="l">Low / Info</span></div>
+            <div class="stat good"><div class="n">11</div><span class="l">Verified secure</span></div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Findings <span class="count">14 items</span></h2>
+          <p class="lead">
+            Sorted by severity. Click any <code>file:line</code> to open the
+            source in your editor (requires a configured handler).
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Sev</th>
+                  <th>Finding</th>
+                  <th>Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="id">1</td>
+                  <td><span class="badge high">High</span></td>
+                  <td>No HTTP security headers (CSP / HSTS / X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy)</td>
+                  <td class="loc">vite.config.ts <span>·</span> src/start.ts:4-12</td>
+                </tr>
+                <tr>
+                  <td class="id">2</td>
+                  <td><span class="badge med">Medium</span></td>
+                  <td>Revoking a share does not invalidate already-issued presigned R2 download URLs (no TTL set)</td>
+                  <td class="loc">convex/ghPublicAction.ts:30-39</td>
+                </tr>
+                <tr>
+                  <td class="id">3</td>
+                  <td><span class="badge med">Medium</span></td>
+                  <td>PostHog <code>capture_exceptions</code> ships stack traces to US cloud; combined with no Referrer-Policy, <code>/share?token=</code> can leak</td>
+                  <td class="loc">src/app/providers/PostHogProvider.tsx:17</td>
+                </tr>
+                <tr>
+                  <td class="id">4</td>
+                  <td><span class="badge med">Medium</span></td>
+                  <td><code>nitro</code> pinned to a beta version (<code>3.0.260311-beta</code>) in production</td>
+                  <td class="loc">package.json:42</td>
+                </tr>
+                <tr>
+                  <td class="id">5</td>
+                  <td><span class="badge med">Medium</span></td>
+                  <td>Server-side tag validation weaker than client — <code>v.array(v.string())</code>, no per-element length/charset</td>
+                  <td class="loc">convex/ghCard.ts:13-23 <span>·</span> convex/schema.ts:13</td>
+                </tr>
+                <tr>
+                  <td class="id">6</td>
+                  <td><span class="badge med">Medium</span></td>
+                  <td>XSS single-vendor dependency: <code>dangerouslySetInnerHTML</code> of Shiki output on attacker-controlled GH source</td>
+                  <td class="loc">src/app/duckerweb/components/GHScriptNode.tsx:120-124</td>
+                </tr>
+                <tr>
+                  <td class="id">7</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td>Share-token entropy ~52 bits + no rate limiting on public share actions</td>
+                  <td class="loc">src/utils/generage-shareable-link-uid.ts:1-12</td>
+                </tr>
+                <tr>
+                  <td class="id">8</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td><code>CLERK_JWT_ISSUER_DOMAIN</code> referenced with <code>!</code> but absent from env files</td>
+                  <td class="loc">convex/auth.config.ts:6</td>
+                </tr>
+                <tr>
+                  <td class="id">9</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td>Share token carried in URL query string (<code>/share?token=…</code>) — leaks via history/logs/Referer</td>
+                  <td class="loc">src/app/components/gh-card-dialog.tsx:118</td>
+                </tr>
+                <tr>
+                  <td class="id">10</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td>Code comment references a share-cleanup cron job that does not exist; expired shares accumulate</td>
+                  <td class="loc">convex/ghCard.ts:435 <span>(no cron.ts)</span></td>
+                </tr>
+                <tr>
+                  <td class="id">11</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td>Parser builds records with attacker-controlled keys without <code>Object.create(null)</code> / <code>__proto__</code> guard</td>
+                  <td class="loc">parser/src/parser.ts:46-49,395-397,534-535</td>
+                </tr>
+                <tr>
+                  <td class="id">12</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td><code>forceRedirectUrl={window.location.href}</code> echoes arbitrary URL into Clerk redirect (mitigated by Clerk allow-list)</td>
+                  <td class="loc">src/routes/_authed.tsx:18</td>
+                </tr>
+                <tr>
+                  <td class="id">13</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td><code>sortOrder</code> validated as free-form <code>v.string()</code> then cast (has default branch; not exploitable)</td>
+                  <td class="loc">convex/ghCard.ts:154-157</td>
+                </tr>
+                <tr>
+                  <td class="id">14</td>
+                  <td><span class="badge info">Info</span></td>
+                  <td>Misc hardening: R2 status text in thrown errors; Google Fonts without SRI; dead <code>JWT_PRIVATE_KEY</code>/<code>JWT_PUBLIC_KEY</code> on disk; <code>R2_URL</code> read in <code>src/utils/</code></td>
+                  <td class="loc">src/server/r2-storage.ts:20,29 <span>·</span> others</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h2>Detail</h2>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#1</span>
+              <span class="badge high">High</span>
+              <p class="title">No HTTP security response headers configured anywhere</p>
+            </div>
+            <p class="loc-line">
+              vite.config.ts · src/start.ts:4-12 · src/routes/__root.tsx:33-58
+              · (no vercel.json)
+            </p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                No CSP means any injected markup or compromised dependency has
+                no browser-enforced ceiling. Missing
+                <code>X-Frame-Options</code>/<code>frame-ancestors</code> permits
+                clickjacking. Missing HSTS allows SSL-strip on first visit.
+                Missing <code>Referrer-Policy</code> can leak full URLs
+                (including <code>?token=…</code> share tokens) to third parties
+                (Google Fonts, PostHog).
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Add a Nitro <code>routeRules</code> block in
+                  <code>vite.config.ts</code> (or a <code>vercel.json</code>
+                  headers array). Minimum baseline: CSP scoped to
+                  <code>'self'</code> + Clerk/Convex/PostHog/Fonts origins,
+                  <code>Strict-Transport-Security</code>,
+                  <code>X-Content-Type-Options: nosniff</code>,
+                  <code>Referrer-Policy: strict-origin-when-cross-origin</code>,
+                  <code>frame-ancestors 'none'</code>. Highest single-item
+                  impact in this report — also constrains findings #3 and the
+                  font-SRI note.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#2</span>
+              <span class="badge med">Medium</span>
+              <p class="title">Revoking a share does not invalidate presigned R2 URLs</p>
+            </div>
+            <p class="loc-line">convex/ghPublicAction.ts:30-39</p>
+            <dl>
+              <dt>Scenario</dt>
+              <dd>
+                The share flow signs an R2 GET URL with
+                <code>aws4fetch</code> using no explicit
+                <code>expiresIn</code>, so the URL defaults to R2's max window
+                (up to 7 days). When the owner clicks <em>Revoke</em>
+                (<code>revokeShare</code>), the <code>shares</code> row is
+                deleted and <code>/share?token=…</code> stops working —
+                <strong>but</strong> a recipient who already obtained the
+                presigned URL can keep downloading the file for the full default
+                window. The URL can also leak into logs / history / Referer.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Set an explicit short TTL (5–15 min) on the presigned URL and
+                  re-request on demand, or pass <code>X-Amz-Expires</code>. Also
+                  consider rotating the object key on revoke.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#3</span>
+              <span class="badge med">Medium</span>
+              <p class="title">PostHog captures exceptions; token may leak via Referer</p>
+            </div>
+            <p class="loc-line">src/app/providers/PostHogProvider.tsx:16-18</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>capture_exceptions: true</code> sends stack traces
+                (and any serialized locals) to the PostHog US cloud.
+                <code>capture_pageleave: true</code> + no
+                <code>Referrer-Policy</code> means the
+                <code>/share?token=…</code> query string can leak to
+                third-party origins. Inputs are already masked in session
+                replay (<code>maskAllInputs: true</code>) — good.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Add a <code>before_send</code> scrubber that strips URL search
+                  params / token fields before events leave the browser. Pair
+                  with <code>Referrer-Policy: strict-origin-when-cross-origin</code>
+                  from finding #1. Consider <code>capture_exceptions: false</code>
+                  if stack-trace egress is unacceptable.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#4</span>
+              <span class="badge med">Medium</span>
+              <p class="title">nitro pinned to a beta version in production</p>
+            </div>
+            <p class="loc-line">package.json:42</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>"nitro": "3.0.260311-beta"</code> is the server runtime.
+                Beta server runtimes carry stability and supply-chain risk.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Track a stable <code>nitro</code> release when available, or
+                  pin the exact beta with a comment and monitor for CVEs.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#5</span>
+              <span class="badge med">Medium</span>
+              <p class="title">Server-side tag validation weaker than client</p>
+            </div>
+            <p class="loc-line">convex/ghCard.ts:13-23 · convex/schema.ts:13 · src/types/types.ts:10-13</p>
+            <dl>
+              <dt>Scenario</dt>
+              <dd>
+                The shared <code>GhCardSchema</code> validates tag
+                <em>count</em> (<code>max(20)</code>) but applies no per-element
+                length or character restriction; Convex schema is even looser
+                (<code>v.array(v.string())</code>). The frontend enforces
+                ≤20 chars and alphanumeric-only, but that is trivially bypassed
+                by calling <code>api.ghCard.addPost</code> directly. An attacker
+                stores near-1-MB tag payloads that then amplify cost through
+                <code>getUserTags</code> (<code>flatMap</code>/<code>reduce</code>
+                over all posts).
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Tighten the <em>server</em> schema:
+                  <code>z.array(z.string().min(1).max(20)).max(20)</code>.
+                  Apply the same constraint in <code>convex/schema.ts</code> if
+                  DB-layer enforcement is desired.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#6</span>
+              <span class="badge med">Medium</span>
+              <p class="title">XSS defense-in-depth: Shiki output via dangerouslySetInnerHTML</p>
+            </div>
+            <p class="loc-line">
+              src/app/duckerweb/components/GHScriptNode.tsx:120-124 ·
+              src/app/duckerweb/components/GHJsonView.tsx:38-43
+            </p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                Both components feed attacker-controlled strings (GH source /
+                <code>JSON.stringify(parsedGrasshopper)</code>) into
+                <code>highlighter.codeToHtml(...)</code> and inject the result
+                with <code>dangerouslySetInnerHTML</code>. <strong>Not currently
+                exploitable</strong> — Shiki HTML-escapes tokens, and the
+                fallback branch escapes <code>&amp;</code>/<code>&lt;</code>/<code>&gt;</code>.
+                But this is single-vendor reliance on a third-party highlighter;
+                a Shiki regression or refactor of the fallback path would turn a
+                shared GH file into stored XSS in every viewer who opens the
+                share link.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Add <code>DOMPurify.sanitize</code> around Shiki output before
+                  injection, or switch to Shiki's <code>codeToTokens</code> +
+                  React renderer and drop <code>dangerouslySetInnerHTML</code>.
+                  At minimum, also escape <code>"</code> and <code>'</code> in
+                  the fallback to harden against future refactors.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#7</span>
+              <span class="badge low">Low</span>
+              <p class="title">Share-token entropy ~52 bits; no rate limiting</p>
+            </div>
+            <p class="loc-line">src/utils/generage-shareable-link-uid.ts:1-12 · convex/ghPublicAction.ts:13</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>customAlphabet(..., 10)</code> yields 36¹⁰ ≈ 2⁵¹·⁷. The
+                token is the sole bearer secret protecting both metadata
+                (<code>getSharedPost</code>) and the presigned file URL
+                (<code>generateShareableLink</code>) — both reachable
+                unauthenticated with no throttling. Below the 128-bit
+                recommendation for bearer secrets; a distributed attacker could
+                probe.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Lengthen to ≥21 chars (≥122 bits) and update
+                  <code>ShareLinkUidSchema</code>. Add Convex rate limiting
+                  (per-IP / fingerprint) on the public share actions.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#8</span>
+              <span class="badge low">Low</span>
+              <p class="title">CLERK_JWT_ISSUER_DOMAIN referenced but undefined</p>
+            </div>
+            <p class="loc-line">convex/auth.config.ts:6</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>process.env.CLERK_JWT_ISSUER_DOMAIN!</code> uses a
+                non-null assertion but the variable is absent from
+                <code>.env</code>, <code>.env.local</code>, and
+                <code>env.example</code>. Convex auth config silently receives
+                <code>domain: undefined</code>, which can cause JWT verification
+                to behave unexpectedly. (<code>JWT_PRIVATE_KEY</code> /
+                <code>JWT_PUBLIC_KEY</code> are likewise defined but unreferenced
+                in tracked app code.)
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Wire <code>CLERK_JWT_ISSUER_DOMAIN</code> into the env files +
+                  <code>env.example</code>, or remove the non-null assertion and
+                  the dead <code>JWT_*</code> keys. Document which component
+                  consumes the RSA keys.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#9</span>
+              <span class="badge low">Low</span>
+              <p class="title">Share token carried in URL query string</p>
+            </div>
+            <p class="loc-line">src/app/components/gh-card-dialog.tsx:118 · src/routes/share.tsx:18</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                Standard for share links, but the bearer secret in
+                <code>?token=…</code> leaks via browser history, shared-device
+                history, proxy/server access logs, and the <code>Referer</code>
+                header (the page loads Google Fonts and PostHog).
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Prefer a path segment (<code>/share/&lt;token&gt;</code>) plus
+                  <code>Referrer-Policy: no-referrer</code> on the share page,
+                  and ensure no third-party requests fire while the token is in
+                  the URL.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#10</span>
+              <span class="badge low">Low</span>
+              <p class="title">Missing share-cleanup cron job</p>
+            </div>
+            <p class="loc-line">convex/ghCard.ts:435 (no cron.ts / scheduled fn)</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                The comment states cleanup "will be handled by scheduled job,"
+                but no cron/scheduled function exists in
+                <code>convex/</code>. Read-time expiry checks are correct
+                (<code>getSharedPost</code>, <code>getShareableLink</code>), so
+                this is operational rather than a bypass: stale
+                <code>shares</code> rows accumulate, extending the window in
+                which a leaked presigned URL pairs with a still-present object
+                key (compounds finding #2).
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Add a daily Convex cron job that deletes <code>shares</code>
+                  rows where <code>expiryDate &lt; now</code> using the existing
+                  <code>by_expiryDate</code> index.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#11</span>
+              <span class="badge low">Low</span>
+              <p class="title">Parser record keys from attacker-controlled XML</p>
+            </div>
+            <p class="loc-line">parser/src/parser.ts:46-49,395-397,419-421,534-535</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                Several record builds use attacker-controlled
+                <code>name</code>/<code>NickName</code> as object keys without
+                sanitizing. <strong>Not global prototype pollution</strong> —
+                each assignment is single-level against a fresh <code>{}</code>,
+                so the blast radius is one malformed node, not
+                <code>Object.prototype</code>. Still worth hardening against
+                future refactors that might introduce recursive merging.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Build these maps with <code>Object.create(null)</code>, or
+                  reject keys in <code>{ "__proto__", "constructor", "prototype" }</code>.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#12</span>
+              <span class="badge low">Low</span>
+              <p class="title">forceRedirectUrl echoes full current URL</p>
+            </div>
+            <p class="loc-line">src/routes/_authed.tsx:18</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>forceRedirectUrl={window.location.href}</code> echoes any
+                query/hash an attacker appends to the URL a victim clicks before
+                the sign-in bounce. Classic open-redirect shape, but Clerk
+                validates redirect URLs against the dashboard allow-list —
+                exploitability depends entirely on that config.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Prefer a fixed target (<code>forceRedirectUrl="/ghcards"</code>)
+                  rather than echoing the full current URL.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#13</span>
+              <span class="badge low">Low</span>
+              <p class="title">sortOrder weakly validated</p>
+            </div>
+            <p class="loc-line">convex/ghCard.ts:154-157</p>
+            <dl>
+              <dt>Impact</dt>
+              <dd>
+                <code>v.optional(v.string())</code> then cast to
+                <code>SortOrder</code>. There is a <code>default</code> branch,
+                so this is <strong>not exploitable</strong> — but
+                <code>SortOrderZenum</code> already exists in the codebase and
+                is never used here, so the validation is inconsistent with
+                intent.
+              </dd>
+            </dl>
+            <div class="fix">
+              <dl>
+                <dt>Fix</dt>
+                <dd>
+                  Replace <code>v.optional(v.string())</code> with
+                  <code>v.optional(SortOrderZenum)</code> and drop the cast.
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="fid">#14</span>
+              <span class="badge info">Info</span>
+              <p class="title">Misc hardening items</p>
+            </div>
+            <p class="loc-line">src/server/r2-storage.ts:20,29 · src/routes/__root.tsx:46-52 · .env:11,22 · src/utils/utils.ts:1</p>
+            <dl>
+              <dt>Items</dt>
+              <dd>
+                <ul style="margin:0.3rem 0 0 1.1rem; padding:0;">
+                  <li>R2 status text in thrown errors may reach the client — log server-side, throw generic.</li>
+                  <li>Google Fonts loaded with <code>crossOrigin</code> but no <code>integrity</code> — covered by strict CSP <code>style-src</code> from #1.</li>
+                  <li>Dead <code>JWT_PRIVATE_KEY</code> / <code>JWT_PUBLIC_KEY</code> on disk — move to a secret manager.</li>
+                  <li><code>process.env.R2_URL</code> read in <code>src/utils/utils.ts</code> (verified server-only consumers) — relocate to <code>src/server/</code> for clarity.</li>
+                  <li><code>.vercelignore</code> only lists <code>parser/sand</code> — optionally exclude <code>convex/</code>, tests, <code>.claude/</code>.</li>
+                </ul>
+              </dd>
+            </dl>
+          </div>
+        </section>
+
+        <section>
+          <h2>Verified secure <span class="count">11 areas</span></h2>
+          <p class="lead">
+            These "usual suspects" were checked carefully and found correctly
+            protected.
+          </p>
+          <ul class="checks">
+            <li><strong>No IDOR.</strong> Every doc-id-bearing Convex function fetches the document and verifies <code>post.clerkUserId === identity.id</code> before acting (<code>convex/ghCard.ts</code>).</li>
+            <li><strong>No XXE / billion-laughs.</strong> <code>fast-xml-parser@^5.9.3</code> is non-validating and ignores DTDs/entities by design. No other XML parser in the bundle.</li>
+            <li><strong>Decompression bombs mitigated.</strong> Streaming size caps on gzip (100 MB) and raw-DEFLATE paths; 25 MiB compressed upload cap enforced server- and client-side.</li>
+            <li><strong>Binary parser is defensive.</strong> Recursion depth cap (128), bounds checks on every read, negative-length rejection, 7-bit-int overflow guards, <code>SizeBoundedWriter</code>.</li>
+            <li><strong>No <code>eval</code>/<code>new Function</code>/<code>child_process</code></strong> anywhere in <code>src/</code> or <code>parser/</code>.</li>
+            <li><strong>Stored XSS via Panel/Scribble text</strong> rendered as JSX children (auto-escaped) — not via <code>dangerouslySetInnerHTML</code>.</li>
+            <li><strong>No path traversal.</strong> Storage keys are server-generated <code>nanoid()</code> validated against <code>/^[A-Za-z0-9_-]{1,64}$/</code>; R2 key built as <code>${R2_URL}/${userId}/${storageKey}</code>.</li>
+            <li><strong>No ReDoS.</strong> Hand-written regexes use bounded <code>[^&gt;]</code> classes; no catastrophic backtracking.</li>
+            <li><strong>No secrets committed.</strong> Verified across all refs incl. <code>t3/checkpoints</code> via <code>git log --all -S</code>; <code>.gitignore</code> covers <code>.env*</code>, <code>*.tsbuildinfo</code>, <code>.output/</code>.</li>
+            <li><strong>CSRF middleware</strong> applied to all server functions (<code>src/start.ts:5</code>); Clerk JWTs cryptographically verified by Convex (<code>convex/auth.config.ts</code>).</li>
+            <li><strong>No source maps shipped</strong>; no server secrets in client bundle (<code>src/env.ts</code> server/client split).</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer>
+        Generated 2026-07-27 · Read-only static analysis ·
+        <a href="https://www.hopperclip.com/">hopperclip.com</a>
+      </footer>
+    </div>
+  </body>
+</html>
