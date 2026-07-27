@@ -12,7 +12,7 @@ import {
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
-/** Pragmatic CSP: Clerk / Convex / PostHog / R2 / Google Fonts; unsafe-inline|eval for Vite/TanStack without nonces. */
+/** Pragmatic CSP: Clerk / Convex / PostHog / R2 / Google Fonts. */
 function buildSecurityHeaders({
 	dev,
 	r2Origin,
@@ -28,7 +28,11 @@ function buildSecurityHeaders({
 		"form-action 'self'",
 		// challenges.cloudflare.com: Clerk bot protection (Turnstile);
 		// us-assets.i.posthog.com: lazy-loaded session-recording + remote-config scripts.
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.hopperclip.com https://challenges.cloudflare.com https://us-assets.i.posthog.com",
+		// 'unsafe-inline' is required in production: TanStack Start streams inline
+		// hydration scripts and several routes are prerendered to static HTML, so
+		// per-request nonces can never match (Clerk also requires it without a full
+		// strict-dynamic setup). 'unsafe-eval' is only needed by Vite's dev transforms.
+		`script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://*.clerk.com https://clerk.hopperclip.com https://challenges.cloudflare.com https://us-assets.i.posthog.com`,
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com data:",
 		"img-src 'self' data: blob: https:",
@@ -70,15 +74,22 @@ function migrateNextPublicEnv(env: Record<string, string>) {
 	}
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	migrateNextPublicEnv(env);
 
+	// Presigned R2 URLs share the bucket origin. A *.r2.cloudflarestorage.com
+	// wildcard would whitelist every R2 bucket (including attacker-controlled
+	// ones), so builds must know the exact origin.
 	const r2Url = env.R2_URL ?? process.env.R2_URL;
+	if (!r2Url && command === "build") {
+		throw new Error(
+			"R2_URL must be set at build time: the CSP connect-src needs the exact R2 bucket origin."
+		);
+	}
 	const securityHeaders = buildSecurityHeaders({
-		dev: mode === "development",
-		// Presigned R2 URLs share the bucket origin; fall back to the R2 wildcard when
-		// R2_URL is unavailable at build time (e.g. CI).
+		// `command` stays "serve" under `vite dev --mode <anything>`, unlike `mode`.
+		dev: command === "serve",
 		r2Origin: r2Url
 			? new URL(r2Url).origin
 			: "https://*.r2.cloudflarestorage.com",

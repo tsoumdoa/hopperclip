@@ -361,13 +361,20 @@
             committed, and the client/server environment split is clean.
           </p>
           <p class="lead">
-            The largest remaining gap is the
-            <strong>complete absence of HTTP security response headers</strong>
-            (CSP, HSTS, <code>frame-ancestors</code>, Referrer-Policy). That
-            single fix also constrains share-token leakage via third-party
-            requests (#3, #9). Remaining Medium items are share-download TTL
-            after revoke (#2), analytics scrubbing (#3), and server tag
-            validation (#5). Everything else is Low / Informational hardening.
+            The headline gap at audit time — a complete absence of HTTP
+            security response headers — has since been
+            <strong>remediated</strong>: <code>vite.config.ts</code> now sets
+            CSP, HSTS, <code>frame-ancestors 'none'</code>, Referrer-Policy,
+            <code>X-Content-Type-Options</code>, and Permissions-Policy on
+            every Nitro route (finding #1 / PR 1). The residual CSP gap is
+            <code>script-src 'unsafe-inline'</code>, kept in production
+            because TanStack Start streams inline hydration scripts and four
+            routes are prerendered to static HTML (per-request nonces cannot
+            match build-time markup; Clerk also requires it without
+            <code>strict-dynamic</code>); <code>'unsafe-eval'</code> is
+            dev-only. Remaining Medium items are share-download TTL after
+            revoke (#2), analytics scrubbing (#3), and server tag validation
+            (#5). Everything else is Low / Informational hardening.
           </p>
           <p class="lead" style="color: var(--text-dim); font-size: 0.92rem;">
             Revised 2026-07-27 after review: corrected aws4fetch default TTL
@@ -378,13 +385,18 @@
             <code>^[\p{L}\p{N}]+$</code>, which rejected multi-letter tags),
             corrected #11 line citations (46-49/395-397/534-535 → 87/97/102/108),
             cited aws4fetch source for #2, aligned IDOR wording to throw form.
+            Third pass 2026-07-27: security-headers layer landed (commits
+            <code>41c4f4a</code>, <code>30b2475</code>, plus production CSP
+            hardening — dev-only <code>'unsafe-eval'</code>, exact R2 origin
+            required at build time); #1 marked Remediated, High count 1 → 0.
           </p>
 
           <div class="summary-grid">
             <div class="stat crit"><div class="n">0</div><span class="l">Critical</span></div>
-            <div class="stat high"><div class="n">1</div><span class="l">High</span></div>
+            <div class="stat high"><div class="n">0</div><span class="l">High</span></div>
             <div class="stat med"><div class="n">3</div><span class="l">Medium</span></div>
             <div class="stat low"><div class="n">10</div><span class="l">Low / Info</span></div>
+            <div class="stat good"><div class="n">1</div><span class="l">Remediated (#1)</span></div>
             <div class="stat good"><div class="n">11</div><span class="l">Verified secure</span></div>
           </div>
         </section>
@@ -408,9 +420,9 @@
               <tbody>
                 <tr>
                   <td class="id">1</td>
-                  <td><span class="badge high">High</span></td>
-                  <td>No HTTP security headers (CSP / HSTS / X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy)</td>
-                  <td class="loc">vite.config.ts <span>·</span> src/start.ts:4-12</td>
+                  <td><span class="badge good">Fixed</span></td>
+                  <td>HTTP security headers (was High: none configured) — CSP / HSTS / X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy / COOP now set on all routes; residual: <code>script-src 'unsafe-inline'</code> (see detail)</td>
+                  <td class="loc">vite.config.ts:16-52</td>
                 </tr>
                 <tr>
                   <td class="id">2</td>
@@ -421,7 +433,7 @@
                 <tr>
                   <td class="id">3</td>
                   <td><span class="badge med">Medium</span></td>
-                  <td>PostHog <code>capture_exceptions</code> ships stack traces; without Referrer-Policy, <code>/share?token=</code> can leak to third parties</td>
+                  <td>PostHog <code>capture_exceptions</code> ships stack traces; captured URLs can still carry <code>/share?token=</code> (Referer leakage to third parties now limited by #1's Referrer-Policy)</td>
                   <td class="loc">src/app/providers/PostHogProvider.tsx:17</td>
                 </tr>
                 <tr>
@@ -501,42 +513,59 @@
           <div class="card">
             <div class="head">
               <span class="fid">#1</span>
-              <span class="badge high">High</span>
-              <p class="title">No HTTP security response headers configured anywhere</p>
+              <span class="badge good">Fixed</span>
+              <p class="title">HTTP security response headers — remediated via Nitro routeRules</p>
             </div>
             <p class="loc-line">
-              vite.config.ts · src/start.ts:4-12 · src/routes/__root.tsx:33-58
-              · (no vercel.json)
+              vite.config.ts:16-52 (<code>buildSecurityHeaders</code>) ·
+              applied to <code>/**</code> via the <code>nitro()</code> plugin
             </p>
             <dl>
-              <dt>Impact</dt>
+              <dt>Original impact (pre-remediation)</dt>
               <dd>
-                No CSP means any injected markup or compromised dependency has
-                no browser-enforced ceiling. Missing
-                <code>X-Frame-Options</code>/<code>frame-ancestors</code> permits
-                clickjacking. Missing HSTS allows SSL-strip on first visit.
-                Missing <code>Referrer-Policy</code> can leak full URLs
-                (including <code>?token=…</code> share tokens) to third parties
-                (Google Fonts, PostHog).
+                No CSP meant any injected markup or compromised dependency had
+                no browser-enforced ceiling; missing
+                <code>frame-ancestors</code> permitted clickjacking; missing
+                HSTS allowed SSL-strip on first visit; missing
+                <code>Referrer-Policy</code> could leak <code>?token=…</code>
+                share URLs to third parties.
+              </dd>
+              <dt>Configured now</dt>
+              <dd>
+                CSP with <code>default-src 'self'</code>,
+                <code>object-src 'none'</code>,
+                <code>frame-ancestors 'none'</code>,
+                <code>base-uri 'self'</code>, <code>form-action 'self'</code>,
+                script/style/connect/frame sources scoped to Clerk, Convex,
+                PostHog, Cloudflare Turnstile, Google Fonts, and the exact R2
+                bucket origin, plus <code>upgrade-insecure-requests</code> in
+                production builds. Companion headers:
+                <code>Strict-Transport-Security</code> (1y, includeSubDomains,
+                preload), <code>X-Content-Type-Options: nosniff</code>,
+                <code>X-Frame-Options: DENY</code>,
+                <code>Referrer-Policy: strict-origin-when-cross-origin</code>,
+                <code>Permissions-Policy</code> (camera/mic/geolocation
+                denied), <code>Cross-Origin-Opener-Policy: same-origin</code>.
+                Production builds fail unless <code>R2_URL</code> is set, so
+                <code>connect-src</code> pins the exact bucket origin rather
+                than a <code>*.r2.cloudflarestorage.com</code> wildcard.
+              </dd>
+              <dt>Residual risk</dt>
+              <dd>
+                <code>script-src</code> retains <code>'unsafe-inline'</code>
+                in production: TanStack Start streams inline hydration
+                scripts, and four routes are prerendered to static HTML, so a
+                per-request nonce can never match build-time markup (Clerk
+                likewise requires it without a <code>strict-dynamic</code>
+                setup). Inline-script injection is therefore not blocked by
+                CSP; compensating controls are React/JSX auto-escaping (see
+                “Verified secure”) and the
+                <code>object-src</code>/<code>base-uri</code>/<code>form-action</code>
+                lockdown. <code>'unsafe-eval'</code> is emitted only for the
+                Vite dev server. Revisit nonces if prerendering is dropped or
+                an edge HTML-rewrite layer is added.
               </dd>
             </dl>
-            <div class="fix">
-              <dl>
-                <dt>Fix</dt>
-                <dd>
-                  Add a Nitro <code>routeRules</code> block in
-                  <code>vite.config.ts</code> (or a <code>vercel.json</code>
-                  headers array). Minimum baseline: CSP scoped to
-                  <code>'self'</code> + Clerk/Convex/PostHog/Fonts origins,
-                  <code>Strict-Transport-Security</code>,
-                  <code>X-Content-Type-Options: nosniff</code>,
-                  <code>Referrer-Policy: strict-origin-when-cross-origin</code>,
-                  <code>frame-ancestors 'none'</code>. Highest single-item
-                  impact in this report — also constrains findings #3 and the
-                  font-SRI note.
-                </dd>
-              </dl>
-            </div>
           </div>
 
           <div class="card">
@@ -961,23 +990,28 @@
 
           <div class="card">
             <div class="head">
-              <span class="badge high">PR 1</span>
+              <span class="badge good">PR 1 — shipped</span>
               <p class="title">HTTP security headers</p>
             </div>
             <dl>
               <dt>Covers</dt>
               <dd>#1 (partially #3 Referer, #9, #14 fonts)</dd>
-              <dt>Scope</dt>
+              <dt>Landed as</dt>
               <dd>
-                Nitro <code>routeRules</code> / platform headers: CSP
-                (Clerk, Convex, PostHog, Fonts), HSTS,
-                <code>X-Content-Type-Options</code>,
-                <code>Referrer-Policy</code>,
-                <code>frame-ancestors 'none'</code>,
-                <code>Permissions-Policy</code>. Start CSP in Report-Only if needed.
+                Commit <code>41c4f4a</code> (headers via Nitro
+                <code>routeRules</code>), <code>30b2475</code> (CSP fixes for
+                R2 presigned fetches, PostHog session recording, Clerk
+                Turnstile), plus production hardening: dev-only
+                <code>'unsafe-eval'</code>, exact R2 bucket origin required at
+                build time, dev detection via Vite's
+                <code>command === "serve"</code>.
               </dd>
-              <dt>Risk</dt>
-              <dd>CSP breakage on auth/analytics — test sign-in, share page, upload.</dd>
+              <dt>Follow-up</dt>
+              <dd>
+                <code>script-src 'unsafe-inline'</code> remains in production
+                — see #1 residual risk. Re-test sign-in, share page, and
+                upload after any CSP change.
+              </dd>
             </dl>
           </div>
 
@@ -1081,8 +1115,9 @@
           </div>
 
           <p class="lead" style="margin-top:1.25rem; color: var(--text-dim); font-size: 0.92rem;">
-            Suggested merge order: PR1 → PR2 → PR3 → PR4, then PR5/PR6 anytime.
-            Do not block on #4 (nitro stable) — track upstream separately.
+            PR 1 has landed. Suggested order for the rest: PR2 → PR3 → PR4,
+            then PR5/PR6 anytime. Do not block on #4 (nitro stable) — track
+            upstream separately.
           </p>
         </section>
 
