@@ -12,6 +12,34 @@ import {
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
+/** Pragmatic CSP: Clerk / Convex / PostHog / Google Fonts; unsafe-inline|eval for Vite/TanStack without nonces. */
+const CONTENT_SECURITY_POLICY = [
+	"default-src 'self'",
+	"base-uri 'self'",
+	"object-src 'none'",
+	"frame-ancestors 'none'",
+	"form-action 'self'",
+	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://clerk.hopperclip.com",
+	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+	"font-src 'self' https://fonts.gstatic.com data:",
+	"img-src 'self' data: blob: https:",
+	"connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.posthog.com",
+	"frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com",
+	"worker-src 'self' blob:",
+	"upgrade-insecure-requests",
+].join("; ");
+
+const SECURITY_HEADERS = {
+	"Content-Security-Policy": CONTENT_SECURITY_POLICY,
+	"Strict-Transport-Security":
+		"max-age=31536000; includeSubDomains; preload",
+	"X-Content-Type-Options": "nosniff",
+	"X-Frame-Options": "DENY",
+	"Referrer-Policy": "strict-origin-when-cross-origin",
+	"Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+	"Cross-Origin-Opener-Policy": "same-origin",
+} as const;
+
 const nextPublicToViteAliases: [string, string][] = [
 	["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "VITE_CLERK_PUBLISHABLE_KEY"],
 	["NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "CLERK_PUBLISHABLE_KEY"],
@@ -54,7 +82,13 @@ export default defineConfig(({ mode }) => {
 				pages: STATIC_PRERENDER_PATHS.map((path) => ({ path })),
 			}),
 			viteReact(),
-			nitro(),
+			nitro({
+				routeRules: {
+					"/**": {
+						headers: { ...SECURITY_HEADERS },
+					},
+				},
+			}),
 		],
 		resolve: {
 			alias: [
