@@ -1,6 +1,7 @@
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 import viteReact from "@vitejs/plugin-react";
+// nitro 3.x beta is currently required by TanStack Start — track stable releases.
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 import path from "node:path";

@@ -2,7 +2,7 @@ import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { r2Client } from "./bucket";
-import { bucketUrl } from "@/utils/utils";
+import { bucketUrl } from "./bucket-url";
 import { MAX_COMPRESSED_GH_XML_BYTES, StorageKeySchema } from "@/types/types";
 
 async function requireAuthenticatedUserId() {
@@ -17,7 +17,8 @@ async function requireAuthenticatedUserId() {
 
 async function ensureOk(res: Response, action: string) {
 	if (!res.ok) {
-		throw new Error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
+		console.error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
+		throw new Error("Storage operation failed");
 	}
 }
 
@@ -26,7 +27,8 @@ async function ensureDeleted(res: Response) {
 	if (res.ok || res.status === 404) {
 		return;
 	}
-	throw new Error(`R2 delete failed: ${res.status} ${res.statusText}`);
+	console.error(`R2 delete failed: ${res.status} ${res.statusText}`);
+	throw new Error("Storage operation failed");
 }
 
 export const uploadToBucket = createServerFn({ method: "POST" })
