@@ -363,15 +363,28 @@
           <p class="lead">
             The largest remaining gap is the
             <strong>complete absence of HTTP security response headers</strong>
-            (CSP, HSTS, X-Frame-Options, etc.). Everything else is Low or
-            Informational hardening.
+            (CSP, HSTS, <code>frame-ancestors</code>, Referrer-Policy). That
+            single fix also constrains share-token leakage via third-party
+            requests (#3, #9). Remaining Medium items are share-download TTL
+            after revoke (#2), analytics scrubbing (#3), and server tag
+            validation (#5). Everything else is Low / Informational hardening.
+          </p>
+          <p class="lead" style="color: var(--text-dim); font-size: 0.92rem;">
+            Revised 2026-07-27 after review: corrected aws4fetch default TTL
+            (24h, not 7d), reframed #8 as docs/env hygiene (Convex dashboard
+            env), fixed #9 Referer guidance, demoted #4/#6 (not currently
+            exploitable / expected TanStack pin). Second pass 2026-07-27: fixed
+            buggy #5 recommended regex (<code>^\p{L}\p{N}*$</code> →
+            <code>^[\p{L}\p{N}]+$</code>, which rejected multi-letter tags),
+            corrected #11 line citations (46-49/395-397/534-535 → 87/97/102/108),
+            cited aws4fetch source for #2, aligned IDOR wording to throw form.
           </p>
 
           <div class="summary-grid">
             <div class="stat crit"><div class="n">0</div><span class="l">Critical</span></div>
             <div class="stat high"><div class="n">1</div><span class="l">High</span></div>
-            <div class="stat med"><div class="n">5</div><span class="l">Medium</span></div>
-            <div class="stat low"><div class="n">8</div><span class="l">Low / Info</span></div>
+            <div class="stat med"><div class="n">3</div><span class="l">Medium</span></div>
+            <div class="stat low"><div class="n">10</div><span class="l">Low / Info</span></div>
             <div class="stat good"><div class="n">11</div><span class="l">Verified secure</span></div>
           </div>
         </section>
@@ -379,8 +392,7 @@
         <section>
           <h2>Findings <span class="count">14 items</span></h2>
           <p class="lead">
-            Sorted by severity. Click any <code>file:line</code> to open the
-            source in your editor (requires a configured handler).
+            Sorted by severity. IDs are stable across revisions.
           </p>
 
           <div class="table-wrap">
@@ -403,32 +415,20 @@
                 <tr>
                   <td class="id">2</td>
                   <td><span class="badge med">Medium</span></td>
-                  <td>Revoking a share does not invalidate already-issued presigned R2 download URLs (no TTL set)</td>
+                  <td>Revoking a share does not invalidate already-issued presigned R2 download URLs (default TTL 24h)</td>
                   <td class="loc">convex/ghPublicAction.ts:30-39</td>
                 </tr>
                 <tr>
                   <td class="id">3</td>
                   <td><span class="badge med">Medium</span></td>
-                  <td>PostHog <code>capture_exceptions</code> ships stack traces to US cloud; combined with no Referrer-Policy, <code>/share?token=</code> can leak</td>
+                  <td>PostHog <code>capture_exceptions</code> ships stack traces; without Referrer-Policy, <code>/share?token=</code> can leak to third parties</td>
                   <td class="loc">src/app/providers/PostHogProvider.tsx:17</td>
-                </tr>
-                <tr>
-                  <td class="id">4</td>
-                  <td><span class="badge med">Medium</span></td>
-                  <td><code>nitro</code> pinned to a beta version (<code>3.0.260311-beta</code>) in production</td>
-                  <td class="loc">package.json:42</td>
                 </tr>
                 <tr>
                   <td class="id">5</td>
                   <td><span class="badge med">Medium</span></td>
-                  <td>Server-side tag validation weaker than client — <code>v.array(v.string())</code>, no per-element length/charset</td>
-                  <td class="loc">convex/ghCard.ts:13-23 <span>·</span> convex/schema.ts:13</td>
-                </tr>
-                <tr>
-                  <td class="id">6</td>
-                  <td><span class="badge med">Medium</span></td>
-                  <td>XSS single-vendor dependency: <code>dangerouslySetInnerHTML</code> of Shiki output on attacker-controlled GH source</td>
-                  <td class="loc">src/app/duckerweb/components/GHScriptNode.tsx:120-124</td>
+                  <td>Shared Zod tag schema validates count only — no per-element length/charset (UI rules bypassable)</td>
+                  <td class="loc">src/types/types.ts:12 <span>·</span> convex/schema.ts:13</td>
                 </tr>
                 <tr>
                   <td class="id">7</td>
@@ -437,33 +437,45 @@
                   <td class="loc">src/utils/generage-shareable-link-uid.ts:1-12</td>
                 </tr>
                 <tr>
+                  <td class="id">6</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td>Defense-in-depth: <code>dangerouslySetInnerHTML</code> of Shiki output (not currently exploitable)</td>
+                  <td class="loc">src/app/duckerweb/components/GHScriptNode.tsx:120-124</td>
+                </tr>
+                <tr>
+                  <td class="id">4</td>
+                  <td><span class="badge low">Low</span></td>
+                  <td><code>nitro</code> pinned to a beta version (<code>3.0.260311-beta</code>) — expected for current TanStack Start</td>
+                  <td class="loc">package.json</td>
+                </tr>
+                <tr>
                   <td class="id">8</td>
                   <td><span class="badge low">Low</span></td>
-                  <td><code>CLERK_JWT_ISSUER_DOMAIN</code> referenced with <code>!</code> but absent from env files</td>
+                  <td><code>CLERK_JWT_ISSUER_DOMAIN</code> used with <code>!</code> but undocumented in <code>env.example</code> (Convex dashboard env)</td>
                   <td class="loc">convex/auth.config.ts:6</td>
                 </tr>
                 <tr>
                   <td class="id">9</td>
                   <td><span class="badge low">Low</span></td>
-                  <td>Share token carried in URL query string (<code>/share?token=…</code>) — leaks via history/logs/Referer</td>
+                  <td>Share token in URL (<code>/share?token=…</code>) — leaks via history/logs/Referer</td>
                   <td class="loc">src/app/components/gh-card-dialog.tsx:118</td>
                 </tr>
                 <tr>
                   <td class="id">10</td>
                   <td><span class="badge low">Low</span></td>
-                  <td>Code comment references a share-cleanup cron job that does not exist; expired shares accumulate</td>
+                  <td>Comment references a share-cleanup cron that does not exist; expired shares accumulate</td>
                   <td class="loc">convex/ghCard.ts:435 <span>(no cron.ts)</span></td>
                 </tr>
                 <tr>
                   <td class="id">11</td>
                   <td><span class="badge low">Low</span></td>
                   <td>Parser builds records with attacker-controlled keys without <code>Object.create(null)</code> / <code>__proto__</code> guard</td>
-                  <td class="loc">parser/src/parser.ts:46-49,395-397,534-535</td>
+                  <td class="loc">parser/src/parser.ts:87,97,102,108</td>
                 </tr>
                 <tr>
                   <td class="id">12</td>
                   <td><span class="badge low">Low</span></td>
-                  <td><code>forceRedirectUrl={window.location.href}</code> echoes arbitrary URL into Clerk redirect (mitigated by Clerk allow-list)</td>
+                  <td><code>forceRedirectUrl={window.location.href}</code> echoes full URL (mitigated by Clerk allow-list)</td>
                   <td class="loc">src/routes/_authed.tsx:18</td>
                 </tr>
                 <tr>
@@ -475,7 +487,7 @@
                 <tr>
                   <td class="id">14</td>
                   <td><span class="badge info">Info</span></td>
-                  <td>Misc hardening: R2 status text in thrown errors; Google Fonts without SRI; dead <code>JWT_PRIVATE_KEY</code>/<code>JWT_PUBLIC_KEY</code> on disk; <code>R2_URL</code> read in <code>src/utils/</code></td>
+                  <td>Misc hardening: R2 status text in thrown errors; Google Fonts without SRI; unused local <code>JWT_*</code> env keys; <code>R2_URL</code> read in <code>src/utils/</code></td>
                   <td class="loc">src/server/r2-storage.ts:20,29 <span>·</span> others</td>
                 </tr>
               </tbody>
@@ -538,23 +550,27 @@
               <dt>Scenario</dt>
               <dd>
                 The share flow signs an R2 GET URL with
-                <code>aws4fetch</code> using no explicit
-                <code>expiresIn</code>, so the URL defaults to R2's max window
-                (up to 7 days). When the owner clicks <em>Revoke</em>
+                <code>aws4fetch</code> without setting
+                <code>X-Amz-Expires</code>. The library then defaults to
+                <code>X-Amz-Expires: 86400</code> (24 hours) for S3/R2 query
+                signing — verified at <code>aws4fetch@1.0.20</code> source
+                lines 122-123 (R2 URLs resolve to <code>service='s3'</code>,
+                triggering the default) — not R2's 7-day maximum. When the owner clicks <em>Revoke</em>
                 (<code>revokeShare</code>), the <code>shares</code> row is
                 deleted and <code>/share?token=…</code> stops working —
                 <strong>but</strong> a recipient who already obtained the
-                presigned URL can keep downloading the file for the full default
-                window. The URL can also leak into logs / history / Referer.
+                presigned URL can keep downloading the file for the remaining
+                TTL. The URL can also leak into logs / history / Referer.
               </dd>
             </dl>
             <div class="fix">
               <dl>
                 <dt>Fix</dt>
                 <dd>
-                  Set an explicit short TTL (5–15 min) on the presigned URL and
-                  re-request on demand, or pass <code>X-Amz-Expires</code>. Also
-                  consider rotating the object key on revoke.
+                  Set an explicit short TTL (5–15 min) via
+                  <code>X-Amz-Expires</code> on the signed request and
+                  re-request on demand. Optionally rotate the object key on
+                  revoke for hard invalidation.
                 </dd>
               </dl>
             </div>
@@ -570,13 +586,14 @@
             <dl>
               <dt>Impact</dt>
               <dd>
-                <code>capture_exceptions: true</code> sends stack traces
-                (and any serialized locals) to the PostHog US cloud.
-                <code>capture_pageleave: true</code> + no
-                <code>Referrer-Policy</code> means the
-                <code>/share?token=…</code> query string can leak to
-                third-party origins. Inputs are already masked in session
-                replay (<code>maskAllInputs: true</code>) — good.
+                Two related but separable issues:
+                (1) <code>capture_exceptions: true</code> sends stack traces
+                (and any serialized locals) to the PostHog US cloud;
+                (2) without <code>Referrer-Policy</code>,
+                <code>/share?token=…</code> can leak on third-party requests
+                (Fonts, PostHog). Session replay already masks inputs
+                (<code>maskAllInputs: true</code>) — good. Item (2) is largely
+                fixed by finding #1; keep a scrubber for (1).
               </dd>
             </dl>
             <div class="fix">
@@ -585,9 +602,9 @@
                 <dd>
                   Add a <code>before_send</code> scrubber that strips URL search
                   params / token fields before events leave the browser. Pair
-                  with <code>Referrer-Policy: strict-origin-when-cross-origin</code>
-                  from finding #1. Consider <code>capture_exceptions: false</code>
-                  if stack-trace egress is unacceptable.
+                  with <code>Referrer-Policy</code> from finding #1. Consider
+                  <code>capture_exceptions: false</code> if stack-trace egress
+                  is unacceptable.
                 </dd>
               </dl>
             </div>
@@ -596,23 +613,25 @@
           <div class="card">
             <div class="head">
               <span class="fid">#4</span>
-              <span class="badge med">Medium</span>
+              <span class="badge low">Low</span>
               <p class="title">nitro pinned to a beta version in production</p>
             </div>
-            <p class="loc-line">package.json:42</p>
+            <p class="loc-line">package.json</p>
             <dl>
               <dt>Impact</dt>
               <dd>
                 <code>"nitro": "3.0.260311-beta"</code> is the server runtime.
-                Beta server runtimes carry stability and supply-chain risk.
+                This pin is currently expected for TanStack Start — supply-chain
+                / stability risk, not an active vulnerability. Track stable
+                releases; do not block other hardening on upgrading.
               </dd>
             </dl>
             <div class="fix">
               <dl>
                 <dt>Fix</dt>
                 <dd>
-                  Track a stable <code>nitro</code> release when available, or
-                  pin the exact beta with a comment and monitor for CVEs.
+                  Comment the pin with the TanStack constraint, monitor CVEs,
+                  and move to a stable <code>nitro</code> when Start supports it.
                 </dd>
               </dl>
             </div>
@@ -622,31 +641,32 @@
             <div class="head">
               <span class="fid">#5</span>
               <span class="badge med">Medium</span>
-              <p class="title">Server-side tag validation weaker than client</p>
+              <p class="title">Shared Zod tag schema validates count only</p>
             </div>
-            <p class="loc-line">convex/ghCard.ts:13-23 · convex/schema.ts:13 · src/types/types.ts:10-13</p>
+            <p class="loc-line">src/types/types.ts:12 · convex/schema.ts:13 · src/app/hooks/use-validate-name-and-description.ts:31-66</p>
             <dl>
               <dt>Scenario</dt>
               <dd>
-                The shared <code>GhCardSchema</code> validates tag
-                <em>count</em> (<code>max(20)</code>) but applies no per-element
-                length or character restriction; Convex schema is even looser
-                (<code>v.array(v.string())</code>). The frontend enforces
-                ≤20 chars and alphanumeric-only, but that is trivially bypassed
-                by calling <code>api.ghCard.addPost</code> directly. An attacker
-                stores near-1-MB tag payloads that then amplify cost through
-                <code>getUserTags</code> (<code>flatMap</code>/<code>reduce</code>
-                over all posts).
+                <code>addPost</code>/<code>updatePost</code> already run
+                <code>GhCardSchema.parse</code>, which caps tag
+                <em>count</em> at 20 but applies no per-element length or
+                charset. The UI enforces ≤20 chars and
+                <code>\p{L}\p{N}</code> (Unicode letters/numbers — not ASCII
+                alphanumeric-only), but that is bypassable by calling the
+                mutation directly. Convex DB schema is looser still
+                (<code>v.array(v.string())</code>). An attacker can store
+                oversized tag strings that amplify cost through
+                <code>getUserTags</code>.
               </dd>
             </dl>
             <div class="fix">
               <dl>
                 <dt>Fix</dt>
                 <dd>
-                  Tighten the <em>server</em> schema:
-                  <code>z.array(z.string().min(1).max(20)).max(20)</code>.
-                  Apply the same constraint in <code>convex/schema.ts</code> if
-                  DB-layer enforcement is desired.
+                  Tighten the shared schema:
+                  <code>z.array(z.string().min(1).max(20).regex(/^[\p{L}\p{N}]+$/u)).max(20)</code>
+                  (or equivalent). Optionally mirror in
+                  <code>convex/schema.ts</code> if DB-layer enforcement is desired.
                 </dd>
               </dl>
             </div>
@@ -655,8 +675,8 @@
           <div class="card">
             <div class="head">
               <span class="fid">#6</span>
-              <span class="badge med">Medium</span>
-              <p class="title">XSS defense-in-depth: Shiki output via dangerouslySetInnerHTML</p>
+              <span class="badge low">Low</span>
+              <p class="title">Defense-in-depth: Shiki output via dangerouslySetInnerHTML</p>
             </div>
             <p class="loc-line">
               src/app/duckerweb/components/GHScriptNode.tsx:120-124 ·
@@ -671,10 +691,8 @@
                 with <code>dangerouslySetInnerHTML</code>. <strong>Not currently
                 exploitable</strong> — Shiki HTML-escapes tokens, and the
                 fallback branch escapes <code>&amp;</code>/<code>&lt;</code>/<code>&gt;</code>.
-                But this is single-vendor reliance on a third-party highlighter;
-                a Shiki regression or refactor of the fallback path would turn a
-                shared GH file into stored XSS in every viewer who opens the
-                share link.
+                Rated Low as single-vendor reliance: a Shiki regression or
+                fallback refactor could turn a shared GH file into stored XSS.
               </dd>
             </dl>
             <div class="fix">
@@ -726,30 +744,34 @@
             <div class="head">
               <span class="fid">#8</span>
               <span class="badge low">Low</span>
-              <p class="title">CLERK_JWT_ISSUER_DOMAIN referenced but undefined</p>
+              <p class="title">CLERK_JWT_ISSUER_DOMAIN undocumented; unsafe ! assertion</p>
             </div>
-            <p class="loc-line">convex/auth.config.ts:6</p>
+            <p class="loc-line">convex/auth.config.ts:6 · env.example</p>
             <dl>
               <dt>Impact</dt>
               <dd>
                 <code>process.env.CLERK_JWT_ISSUER_DOMAIN!</code> uses a
-                non-null assertion but the variable is absent from
-                <code>.env</code>, <code>.env.local</code>, and
-                <code>env.example</code>. Convex auth config silently receives
-                <code>domain: undefined</code>, which can cause JWT verification
-                to behave unexpectedly. (<code>JWT_PRIVATE_KEY</code> /
-                <code>JWT_PUBLIC_KEY</code> are likewise defined but unreferenced
-                in tracked app code.)
+                non-null assertion, and the variable is absent from
+                <code>env.example</code> / local <code>.env*</code> templates.
+                In production this is typically set as a
+                <strong>Convex dashboard</strong> env var — absence from the
+                repo does <em>not</em> mean live auth receives
+                <code>domain: undefined</code>. The real gaps are: onboarding
+                docs omit a required Convex env, and a failed local/misconfigured
+                deploy fails opaquely. Unused local <code>JWT_PRIVATE_KEY</code> /
+                <code>JWT_PUBLIC_KEY</code> (if present only in ignored
+                <code>.env</code>) are hygiene, not committed secrets.
               </dd>
             </dl>
             <div class="fix">
               <dl>
                 <dt>Fix</dt>
                 <dd>
-                  Wire <code>CLERK_JWT_ISSUER_DOMAIN</code> into the env files +
-                  <code>env.example</code>, or remove the non-null assertion and
-                  the dead <code>JWT_*</code> keys. Document which component
-                  consumes the RSA keys.
+                  Document <code>CLERK_JWT_ISSUER_DOMAIN</code> in
+                  <code>env.example</code> / README as a Convex dashboard
+                  variable. Prefer failing fast when unset over
+                  <code>!</code>. Remove unused <code>JWT_*</code> keys from
+                  local env if nothing consumes them.
                 </dd>
               </dl>
             </div>
@@ -767,18 +789,23 @@
               <dd>
                 Standard for share links, but the bearer secret in
                 <code>?token=…</code> leaks via browser history, shared-device
-                history, proxy/server access logs, and the <code>Referer</code>
-                header (the page loads Google Fonts and PostHog).
+                history, some proxy/server access logs, and the
+                <code>Referer</code> header (the page loads Google Fonts and
+                PostHog). Moving to a path segment
+                (<code>/share/&lt;token&gt;</code>) does
+                <strong>not</strong> stop Referer leakage — the path is still
+                sent — though some access logs strip query strings only.
               </dd>
             </dl>
             <div class="fix">
               <dl>
                 <dt>Fix</dt>
                 <dd>
-                  Prefer a path segment (<code>/share/&lt;token&gt;</code>) plus
-                  <code>Referrer-Policy: no-referrer</code> on the share page,
-                  and ensure no third-party requests fire while the token is in
-                  the URL.
+                  Primary: ship <code>Referrer-Policy</code> from finding #1
+                  (prefer <code>no-referrer</code> or
+                  <code>strict-origin-when-cross-origin</code> on the share
+                  page) and scrub analytics (#3). Optional: path-segment URL
+                  for cleaner links / log hygiene, not as a Referer fix.
                 </dd>
               </dl>
             </div>
@@ -822,13 +849,13 @@
               <span class="badge low">Low</span>
               <p class="title">Parser record keys from attacker-controlled XML</p>
             </div>
-            <p class="loc-line">parser/src/parser.ts:46-49,395-397,419-421,534-535</p>
+            <p class="loc-line">parser/src/parser.ts:87,97,102,108</p>
             <dl>
               <dt>Impact</dt>
               <dd>
                 Several record builds use attacker-controlled
-                <code>name</code>/<code>NickName</code> as object keys without
-                sanitizing. <strong>Not global prototype pollution</strong> —
+                <code>name</code> (from <code>item.Name</code>) as object keys
+                (<code>result[name] = &#123; &#125;</code>) without sanitizing. <strong>Not global prototype pollution</strong> —
                 each assignment is single-level against a fresh <code>{}</code>,
                 so the blast radius is one malformed node, not
                 <code>Object.prototype</code>. Still worth hardening against
@@ -909,20 +936,154 @@
               <span class="badge info">Info</span>
               <p class="title">Misc hardening items</p>
             </div>
-            <p class="loc-line">src/server/r2-storage.ts:20,29 · src/routes/__root.tsx:46-52 · .env:11,22 · src/utils/utils.ts:1</p>
+            <p class="loc-line">src/server/r2-storage.ts:20,29 · src/routes/__root.tsx:46-52 · src/utils/utils.ts:1</p>
             <dl>
               <dt>Items</dt>
               <dd>
                 <ul style="margin:0.3rem 0 0 1.1rem; padding:0;">
                   <li>R2 status text in thrown errors may reach the client — log server-side, throw generic.</li>
                   <li>Google Fonts loaded with <code>crossOrigin</code> but no <code>integrity</code> — covered by strict CSP <code>style-src</code> from #1.</li>
-                  <li>Dead <code>JWT_PRIVATE_KEY</code> / <code>JWT_PUBLIC_KEY</code> on disk — move to a secret manager.</li>
+                  <li>Unused <code>JWT_PRIVATE_KEY</code> / <code>JWT_PUBLIC_KEY</code> in local env (gitignored) — remove if unused; do not treat as committed secrets.</li>
                   <li><code>process.env.R2_URL</code> read in <code>src/utils/utils.ts</code> (verified server-only consumers) — relocate to <code>src/server/</code> for clarity.</li>
-                  <li><code>.vercelignore</code> only lists <code>parser/sand</code> — optionally exclude <code>convex/</code>, tests, <code>.claude/</code>.</li>
+                  <li><code>.vercelignore</code> only lists <code>parser/sand</code> — optionally exclude tests, <code>.claude/</code>.</li>
                 </ul>
               </dd>
             </dl>
           </div>
+        </section>
+
+        <section>
+          <h2>Recommended PRs</h2>
+          <p class="lead">
+            Split remediation so each PR is reviewable and shippable alone.
+            Order is priority; later PRs assume earlier ones may already land.
+          </p>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge high">PR 1</span>
+              <p class="title">HTTP security headers</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#1 (partially #3 Referer, #9, #14 fonts)</dd>
+              <dt>Scope</dt>
+              <dd>
+                Nitro <code>routeRules</code> / platform headers: CSP
+                (Clerk, Convex, PostHog, Fonts), HSTS,
+                <code>X-Content-Type-Options</code>,
+                <code>Referrer-Policy</code>,
+                <code>frame-ancestors 'none'</code>,
+                <code>Permissions-Policy</code>. Start CSP in Report-Only if needed.
+              </dd>
+              <dt>Risk</dt>
+              <dd>CSP breakage on auth/analytics — test sign-in, share page, upload.</dd>
+            </dl>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge med">PR 2</span>
+              <p class="title">Share download TTL + revoke hardening</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#2, optionally #10</dd>
+              <dt>Scope</dt>
+              <dd>
+                Explicit short <code>X-Amz-Expires</code> (5–15 min) in
+                <code>ghPublicAction</code>; client re-fetches when needed.
+                Optional follow-up in same or next PR: Convex cron deleting
+                expired <code>shares</code> via <code>by_expiryDate</code>.
+              </dd>
+              <dt>Risk</dt>
+              <dd>Long idle share viewers need a re-sign path before download.</dd>
+            </dl>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge med">PR 3</span>
+              <p class="title">Analytics scrubbing + share token strength</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#3, #7</dd>
+              <dt>Scope</dt>
+              <dd>
+                PostHog <code>before_send</code> strips search params / tokens;
+                lengthen share UID (≥21 chars) + update
+                <code>ShareLinkUidSchema</code>; add rate limiting on public
+                share actions if Convex helpers are available.
+              </dd>
+              <dt>Risk</dt>
+              <dd>Existing 10-char tokens remain valid until expiry — migrate or dual-accept briefly.</dd>
+            </dl>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge med">PR 4</span>
+              <p class="title">Server tag + sortOrder validation</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#5, #13</dd>
+              <dt>Scope</dt>
+              <dd>
+                Tighten <code>GhCardSchema.tags</code> to match UI
+                (<code>\p{L}\p{N}</code> + max 20; use
+                <code>SortOrderZenum</code> in Convex args. Small, isolated.
+              </dd>
+              <dt>Risk</dt>
+              <dd>Existing posts with oversized/special tags may fail updates — one-time cleanup or soften regex.</dd>
+            </dl>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge low">PR 5</span>
+              <p class="title">Defense-in-depth XSS + parser maps</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#6, #11</dd>
+              <dt>Scope</dt>
+              <dd>
+                DOMPurify (or token React render) around Shiki HTML; harden
+                fallback escapes; <code>Object.create(null)</code> / reject
+                dangerous keys in parser record builds.
+              </dd>
+              <dt>Risk</dt>
+              <dd>Low — no current exploit; keep visual snapshot of script/JSON views.</dd>
+            </dl>
+          </div>
+
+          <div class="card">
+            <div class="head">
+              <span class="badge low">PR 6</span>
+              <p class="title">Hygiene (docs, redirects, errors)</p>
+            </div>
+            <dl>
+              <dt>Covers</dt>
+              <dd>#8, #12, #14, note #4</dd>
+              <dt>Scope</dt>
+              <dd>
+                Document Convex <code>CLERK_JWT_ISSUER_DOMAIN</code>; fixed
+                Clerk <code>forceRedirectUrl</code>; generic R2 errors; move
+                <code>R2_URL</code> helper under <code>src/server/</code>;
+                comment nitro beta pin. Skip #9 path rewrite unless you want
+                cleaner URLs for product reasons.
+              </dd>
+              <dt>Risk</dt>
+              <dd>Minimal — config/docs and small UX changes.</dd>
+            </dl>
+          </div>
+
+          <p class="lead" style="margin-top:1.25rem; color: var(--text-dim); font-size: 0.92rem;">
+            Suggested merge order: PR1 → PR2 → PR3 → PR4, then PR5/PR6 anytime.
+            Do not block on #4 (nitro stable) — track upstream separately.
+          </p>
         </section>
 
         <section>
@@ -932,7 +1093,7 @@
             protected.
           </p>
           <ul class="checks">
-            <li><strong>No IDOR.</strong> Every doc-id-bearing Convex function fetches the document and verifies <code>post.clerkUserId === identity.id</code> before acting (<code>convex/ghCard.ts</code>).</li>
+            <li><strong>No IDOR.</strong> Every doc-id-bearing Convex function fetches the document and throws unless <code>post.clerkUserId === identity.id</code> (throw-on-mismatch form: <code>if (post.clerkUserId !== identity.id) throw</code>) before acting (<code>convex/ghCard.ts</code>).</li>
             <li><strong>No XXE / billion-laughs.</strong> <code>fast-xml-parser@^5.9.3</code> is non-validating and ignores DTDs/entities by design. No other XML parser in the bundle.</li>
             <li><strong>Decompression bombs mitigated.</strong> Streaming size caps on gzip (100 MB) and raw-DEFLATE paths; 25 MiB compressed upload cap enforced server- and client-side.</li>
             <li><strong>Binary parser is defensive.</strong> Recursion depth cap (128), bounds checks on every read, negative-length rejection, 7-bit-int overflow guards, <code>SizeBoundedWriter</code>.</li>
@@ -948,7 +1109,8 @@
       </main>
 
       <footer>
-        Generated 2026-07-27 · Read-only static analysis ·
+        Generated 2026-07-27 · Revised after review 2026-07-27 ·
+        Read-only static analysis ·
         <a href="https://www.hopperclip.com/">hopperclip.com</a>
       </footer>
     </div>
