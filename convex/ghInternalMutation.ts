@@ -2,14 +2,8 @@ import { internal } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
 
 const CLEANUP_BATCH_SIZE = 100;
-/** Space follow-up batches so cleanup does not hammer the DB. */
 const CLEANUP_BATCH_DELAY_MS = 60_000;
 
-/**
- * Delete expired share rows in batches.
- * Daily cron kicks this off; if a full batch is deleted, another run is
- * scheduled after a short delay so backlogs cannot grow unbounded.
- */
 export const cleanupExpiredShares = internalMutation({
 	args: {},
 	handler: async (ctx) => {
