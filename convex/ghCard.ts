@@ -427,7 +427,6 @@ export const getSharedPost = query({
 
 		const now = new Date();
 		if (new Date(share.expiryDate) <= now) {
-			// Share has expired - return null (DB cleanup via daily cron in crons.ts)
 			return null;
 		}
 
