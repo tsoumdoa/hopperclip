@@ -2,6 +2,7 @@ import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
 import { useEffect } from "react";
 import { env } from "@/env";
+import { scrubPostHogEvent } from "@/utils/scrub-posthog-event";
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
@@ -16,6 +17,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 			capture_pageleave: true,
 			capture_exceptions: true,
 			debug: import.meta.env.DEV,
+			before_send: (event) => scrubPostHogEvent(event),
 			session_recording: {
 				// Explicitly mask all inputs; client config takes precedence over
 				// remote project masking settings.
