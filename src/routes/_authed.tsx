@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authed")({
 		if (error.message === "Not authenticated") {
 			return (
 				<div className="flex min-h-screen items-center justify-center bg-black p-12">
-					<SignIn routing="hash" forceRedirectUrl={window.location.href} />
+					<SignIn routing="hash" forceRedirectUrl="/ghcards" />
 				</div>
 			);
 		}

@@ -1,6 +1,6 @@
 import { internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { bucketUrl } from "../src/utils/utils";
+import { bucketUrl } from "../src/server/bucket-url";
 import { ShareLinkUidSchema, StorageKeySchema } from "../src/types/types";
 
 export const getShareableLink = internalQuery({

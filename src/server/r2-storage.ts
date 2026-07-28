@@ -2,8 +2,10 @@ import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { r2Client } from "./bucket";
-import { bucketUrl } from "@/utils/utils";
+import { bucketUrl } from "./bucket-url";
 import { MAX_COMPRESSED_GH_XML_BYTES, StorageKeySchema } from "@/types/types";
+
+const PRESIGNED_DOWNLOAD_EXPIRY_SECONDS = 300;
 
 async function requireAuthenticatedUserId() {
 	const { isAuthenticated, userId } = await auth();
@@ -17,7 +19,8 @@ async function requireAuthenticatedUserId() {
 
 async function ensureOk(res: Response, action: string) {
 	if (!res.ok) {
-		throw new Error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
+		console.error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
+		throw new Error("Storage operation failed");
 	}
 }
 
@@ -26,7 +29,8 @@ async function ensureDeleted(res: Response) {
 	if (res.ok || res.status === 404) {
 		return;
 	}
-	throw new Error(`R2 delete failed: ${res.status} ${res.statusText}`);
+	console.error(`R2 delete failed: ${res.status} ${res.statusText}`);
+	throw new Error("Storage operation failed");
 }
 
 export const uploadToBucket = createServerFn({ method: "POST" })
@@ -75,8 +79,13 @@ export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })
 	.validator((nanoId: string) => StorageKeySchema.parse(nanoId))
 	.handler(async ({ data: nanoId }) => {
 		const userId = await requireAuthenticatedUserId();
+		const url = new URL(bucketUrl(userId, nanoId));
+		url.searchParams.set(
+			"X-Amz-Expires",
+			String(PRESIGNED_DOWNLOAD_EXPIRY_SECONDS)
+		);
 		const presigned = await r2Client.sign(
-			new Request(bucketUrl(userId, nanoId), {
+			new Request(url, {
 				method: "GET",
 			}),
 			{
