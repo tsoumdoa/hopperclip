@@ -4,8 +4,7 @@ import { v } from "convex/values";
 import { AwsClient } from "aws4fetch";
 import { ShareLinkUidSchema } from "../src/types/types";
 
-/** Presigned share download URLs expire after 15 minutes (aws4fetch defaults to 24h). */
-const SHARE_DOWNLOAD_TTL_SECONDS = 900;
+const PRESIGNED_DOWNLOAD_EXPIRY_SECONDS = 300;
 
 const r2Client = new AwsClient({
 	accessKeyId: process.env.R2_ACCESS_KEY_ID!,
@@ -27,16 +26,13 @@ export const generateShareableLink = action({
 			throw new Error("Share not found");
 		}
 
-		// Set X-Amz-Expires on the URL before signing so aws4fetch does not
-		// fall back to its 86400s (24h) default for S3 signQuery requests.
-		const signedUrl = new URL(url);
-		signedUrl.searchParams.set(
+		const presignedUrl = new URL(url);
+		presignedUrl.searchParams.set(
 			"X-Amz-Expires",
-			String(SHARE_DOWNLOAD_TTL_SECONDS)
+			String(PRESIGNED_DOWNLOAD_EXPIRY_SECONDS)
 		);
-
 		const presigned = await r2Client.sign(
-			new Request(signedUrl, {
+			new Request(presignedUrl, {
 				method: "GET",
 			}),
 			{

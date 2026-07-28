@@ -53,7 +53,13 @@ Before you begin, ensure you have the following installed:
 - **pnpm**
 - **Git**
 
-You will also need to provide the necessary API keys and environment variables, as shown in the `.env.example` file. This typically includes credentials for Clerk and Convex.
+You will also need to provide the necessary API keys and environment variables, as shown in the `env.example` file. This typically includes credentials for Clerk and Convex.
+
+### Environment
+
+Copy `env.example` to `.env` for the Vite/TanStack Start app. Separately, set **`CLERK_JWT_ISSUER_DOMAIN`** in the **Convex dashboard** (not in the Vite `.env`) so Convex can validate Clerk JWTs — for example `https://your-instance.clerk.accounts.dev`.
+
+Note: nitro 3.x beta is currently required by TanStack Start; track stable releases when upgrading.
 
 ### Installation
 
