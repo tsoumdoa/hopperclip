@@ -9,7 +9,16 @@ export type GetSharedPost = FunctionReturnType<typeof api.ghCard.getSharedPost>;
 export const GhCardSchema = z.object({
 	name: z.string().min(3).max(30),
 	description: z.string().max(150),
-	tags: z.array(z.string()).max(20),
+	// Convex schema keeps v.array(v.string()); Zod enforces charset/length at mutation time.
+	tags: z
+		.array(
+			z
+				.string()
+				.min(1)
+				.max(20)
+				.regex(/^[\p{L}\p{N}]+$/u)
+		)
+		.max(20),
 });
 
 export type GhCard = z.infer<typeof GhCardSchema>;
