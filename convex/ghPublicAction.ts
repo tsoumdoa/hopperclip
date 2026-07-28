@@ -4,6 +4,8 @@ import { v } from "convex/values";
 import { AwsClient } from "aws4fetch";
 import { ShareLinkUidSchema } from "../src/types/types";
 
+const PRESIGNED_DOWNLOAD_EXPIRY_SECONDS = 300;
+
 const r2Client = new AwsClient({
 	accessKeyId: process.env.R2_ACCESS_KEY_ID!,
 	secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -24,8 +26,13 @@ export const generateShareableLink = action({
 			throw new Error("Share not found");
 		}
 
+		const presignedUrl = new URL(url);
+		presignedUrl.searchParams.set(
+			"X-Amz-Expires",
+			String(PRESIGNED_DOWNLOAD_EXPIRY_SECONDS)
+		);
 		const presigned = await r2Client.sign(
-			new Request(url, {
+			new Request(presignedUrl, {
 				method: "GET",
 			}),
 			{

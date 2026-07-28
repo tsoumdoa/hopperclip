@@ -9,6 +9,7 @@
  */
 
 import type * as ghCard from "../ghCard.js";
+import type * as ghInternalMutation from "../ghInternalMutation.js";
 import type * as ghInternalQuery from "../ghInternalQuery.js";
 import type * as ghPublicAction from "../ghPublicAction.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
 	ghCard: typeof ghCard;
+	ghInternalMutation: typeof ghInternalMutation;
 	ghInternalQuery: typeof ghInternalQuery;
 	ghPublicAction: typeof ghPublicAction;
 }>;

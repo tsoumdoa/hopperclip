@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import { Check, Code2, Copy } from "lucide-react";
 import type { GHNodeProps, Port, ScriptData } from "../types/type";
 import { HANDLE_SIZE } from "./constants";
@@ -96,15 +97,17 @@ function ScriptCodeViewer({ script }: { script: ScriptData }) {
 				});
 
 				if (!cancelled) {
-					setHtml(rendered);
+					setHtml(DOMPurify.sanitize(rendered));
 				}
 			} catch {
 				if (!cancelled) {
 					const escaped = script.code
 						.replaceAll("&", "&amp;")
 						.replaceAll("<", "&lt;")
-						.replaceAll(">", "&gt;");
-					setHtml(`<pre>${escaped}</pre>`);
+						.replaceAll(">", "&gt;")
+						.replaceAll('"', "&quot;")
+						.replaceAll("'", "&#39;");
+					setHtml(DOMPurify.sanitize(`<pre>${escaped}</pre>`));
 				}
 			}
 		})();
