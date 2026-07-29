@@ -97,23 +97,19 @@ function Hero() {
 		<section className="grid w-full grid-cols-1 items-end gap-8 pt-8 pb-12 md:pt-12 md:pb-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12 xl:gap-14 2xl:pt-16 2xl:pb-20">
 			<div className="flex flex-col gap-4">
 				<Reveal>
-					<h1 className="text-5xl leading-[0.95] font-semibold tracking-tight md:text-7xl 2xl:text-8xl">
-						Hopper{" "}
-						<span className="text-green-300">Clip</span>
+					<h1 className="max-w-2xl text-4xl leading-[1.05] font-semibold tracking-tight md:text-6xl 2xl:text-7xl">
+						Your Grasshopper snippets,{" "}
+						<span className="text-green-300">ready</span> when you need
+						them.
 					</h1>
 				</Reveal>
 				<Reveal delay={0.05}>
-					<p className="max-w-xl text-xl leading-snug font-medium text-neutral-200 md:text-2xl 2xl:text-3xl">
-						Your Grasshopper snippets, ready when you need them.
-					</p>
-				</Reveal>
-				<Reveal delay={0.1}>
 					<p className="max-w-lg text-base text-neutral-400 md:text-lg">
 						Keep the definitions you paste over and over. Find them in seconds —
 						then share or inspect without hunting folders.
 					</p>
 				</Reveal>
-				<Reveal delay={0.15}>
+				<Reveal delay={0.1}>
 					<div className="pt-1">
 						<SignUpButton mode="modal">
 							<button
