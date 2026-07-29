@@ -33,7 +33,8 @@ function buildSecurityHeaders({
 		// hydration scripts and several routes are prerendered to static HTML, so
 		// per-request nonces can never match (Clerk also requires it without a full
 		// strict-dynamic setup). 'unsafe-eval' is only needed by Vite's dev transforms.
-		`script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://*.clerk.com https://clerk.hopperclip.com https://challenges.cloudflare.com https://us-assets.i.posthog.com`,
+		// 'wasm-unsafe-eval' is required by Shiki's Oniguruma WASM highlighter.
+		`script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${dev ? " 'unsafe-eval'" : ""} https://*.clerk.accounts.dev https://*.clerk.com https://clerk.hopperclip.com https://challenges.cloudflare.com https://us-assets.i.posthog.com`,
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com data:",
 		"img-src 'self' data: blob: https:",
