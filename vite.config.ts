@@ -38,7 +38,7 @@ function buildSecurityHeaders({
 		"font-src 'self' https://fonts.gstatic.com data:",
 		"img-src 'self' data: blob: https:",
 		// r2Origin: the browser fetches presigned R2 URLs directly (share page, GH XML download).
-		`connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.posthog.com ${r2Origin}`,
+		`connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://clerk.hopperclip.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.posthog.com ${r2Origin}`,
 		"frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com",
 		"worker-src 'self' blob:",
 		// upgrade-insecure-requests would rewrite dev-server http/ws requests to https and break `vite dev`.
