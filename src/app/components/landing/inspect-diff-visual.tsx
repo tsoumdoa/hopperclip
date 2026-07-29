@@ -47,7 +47,7 @@ export function InspectDiffVisual() {
 				<motion.path
 					d="M 118 150 C 160 150, 160 110, 190 110"
 					fill="none"
-					stroke="#4ade80"
+					stroke="#86efac"
 					strokeWidth="2"
 					initial={{ pathLength: 0, opacity: 0 }}
 					whileInView={{ pathLength: 1, opacity: 1 }}
@@ -192,7 +192,7 @@ export function InspectDiffVisual() {
 						height="44"
 						rx="4"
 						fill="#171717"
-						stroke="#4ade80"
+						stroke="#86efac"
 						strokeWidth="2"
 					/>
 					<text
@@ -217,13 +217,13 @@ export function InspectDiffVisual() {
 			</svg>
 
 			<div className="absolute right-3 bottom-3 flex gap-2 font-mono text-[10px] tracking-wide uppercase">
-				<span className="rounded border border-neutral-800 bg-neutral-950/90 px-1.5 py-0.5 text-green-400">
+				<span className="rounded bg-green-300 px-1.5 py-0.5 font-bold text-neutral-800">
 					+ added
 				</span>
-				<span className="rounded border border-neutral-800 bg-neutral-950/90 px-1.5 py-0.5 text-amber-300">
+				<span className="rounded border border-neutral-700 bg-neutral-950/90 px-1.5 py-0.5 text-amber-300">
 					~ modified
 				</span>
-				<span className="rounded border border-neutral-800 bg-neutral-950/90 px-1.5 py-0.5 text-red-400">
+				<span className="rounded border border-neutral-700 bg-neutral-950/90 px-1.5 py-0.5 text-red-400">
 					− removed
 				</span>
 			</div>

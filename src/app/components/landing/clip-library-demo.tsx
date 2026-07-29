@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Copy, Share } from "lucide-react";
 import { useState } from "react";
 
 const SAMPLE_CLIPS = [
@@ -27,7 +26,7 @@ type DemoMode = "preview" | "copy" | "share";
 
 /**
  * Tiny in-page product mock: preview, or copy/share one sample clip.
- * Not a full tour — one click, one confirmation.
+ * Uses Hopper Card accents (green-300 Shared, tag chips) — not a full tour.
  */
 export function ClipLibraryDemo({
 	mode = "preview",
@@ -58,29 +57,38 @@ export function ClipLibraryDemo({
 					const featured = clip.id === featuredId;
 					const justCopied = copiedId === clip.id;
 					const justShared = sharedId === clip.id;
+					const showSharedBadge =
+						(mode === "preview" && clip.id === "facade") || justShared;
 
 					return (
 						<li
 							key={clip.id}
-							className={`rounded-lg border bg-neutral-950 px-4 py-3 transition-colors ${
+							className={`relative rounded-md p-3 ring-1 transition-colors ${
 								featured
-									? "border-neutral-600"
-									: "border-neutral-900 opacity-70"
+									? "bg-neutral-900 ring-neutral-500"
+									: "bg-neutral-950 ring-neutral-800 opacity-70"
 							}`}
 						>
+							{showSharedBadge && (
+								<span className="absolute top-2.5 right-2.5 rounded-md bg-green-300 px-2 text-xs font-bold text-neutral-800">
+									Shared
+								</span>
+							)}
 							<div className="flex items-start justify-between gap-3">
-								<div className="min-w-0">
-									<p className="truncate text-sm font-medium text-white">
+								<div
+									className={`min-w-0 ${showSharedBadge ? "pr-16" : ""}`}
+								>
+									<p className="truncate text-sm font-semibold text-white">
 										{clip.name}
 									</p>
-									<p className="mt-0.5 line-clamp-1 text-xs text-neutral-500">
+									<p className="mt-0.5 line-clamp-1 text-xs text-neutral-400">
 										{clip.description}
 									</p>
 									<div className="mt-2 flex flex-wrap gap-1.5">
 										{clip.tags.map((tag) => (
 											<span
 												key={tag}
-												className="font-mono text-[10px] tracking-wide text-neutral-600 uppercase"
+												className="rounded-sm bg-neutral-600 px-2 text-xs font-semibold text-neutral-100"
 											>
 												{tag}
 											</span>
@@ -91,46 +99,22 @@ export function ClipLibraryDemo({
 									<button
 										type="button"
 										onClick={() => handleCopy(clip.id)}
-										className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+										className={`shrink-0 px-2 text-sm font-bold transition-colors ${
 											justCopied
-												? "bg-white text-black"
-												: "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+												? "rounded-md bg-green-300 text-neutral-800"
+												: "text-neutral-400 hover:text-neutral-50"
 										}`}
 									>
-										{justCopied ? (
-											<>
-												<Check className="h-3.5 w-3.5" />
-												copied
-											</>
-										) : (
-											<>
-												<Copy className="h-3.5 w-3.5" />
-												copy
-											</>
-										)}
+										{justCopied ? "copied!" : "copy"}
 									</button>
 								)}
-								{featured && mode === "share" && (
+								{featured && mode === "share" && !justShared && (
 									<button
 										type="button"
 										onClick={() => handleShare(clip.id)}
-										className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-											justShared
-												? "bg-white text-black"
-												: "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 hover:text-white"
-										}`}
+										className="shrink-0 px-2 text-sm font-bold text-neutral-400 transition-colors hover:text-neutral-50"
 									>
-										{justShared ? (
-											<>
-												<Check className="h-3.5 w-3.5" />
-												shared
-											</>
-										) : (
-											<>
-												<Share className="h-3.5 w-3.5" />
-												share
-											</>
-										)}
+										share
 									</button>
 								)}
 							</div>
@@ -148,7 +132,7 @@ export function ClipLibraryDemo({
 						transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
 						className="absolute inset-x-0 -bottom-14 flex justify-center"
 					>
-						<div className="rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 font-mono text-xs text-neutral-300">
+						<div className="rounded-md border border-green-300/30 bg-neutral-950 px-3 py-2 font-mono text-xs text-green-300">
 							hopperclip.com/share?…
 						</div>
 					</motion.div>

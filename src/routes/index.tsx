@@ -98,7 +98,8 @@ function Hero() {
 			<div className="flex flex-col gap-4">
 				<Reveal>
 					<h1 className="text-5xl leading-[0.95] font-semibold tracking-tight md:text-7xl 2xl:text-8xl">
-						Hopper Clip
+						Hopper{" "}
+						<span className="text-green-300">Clip</span>
 					</h1>
 				</Reveal>
 				<Reveal delay={0.05}>
@@ -117,7 +118,7 @@ function Hero() {
 						<SignUpButton mode="modal">
 							<button
 								type="button"
-								className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200 2xl:px-7 2xl:py-3.5 2xl:text-base"
+								className="inline-flex items-center gap-2 rounded-full bg-green-300 px-6 py-3 text-sm font-semibold text-neutral-800 transition-all hover:bg-green-200 2xl:px-7 2xl:py-3.5 2xl:text-base"
 							>
 								Get started
 								<ArrowRight className="h-4 w-4" />
@@ -129,7 +130,7 @@ function Hero() {
 
 			<Reveal delay={0.12}>
 				<div className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-5 2xl:p-7">
-					<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-neutral-600 uppercase">
+					<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 						your library
 					</p>
 					<ClipLibraryDemo mode="preview" />
@@ -145,7 +146,7 @@ function PersonalBeat() {
 			<div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-10">
 				<Reveal>
 					<div className="max-w-md">
-						<p className="font-mono text-xs tracking-[0.2em] text-neutral-600 uppercase">
+						<p className="font-mono text-xs tracking-[0.2em] text-green-300/80 uppercase">
 							For you first
 						</p>
 						<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl 2xl:text-4xl">
@@ -159,7 +160,7 @@ function PersonalBeat() {
 				</Reveal>
 				<Reveal delay={0.08}>
 					<div className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-5 md:p-6">
-						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-neutral-600 uppercase">
+						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 							try copy
 						</p>
 						<ClipLibraryDemo mode="copy" featuredId="curve" />
@@ -176,7 +177,7 @@ function ShareBeat() {
 			<div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-10">
 				<Reveal className="order-2 md:order-1">
 					<div className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-5 pb-14 md:p-6 md:pb-14">
-						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-neutral-600 uppercase">
+						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 							try share
 						</p>
 						<ClipLibraryDemo mode="share" featuredId="facade" />
@@ -184,7 +185,7 @@ function ShareBeat() {
 				</Reveal>
 				<Reveal delay={0.08} className="order-1 md:order-2">
 					<div className="max-w-md md:ml-auto">
-						<p className="font-mono text-xs tracking-[0.2em] text-neutral-600 uppercase">
+						<p className="font-mono text-xs tracking-[0.2em] text-green-300/80 uppercase">
 							Then the team
 						</p>
 						<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl 2xl:text-4xl">
@@ -207,7 +208,7 @@ function InspectBeat() {
 			<div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-10">
 				<Reveal>
 					<div className="max-w-md">
-						<p className="font-mono text-xs tracking-[0.2em] text-neutral-600 uppercase">
+						<p className="font-mono text-xs tracking-[0.2em] text-green-300/80 uppercase">
 							See without Rhino
 						</p>
 						<h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl 2xl:text-4xl">
@@ -220,7 +221,7 @@ function InspectBeat() {
 						</p>
 						<Link
 							to="/duckerweb"
-							className="mt-4 inline-flex items-center gap-1.5 text-sm text-neutral-300 underline-offset-4 hover:text-white hover:underline"
+							className="mt-4 inline-flex items-center gap-1.5 text-sm text-green-300 underline-offset-4 hover:text-green-200 hover:underline"
 						>
 							Open DuckerWeb
 							<ArrowRight className="h-3.5 w-3.5" />
@@ -241,7 +242,8 @@ function Closing() {
 			<Reveal>
 				<div className="mx-auto max-w-2xl text-center">
 					<h2 className="text-2xl font-semibold tracking-tight md:text-4xl">
-						Keep. Share. See.
+						Keep. Share.{" "}
+						<span className="text-green-300">See.</span>
 					</h2>
 					<p className="mt-3 text-base text-neutral-400 md:text-lg">
 						Your snippets stay organized. Your team gets a link. Anyone can read
@@ -251,7 +253,7 @@ function Closing() {
 						<SignUpButton mode="modal">
 							<button
 								type="button"
-								className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition-all hover:bg-neutral-200 md:text-base"
+								className="inline-flex items-center gap-2 rounded-full bg-green-300 px-7 py-3.5 text-sm font-semibold text-neutral-800 transition-all hover:bg-green-200 md:text-base"
 							>
 								Get started
 								<ArrowRight className="h-4 w-4" />
@@ -261,7 +263,7 @@ function Closing() {
 							Just need a quick look?{" "}
 							<Link
 								to="/duckerweb"
-								className="text-neutral-300 underline-offset-4 hover:text-white hover:underline"
+								className="text-green-300 underline-offset-4 hover:text-green-200 hover:underline"
 							>
 								Open DuckerWeb
 							</Link>
