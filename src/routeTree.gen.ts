@@ -17,6 +17,7 @@ import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms
 import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
 import { Route as StaticDuckerwebRouteImport } from './routes/_static/duckerweb'
 import { Route as AuthedGhcardsRouteImport } from './routes/_authed/ghcards'
+import { Route as AuthedUserProfileSplatRouteImport } from './routes/_authed/user-profile.$'
 
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
@@ -57,6 +58,11 @@ const AuthedGhcardsRoute = AuthedGhcardsRouteImport.update({
   path: '/ghcards',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedUserProfileSplatRoute = AuthedUserProfileSplatRouteImport.update({
+  id: '/user-profile/$',
+  path: '/user-profile/$',
+  getParentRoute: () => AuthedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/user-profile/$': typeof AuthedUserProfileSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof StaticPrivacyRoute
   '/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/user-profile/$': typeof AuthedUserProfileSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_static/privacy': typeof StaticPrivacyRoute
   '/_static/terms-of-service': typeof StaticTermsOfServiceRoute
   '/dev/flow-gallery': typeof DevFlowGalleryRoute
+  '/_authed/user-profile/$': typeof AuthedUserProfileSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-of-service'
     | '/dev/flow-gallery'
+    | '/user-profile/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-of-service'
     | '/dev/flow-gallery'
+    | '/user-profile/$'
   id:
     | '__root__'
     | '/'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_static/privacy'
     | '/_static/terms-of-service'
     | '/dev/flow-gallery'
+    | '/_authed/user-profile/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -186,15 +198,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedGhcardsRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/user-profile/$': {
+      id: '/_authed/user-profile/$'
+      path: '/user-profile/$'
+      fullPath: '/user-profile/$'
+      preLoaderRoute: typeof AuthedUserProfileSplatRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
 interface AuthedRouteChildren {
   AuthedGhcardsRoute: typeof AuthedGhcardsRoute
+  AuthedUserProfileSplatRoute: typeof AuthedUserProfileSplatRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedGhcardsRoute: AuthedGhcardsRoute,
+  AuthedUserProfileSplatRoute: AuthedUserProfileSplatRoute,
 }
 
 const AuthedRouteWithChildren =

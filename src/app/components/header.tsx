@@ -46,7 +46,10 @@ export default function Header() {
 					>
 						DuckerWeb
 					</Link>
-					<UserButton />
+					<UserButton
+						userProfileMode="navigation"
+						userProfileUrl="/user-profile"
+					/>
 				</SignedIn>
 			</div>
 		</header>
