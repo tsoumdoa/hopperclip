@@ -12,7 +12,7 @@
   },
   "type": "module",
   "dependencies": {
-    "fast-xml-parser": "^5.8.0",
+    "fast-xml-parser": "^5.11.1",
     "glob": "^13.0.6"
   }
 }
