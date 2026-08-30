@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import {
 	isStaticPrerenderPath,
 	STATIC_PRERENDER_PATHS,
-} from "./src/lib/static-pages";
+} from "./src/lib/static-pages.ts";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
