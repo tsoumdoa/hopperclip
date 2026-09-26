@@ -68,13 +68,7 @@ export function InspectDiffVisual() {
 
 				{/* value nodes */}
 				<g transform="translate(48, 48)">
-					<rect
-						width="70"
-						height="44"
-						rx="4"
-						fill="#262626"
-						stroke="#525252"
-					/>
+					<rect width="70" height="44" rx="4" fill="#262626" stroke="#525252" />
 					<text
 						x="10"
 						y="18"
@@ -96,13 +90,7 @@ export function InspectDiffVisual() {
 				</g>
 
 				<g transform="translate(48, 128)">
-					<rect
-						width="70"
-						height="44"
-						rx="4"
-						fill="#262626"
-						stroke="#525252"
-					/>
+					<rect width="70" height="44" rx="4" fill="#262626" stroke="#525252" />
 					<text
 						x="10"
 						y="18"

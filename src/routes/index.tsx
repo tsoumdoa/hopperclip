@@ -99,8 +99,7 @@ function Hero() {
 				<Reveal>
 					<h1 className="max-w-2xl text-4xl leading-[1.05] font-semibold tracking-tight md:text-6xl 2xl:text-7xl">
 						Your Grasshopper snippets,{" "}
-						<span className="text-green-300">ready</span> when you need
-						them.
+						<span className="text-green-300">ready</span> when you need them.
 					</h1>
 				</Reveal>
 				<Reveal delay={0.05}>
@@ -149,8 +148,9 @@ function PersonalBeat() {
 							A personal clip library for the scripts you reuse.
 						</h2>
 						<p className="mt-3 text-sm leading-relaxed text-neutral-400 md:text-base">
-							Paste or drop a definition, tag it, find it later. One click copies
-							it back into Grasshopper — no digging through project folders.
+							Paste or drop a definition, tag it, find it later. One click
+							copies it back into Grasshopper — no digging through project
+							folders.
 						</p>
 					</div>
 				</Reveal>
@@ -238,8 +238,7 @@ function Closing() {
 			<Reveal>
 				<div className="mx-auto max-w-2xl text-center">
 					<h2 className="text-2xl font-semibold tracking-tight md:text-4xl">
-						Keep. Share.{" "}
-						<span className="text-green-300">See.</span>
+						Keep. Share. <span className="text-green-300">See.</span>
 					</h2>
 					<p className="mt-3 text-base text-neutral-400 md:text-lg">
 						Your snippets stay organized. Your team gets a link. Anyone can read

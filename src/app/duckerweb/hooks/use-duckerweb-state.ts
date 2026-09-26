@@ -219,7 +219,11 @@ export function useDuckerwebState(): {
 	const matchModeRef = useRef<DiffMatchMode>("instance");
 
 	const applyComparisonResult = useCallback(
-		(before: ParsedGrasshopper, after: ParsedGrasshopper, mode: DiffMatchMode) => {
+		(
+			before: ParsedGrasshopper,
+			after: ParsedGrasshopper,
+			mode: DiffMatchMode
+		) => {
 			const resolution = resolveDiffComparison(before, after, mode);
 			if (!resolution.result) {
 				dispatch({
@@ -282,7 +286,11 @@ export function useDuckerwebState(): {
 				return;
 			}
 			dispatch({ type: "startComparisonView", name });
-			applyComparisonResult(parsedData, result.parsedData, matchModeRef.current);
+			applyComparisonResult(
+				parsedData,
+				result.parsedData,
+				matchModeRef.current
+			);
 		},
 		[applyComparisonResult, parsedData]
 	);

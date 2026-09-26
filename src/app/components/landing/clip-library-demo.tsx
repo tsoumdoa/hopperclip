@@ -41,13 +41,19 @@ export function ClipLibraryDemo({
 	const handleCopy = (id: string) => {
 		setSharedId(null);
 		setCopiedId(id);
-		window.setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 1800);
+		window.setTimeout(
+			() => setCopiedId((cur) => (cur === id ? null : cur)),
+			1800
+		);
 	};
 
 	const handleShare = (id: string) => {
 		setCopiedId(null);
 		setSharedId(id);
-		window.setTimeout(() => setSharedId((cur) => (cur === id ? null : cur)), 2800);
+		window.setTimeout(
+			() => setSharedId((cur) => (cur === id ? null : cur)),
+			2800
+		);
 	};
 
 	return (
@@ -66,7 +72,7 @@ export function ClipLibraryDemo({
 							className={`relative rounded-md p-3 ring-1 transition-colors ${
 								featured
 									? "bg-neutral-900 ring-neutral-500"
-									: "bg-neutral-950 ring-neutral-800 opacity-70"
+									: "bg-neutral-950 opacity-70 ring-neutral-800"
 							}`}
 						>
 							{showSharedBadge && (
@@ -75,9 +81,7 @@ export function ClipLibraryDemo({
 								</span>
 							)}
 							<div className="flex items-start justify-between gap-3">
-								<div
-									className={`min-w-0 ${showSharedBadge ? "pr-16" : ""}`}
-								>
+								<div className={`min-w-0 ${showSharedBadge ? "pr-16" : ""}`}>
 									<p className="truncate text-sm font-semibold text-white">
 										{clip.name}
 									</p>

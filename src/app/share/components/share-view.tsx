@@ -13,7 +13,7 @@ export default function ShareView() {
 		return <div>Loading...</div>;
 	}
 
-	return <ShareContent token={validatedToken} />;
+	return <ShareContent key={validatedToken} token={validatedToken} />;
 }
 
 function ShareContent({ token }: { token: string }) {

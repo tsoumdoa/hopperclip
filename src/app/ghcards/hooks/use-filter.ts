@@ -21,7 +21,11 @@ export default function useFilter(
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
 	const nameFuse = useMemo(
-		() => new Fuse(ghCards.map((card) => card.name ?? ""), fuseOptions),
+		() =>
+			new Fuse(
+				ghCards.map((card) => card.name ?? ""),
+				fuseOptions
+			),
 		[ghCards]
 	);
 
@@ -31,7 +35,11 @@ export default function useFilter(
 	);
 
 	const descriptionFuse = useMemo(
-		() => new Fuse(ghCards.map((card) => card.description ?? ""), fuseOptions),
+		() =>
+			new Fuse(
+				ghCards.map((card) => card.description ?? ""),
+				fuseOptions
+			),
 		[ghCards]
 	);
 
