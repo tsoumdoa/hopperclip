@@ -49,8 +49,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (LTS version recommended)
-- **pnpm**
+- **Node.js 24**
+- **pnpm 12.6.0**
 - **Git**
 
 You will also need to provide the necessary API keys and environment variables, as shown in the `env.example` file. This typically includes credentials for Clerk and Convex.
@@ -103,6 +103,10 @@ pnpm run dev
 ```
 
 The application should now be accessible in your web browser at \(http://localhost:3000\).
+
+### Checks
+
+Run `pnpm run check`, `pnpm exec vitest run`, and `pnpm run build` before merging changes. The build needs the variables in `env.example`.
 
 ### TODO:
 

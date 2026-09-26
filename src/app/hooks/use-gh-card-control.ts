@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useMutation } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
@@ -23,9 +23,37 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		description: cardInfo.description ?? "",
 		tags: cardInfo.tags ?? [],
 	});
+	const cardInfoVersion = JSON.stringify([
+		cardInfo._id,
+		cardInfo.name,
+		cardInfo.description,
+		cardInfo.tags,
+	]);
+	const lastSyncedVersion = useRef(cardInfoVersion);
 	const [reset, setReset] = useState(false);
 	const prevTags = useRef(cardInfo.tags ?? []);
 	const newTags = useRef(cardInfo.tags ?? []);
+	useEffect(() => {
+		if (editMode || updating || lastSyncedVersion.current === cardInfoVersion) {
+			return;
+		}
+		const tags = cardInfo.tags ?? [];
+		setGhInfo({
+			name: cardInfo.name,
+			description: cardInfo.description ?? "",
+			tags,
+		});
+		prevTags.current = tags;
+		newTags.current = tags;
+		lastSyncedVersion.current = cardInfoVersion;
+	}, [
+		cardInfo.name,
+		cardInfo.description,
+		cardInfo.tags,
+		cardInfoVersion,
+		editMode,
+		updating,
+	]);
 	const [newXmlData, setNewXmlData] = useState<string | undefined>();
 	const [isValidXml, setIsValidXml] = useState(false);
 	const [xmlError, setXmlError] = useState("");
@@ -38,6 +66,10 @@ export default function useGhCardControl(cardInfo: GhPost) {
 
 	const handleCancelEditMode = () => {
 		invalidatePendingImport();
+		const tags = cardInfo.tags ?? [];
+		newTags.current = tags;
+		prevTags.current = tags;
+		lastSyncedVersion.current = cardInfoVersion;
 		setReset(true);
 		setEditMode(false);
 		setTag("");
@@ -136,6 +168,8 @@ export default function useGhCardControl(cardInfo: GhPost) {
 			setNewXmlData(undefined);
 			setIsValidXml(false);
 			setUpdating(false);
+			prevTags.current = newTags.current;
+			setGhInfo((current) => ({ ...current, tags: newTags.current }));
 			toast.success("Card updated");
 			return;
 		}
@@ -163,14 +197,15 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		setIsValidXml(false);
 		setXmlError("");
 		setUpdating(false);
+		prevTags.current = newTags.current;
+		setGhInfo((current) => ({ ...current, tags: newTags.current }));
 	};
 
 	const removeTag = (tag: string, toBeRemoved: boolean) => {
 		if (!toBeRemoved) {
-			const filteredTags = prevTags.current.filter((t) => t !== tag);
-			newTags.current = filteredTags;
+			newTags.current = newTags.current.filter((t) => t !== tag);
 		} else {
-			newTags.current = [...prevTags.current, tag];
+			newTags.current = [...new Set([...newTags.current, tag])];
 		}
 	};
 

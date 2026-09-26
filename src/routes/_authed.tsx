@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authed")({
 		return { userId };
 	},
 	errorComponent: ({ error }) => {
-		if (error.message === "Not authenticated") {
+		if (error instanceof Error && error.message === "Not authenticated") {
 			return (
 				<div className="flex min-h-screen items-center justify-center bg-black p-12">
 					<SignIn routing="hash" forceRedirectUrl="/ghcards" />

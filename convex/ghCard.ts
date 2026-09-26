@@ -145,17 +145,7 @@ export const getAll = query({
 		}
 
 		const tags = args.tags ?? [];
-		const sortOrder = SortOrderZenum.parse(args.sortOrder ?? "descLastEdited");
-
-		if (tags.length === 0 && sortOrder === "ascLastEdited") {
-			return await ctx.db
-				.query("post")
-				.withIndex("by_clerkUserId", (q) =>
-					q.eq("clerkUserId", identity.id as string)
-				)
-				.order("desc")
-				.collect();
-		}
+		const sortOrder = SortOrderZenum.parse(args.sortOrder ?? "ascLastEdited");
 
 		let posts;
 		switch (sortOrder) {
@@ -322,7 +312,11 @@ export const createShare = mutation({
 		const shareToken = generateSharableLinkUid();
 
 		const expiresInHours = args.expiresInHours ?? DEFAULT_SHARE_EXPIRY_HOURS;
-		if (expiresInHours < 1 || expiresInHours > MAX_SHARE_EXPIRY_HOURS) {
+		if (
+			!Number.isFinite(expiresInHours) ||
+			expiresInHours < 1 ||
+			expiresInHours > MAX_SHARE_EXPIRY_HOURS
+		) {
 			throw new Error("Share expiry must be between 1 hour and 30 days");
 		}
 		const expiresInMs = expiresInHours * 60 * 60 * 1000;

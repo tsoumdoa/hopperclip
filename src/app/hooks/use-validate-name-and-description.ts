@@ -21,7 +21,11 @@ export const useValidateNameDescriptionAndTags = (
 	const [availableTags, setAvailableTags] = useState<string[]>([]);
 	const [isValid, setIsValid] = useState(false);
 	const fuse = useMemo(
-		() => new Fuse(userTags.map((userTag) => userTag.tag), fuseOptions),
+		() =>
+			new Fuse(
+				userTags.map((userTag) => userTag.tag),
+				fuseOptions
+			),
 		[userTags]
 	);
 

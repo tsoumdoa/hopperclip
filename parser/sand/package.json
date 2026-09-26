@@ -2,7 +2,7 @@
   "name": "gh-parser",
   "version": "1.0.0",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.4.2"
   },
   "scripts": {
     "parse": "bun run src/parse.ts",
@@ -14,5 +14,8 @@
   "dependencies": {
     "fast-xml-parser": "^5.11.1",
     "glob": "^13.0.6"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.12"
   }
 }

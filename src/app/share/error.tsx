@@ -2,12 +2,7 @@ import Header from "@/app/components/header";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-export default function ShareError({
-	error,
-}: {
-	error: Error & { digest?: string };
-	reset: () => void;
-}) {
+export default function ShareError() {
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -15,7 +10,7 @@ export default function ShareError({
 			navigate({ to: "/" });
 		}, 800);
 		return () => clearTimeout(timer);
-	}, [error, navigate]);
+	}, [navigate]);
 
 	return (
 		<div className="flex min-h-screen flex-col bg-black p-4 font-sans text-white md:p-6">
