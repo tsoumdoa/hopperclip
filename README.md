@@ -106,7 +106,7 @@ The application should now be accessible in your web browser at \(http://localho
 
 ### Checks
 
-Run `pnpm run check`, `pnpm exec vitest run`, and `pnpm run build` before merging changes. The build needs the variables in `env.example`. GitHub Actions runs these checks on pushes and pull requests, then audits the pnpm and parser sandbox Bun dependencies every Monday.
+Run `pnpm run check`, `pnpm exec vitest run`, and `pnpm run build` before merging changes. The build needs the variables in `env.example`.
 
 ### TODO:
 
