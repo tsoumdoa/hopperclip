@@ -40,7 +40,13 @@ function ShareContent({ token }: { token: string }) {
 	}
 
 	return (
-		<div className="flex w-full flex-1 flex-col items-center justify-center">
+		<div
+			className={
+				sharedPost
+					? "flex w-full flex-col"
+					: "flex w-full flex-1 flex-col items-center justify-center"
+			}
+		>
 			<GhShareCard
 				sharedPost={sharedPost}
 				flowNodes={flowState.nodes}

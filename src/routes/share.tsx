@@ -18,10 +18,8 @@ export const Route = createFileRoute("/share")({
 
 function SharePage() {
 	return (
-		<PageShell className="max-w-7xl">
-			<div className="flex flex-1 flex-col pt-4">
-				<ShareView />
-			</div>
+		<PageShell>
+			<ShareView />
 		</PageShell>
 	);
 }

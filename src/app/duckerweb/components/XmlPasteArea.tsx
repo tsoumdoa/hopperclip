@@ -94,7 +94,7 @@ export function XmlPasteArea({
 	}
 
 	return (
-		<div className="mb-6">
+		<div className="mb-4">
 			<div
 				className={cn(
 					"rounded-2xl border p-5",

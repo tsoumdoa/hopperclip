@@ -9,6 +9,7 @@ import {
 	useGhCardsPageState,
 } from "@/app/ghcards/contexts/gh-cards-page-context";
 import { Search } from "lucide-react";
+import { PageHeader } from "@/app/components/page-header";
 import { PageShell } from "@/app/components/page-shell";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
 import { Kbd } from "@/components/ui/kbd";
@@ -56,24 +57,22 @@ function GhcardsPageContent() {
 	return (
 		<GhCardsPageDropLayer>
 			<PageShell footer={false} className="pb-24">
-				<div className="flex flex-col gap-4 pt-4 pb-5 md:flex-row md:items-end md:justify-between">
-					<div className="min-w-0">
-						<h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-							Library
-						</h1>
-						<p className="mt-1 truncate text-sm text-neutral-500">
-							{username
-								? `${username}'s Grasshopper snippets`
-								: "Your Grasshopper snippets"}
-						</p>
-					</div>
-					<div className="flex items-center gap-2">
-						<SearchButton />
-						<SortDropDown />
-						<AddGHCard />
-					</div>
-				</div>
-				<div className="pb-5">
+				<PageHeader
+					title="Library"
+					description={
+						username
+							? `${username}'s Grasshopper snippets`
+							: "Your Grasshopper snippets"
+					}
+					actions={
+						<>
+							<SearchButton />
+							<SortDropDown />
+							<AddGHCard />
+						</>
+					}
+				/>
+				<div className="pb-4">
 					<UserTags tagFilters={sanitizedTagFilter} />
 				</div>
 				<Suspense fallback={<GhCardGridSkeleton />}>

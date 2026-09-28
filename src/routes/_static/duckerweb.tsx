@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
 import Header from "@/app/components/header";
+import { PageHeader } from "@/app/components/page-header";
 import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
 import { useMarkdownExport } from "@/app/duckerweb/hooks/use-markdown-export";
 import { DuckerwebMainZone } from "@/app/duckerweb/components/DuckerwebMainZone";
@@ -16,18 +17,24 @@ import { useCallback } from "react";
 import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
 import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
-const contentWidth =
-	"mx-auto w-full max-w-6xl min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]";
+const contentWidth = "mx-auto w-full max-w-400";
+const pagePadding = "px-4 md:px-6 2xl:px-10 min-[2200px]:px-16";
 
 const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
-	flow: { outer: "min-h-0 flex-1 px-4 pb-4 md:px-6 md:pb-6", inner: "h-full" },
+	flow: {
+		outer: `min-h-0 flex-1 pb-4 md:pb-6 ${pagePadding}`,
+		inner: "h-full",
+	},
 	diff: {
-		outer:
-			"px-4 pb-6 md:px-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0",
+		outer: `pb-6 lg:h-[calc(100dvh-1.5rem)] lg:min-h-[640px] lg:shrink-0 ${pagePadding}`,
 		inner: "flex h-full flex-col",
 	},
-	list: { outer: "min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6" },
-	json: { outer: "min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6" },
+	list: {
+		outer: `min-h-0 flex-1 overflow-y-auto pb-4 md:pb-6 ${pagePadding}`,
+	},
+	json: {
+		outer: `min-h-0 flex-1 overflow-y-auto pb-4 md:pb-6 ${pagePadding}`,
+	},
 };
 
 export const Route = createFileRoute("/_static/duckerweb")({
@@ -91,33 +98,27 @@ function DuckerWebPage() {
 				isDiff ? "min-h-dvh" : "h-dvh overflow-hidden"
 			)}
 		>
-			<div className="w-full shrink-0 px-4 min-[2200px]:px-16 md:px-6 2xl:px-10">
-				<div className="mx-auto w-full max-w-400">
-					<Header />
-				</div>
+			<div className={cn("w-full shrink-0", pagePadding)}>
 				<div className={contentWidth}>
-					<div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 pt-2 pb-4">
-						<div className="min-w-0">
-							<h1 className="text-2xl font-semibold tracking-tight">
-								DuckerWeb
-							</h1>
-							{!state.parsedData && (
-								<p className="mt-1 text-sm text-neutral-500">
-									Inspect and diff Grasshopper definitions without Rhino. Runs
-									entirely in your browser — no account needed.
-								</p>
-							)}
-						</div>
-						<a
-							href="https://github.com/tsoumdoa/hopperclip"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-white"
-						>
-							<SiRefinedgithub size={14} color="currentColor" aria-hidden />
-							Source
-						</a>
-					</div>
+					<Header />
+					<PageHeader
+						title="DuckerWeb"
+						description={
+							!state.parsedData &&
+							"Inspect and diff Grasshopper definitions without Rhino. Runs entirely in your browser — no account needed."
+						}
+						actions={
+							<a
+								href="https://github.com/tsoumdoa/hopperclip"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-white"
+							>
+								<SiRefinedgithub size={14} color="currentColor" aria-hidden />
+								Source
+							</a>
+						}
+					/>
 
 					{state.parsedData ? (
 						<div className="bg-card mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.08] p-2">
@@ -150,7 +151,6 @@ function DuckerWebPage() {
 						/>
 					)}
 
-					<div className="py-2" />
 					{state.error && <p className="mb-4 text-red-400">{state.error}</p>}
 				</div>
 			</div>

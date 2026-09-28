@@ -16,6 +16,12 @@ import { GhFlowView } from "../../components/gh-flow-view";
 import type { GHNode } from "../../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/app/components/page-header";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function formatExpiry(dateStr: string) {
 	const diffMs = new Date(dateStr).getTime() - Date.now();
@@ -96,60 +102,63 @@ export default function GhShareCard(props: {
 	const CopyIcon = copyPending ? Loader2 : copied ? Check : Copy;
 
 	return (
-		<div className="flex w-full flex-col gap-6">
-			<div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-				<div className="max-w-2xl min-w-0">
-					<p className="font-mono text-[11px] tracking-[0.18em] text-green-300/80 uppercase">
-						Shared snippet
-					</p>
-					<h1 className="mt-2 text-2xl font-semibold tracking-tight break-words md:text-4xl">
-						{post.name}
-					</h1>
-					{post.description && (
-						<p className="mt-2 text-base text-neutral-400">
-							{post.description}
-						</p>
-					)}
-					<div className="mt-4 flex flex-wrap items-center gap-2">
-						{tags.map((tag) => (
-							<span
-								key={tag}
-								className="inline-flex h-6 items-center rounded-md bg-white/[0.05] px-2 text-xs font-medium text-neutral-300 ring-1 ring-white/10 ring-inset"
-							>
-								{tag}
-							</span>
-						))}
-						<span className="inline-flex items-center gap-1.5 text-xs text-neutral-500">
-							<Clock className="size-3.5" aria-hidden />
-							Link expires in {formatExpiry(expiryDate)}
-						</span>
-					</div>
-				</div>
-				<div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-					<button
-						type="button"
-						onClick={() => handleCopy()}
-						disabled={copyDisabled}
-						className={cn(
-							"inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:opacity-60",
-							copied
-								? "bg-green-300/15 text-green-300"
-								: "bg-green-300 text-neutral-900 hover:bg-green-200"
+		<div className="flex w-full flex-col pb-6">
+			<PageHeader
+				title={post.name}
+				description={
+					<>
+						{post.description && (
+							<p className="max-w-2xl text-neutral-400">{post.description}</p>
 						)}
-					>
-						<CopyIcon
-							className={cn("size-4", copyPending && "animate-spin")}
-							aria-hidden
-						/>
-						{copied ? "Copied" : "Copy GhXml"}
-					</button>
-					<p className="text-xs text-neutral-500">
-						Then paste into Grasshopper with Ctrl+V
-					</p>
-				</div>
-			</div>
+						<div className="mt-2 flex flex-wrap items-center gap-2">
+							{tags.map((tag) => (
+								<span
+									key={tag}
+									className="inline-flex h-6 items-center rounded-md bg-white/[0.05] px-2 text-xs font-medium text-neutral-300 ring-1 ring-white/10 ring-inset"
+								>
+									{tag}
+								</span>
+							))}
+							<span className="inline-flex items-center gap-1.5 text-xs">
+								<span className="font-medium text-green-300/80">
+									Shared snippet
+								</span>
+								<span aria-hidden>·</span>
+								<Clock className="size-3.5" aria-hidden />
+								Link expires in {formatExpiry(expiryDate)}
+							</span>
+						</div>
+					</>
+				}
+				actions={
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								type="button"
+								onClick={() => handleCopy()}
+								disabled={copyDisabled}
+								className={cn(
+									"inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-colors disabled:opacity-60",
+									copied
+										? "bg-green-300/15 text-green-300"
+										: "bg-green-300 text-neutral-900 hover:bg-green-200"
+								)}
+							>
+								<CopyIcon
+									className={cn("size-4", copyPending && "animate-spin")}
+									aria-hidden
+								/>
+								{copied ? "Copied" : "Copy GhXml"}
+							</button>
+						</TooltipTrigger>
+						<TooltipContent side="bottom">
+							Then paste into Grasshopper with Ctrl+V
+						</TooltipContent>
+					</Tooltip>
+				}
+			/>
 
-			<div className="h-[65vh] min-h-96 overflow-hidden rounded-2xl border border-white/[0.08]">
+			<div className="h-[65vh] min-h-96 overflow-hidden rounded-xl border border-white/[0.08]">
 				<GhFlowView
 					nodes={props.flowNodes}
 					edges={props.flowEdges}
@@ -159,7 +168,7 @@ export default function GhShareCard(props: {
 			</div>
 
 			<SignedOut>
-				<div className="bg-card flex flex-col items-start justify-between gap-4 rounded-2xl border border-white/[0.08] px-5 py-4 sm:flex-row sm:items-center">
+				<div className="bg-card mt-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-white/[0.08] px-5 py-4 sm:flex-row sm:items-center">
 					<div>
 						<p className="font-medium text-neutral-100">
 							Keep your own Grasshopper snippets
