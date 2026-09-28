@@ -14,7 +14,7 @@ const navLinkActiveClass = "bg-white/[0.07] text-white";
 
 export default function Header() {
 	return (
-		<header className="bg-background/80 sticky top-0 z-40 flex h-14 w-full items-center justify-between backdrop-blur-md">
+		<header className="bg-background/80 sticky top-0 z-40 flex h-12 w-full items-center justify-between backdrop-blur-md">
 			<Link
 				to="/"
 				className="group flex items-center gap-2.5 rounded-md text-lg font-semibold tracking-tight md:text-xl"

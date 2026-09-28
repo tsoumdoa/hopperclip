@@ -6,9 +6,9 @@ export function PageHeader(props: {
 	actions?: ReactNode;
 }) {
 	return (
-		<div className="flex flex-col gap-3 pt-2 pb-4 md:flex-row md:items-end md:justify-between">
+		<div className="flex flex-col gap-3 pt-1 pb-4 md:flex-row md:items-end md:justify-between">
 			<div className="min-w-0">
-				<h1 className="truncate text-2xl font-semibold tracking-tight">
+				<h1 className="truncate text-2xl leading-tight font-semibold tracking-tight">
 					{props.title}
 				</h1>
 				{props.description && (
