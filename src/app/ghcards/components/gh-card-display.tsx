@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import GHCard from "@/app/components/gh-card";
 import {
 	useGhCardsPageActions,
@@ -31,20 +32,17 @@ function EmptyState(props: {
 			<p className="text-lg font-semibold text-neutral-100">{props.title}</p>
 			<p className="max-w-md text-sm text-neutral-500">{props.description}</p>
 			{props.action && (
-				<button
+				<Button
 					type="button"
-					className={
-						props.action.primary
-							? "mt-2 inline-flex h-9 items-center gap-1.5 rounded-lg bg-green-300 px-4 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200"
-							: "mt-2 inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-4 text-sm font-medium text-neutral-200 transition-colors hover:border-white/20 hover:bg-white/5"
-					}
+					variant={props.action.primary ? "default" : "outline"}
+					className="mt-2"
 					onClick={props.action.onClick}
 				>
 					{props.action.primary && (
 						<Plus className="size-4" strokeWidth={2.5} aria-hidden />
 					)}
 					{props.action.label}
-				</button>
+				</Button>
 			)}
 			{props.children}
 		</div>

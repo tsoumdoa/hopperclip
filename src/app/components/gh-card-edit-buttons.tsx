@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import {
@@ -44,29 +45,28 @@ export function EditButtons(props: {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<button
+			<Button
 				type="button"
-				className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+				variant="ghost"
+				size="sm"
+				className="text-red-400 hover:text-red-300"
 				onClick={() => setConfirmDeleteOpen(true)}
 			>
 				<Trash2 className="size-3.5" aria-hidden />
 				Delete
-			</button>
+			</Button>
 			<div className="flex items-center gap-1.5">
-				<button
+				<Button
 					type="button"
-					className="h-8 rounded-md px-3 text-sm font-medium text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+					variant="ghost"
+					size="sm"
 					onClick={() => props.handleCancel()}
 				>
 					Cancel
-				</button>
-				<button
-					type="button"
-					className="h-8 rounded-md bg-green-300 px-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200"
-					onClick={() => props.handleEdit(true)}
-				>
+				</Button>
+				<Button type="button" size="sm" onClick={() => props.handleEdit(true)}>
 					Save
-				</button>
+				</Button>
 			</div>
 		</div>
 	);

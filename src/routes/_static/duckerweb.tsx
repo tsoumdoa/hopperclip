@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
-import { toast } from "sonner";
 import { decompress } from "@/app/utils/gzip";
 import Header from "@/app/components/header";
 import { PageHeader } from "@/app/components/page-header";
@@ -24,6 +23,13 @@ const SAMPLE_FILE_NAME = "Attractor_Perforated_Facade_12x7.ghx";
 // Stored gzipped to keep the public asset small; decompressed client-side.
 const SAMPLE_URL = `/samples/${SAMPLE_FILE_NAME}.gz`;
 const pagePadding = "px-4 md:px-6 2xl:px-10 min-[2200px]:px-16";
+
+async function loadSampleFile() {
+	const res = await fetch(SAMPLE_URL);
+	if (!res.ok) throw new Error(`Couldn't load the sample (HTTP ${res.status})`);
+	const xml = await decompress(await res.arrayBuffer());
+	return new File([xml as Uint8Array<ArrayBuffer>], SAMPLE_FILE_NAME);
+}
 
 const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
 	flow: {
@@ -69,18 +75,7 @@ function DuckerWebPage() {
 	);
 	useNativeGhXmlPaste({ enabled: true, onPasteText: handleNativePaste });
 
-	const handleLoadSample = useCallback(async () => {
-		try {
-			const res = await fetch(SAMPLE_URL);
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const xml = await decompress(await res.arrayBuffer());
-			actions.handleFileSelected(
-				new File([xml as Uint8Array<ArrayBuffer>], SAMPLE_FILE_NAME)
-			);
-		} catch {
-			toast.error("Couldn't load the sample definition");
-		}
-	}, [actions]);
+	const handleLoadSample = () => actions.handleFileSelected(loadSampleFile());
 
 	const views: Record<ViewMode, React.ReactNode> = {
 		flow: <GHFlowCanvas nodes={state.nodes} edges={state.edges} />,
@@ -158,7 +153,6 @@ function DuckerWebPage() {
 								isValidXml={state.isValidXml}
 								xmlError={state.xmlError}
 								fileName={state.fileName}
-								compact
 								onPaste={actions.handlePasteFromClipboard}
 								onFileSelected={actions.handleFileSelected}
 								onClear={actions.handleClear}

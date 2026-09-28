@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -66,9 +67,9 @@ export default function AddGHCard() {
 				initialXml={pendingXml}
 				onInitialXmlConsumed={consumePendingXml}
 			/>
-			<button
+			<Button
 				type="button"
-				className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-green-300 px-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200 disabled:opacity-60"
+
 				onClick={handleAddClick}
 				disabled={adding}
 			>
@@ -78,7 +79,7 @@ export default function AddGHCard() {
 					<Plus className="size-4" strokeWidth={2.5} aria-hidden />
 				)}
 				{adding ? "Adding…" : "New card"}
-			</button>
+			</Button>
 		</div>
 	);
 }

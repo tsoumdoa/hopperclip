@@ -116,8 +116,11 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	}, [props.open, setName]);
 
 	const flowPreview = useMemo(
-		() => (xmlData && isValidXml ? createFlowPreview(xmlData) : null),
-		[isValidXml, xmlData]
+		() =>
+			activeTab === "flow" && xmlData && isValidXml
+				? createFlowPreview(xmlData)
+				: null,
+		[activeTab, isValidXml, xmlData]
 	);
 
 	useEffect(() => {
@@ -230,161 +233,155 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	return (
 		<AlertDialog open={props.open}>
 			<AlertDialogContent
-				className="sm:max-w-xl"
+				className="flex h-[min(44rem,calc(100dvh-2rem))] flex-col overflow-hidden sm:max-w-xl"
 				onEscapeKeyDown={handleEscapeKeyDown}
 				{...dragHandlers}
 			>
 				{isDragging && <DropOverlay className="rounded-lg" />}
-				<AlertDialogHeader>
+				<AlertDialogHeader className="shrink-0">
 					<AlertDialogTitle className="text-lg">
 						{props.adding && addError.length === 0 ? "Adding…" : "New card"}
 					</AlertDialogTitle>
-
-					<Tabs
-						value={activeTab}
-						onValueChange={(value) => setActiveTab(value as AddDialogTab)}
-						className="gap-4"
-					>
-						<TabsList aria-label="Add card views">
-							<TabsTrigger value="details">Details</TabsTrigger>
-							<TabsTrigger value="flow" disabled={!isValidXml}>
-								Preview graph
-							</TabsTrigger>
-						</TabsList>
-
-						<div className="grid">
-							<TabsContent
-								value="details"
-								forceMount
-								inert={activeTab !== "details"}
-								className="col-start-1 row-start-1 mt-0 text-left data-[state=inactive]:opacity-0"
-							>
-								<div className="flex flex-col gap-4">
-									<GhCardXmlPaste
-										xmlData={xmlData}
-										setXmlData={setXmlData}
-										isValidXml={isValidXml}
-										xmlError={addError}
-										setXmlError={setAddError}
-										handlePasteFromClipboard={handlePasteFromClipboard}
-										handleFileSelected={handleFileSelected}
-										onClearPastedXml={handleClearPastedXml}
-										pasteShortcutEnabled
-									/>
-									<label className="flex flex-col gap-1.5">
-										<span className="flex items-baseline justify-between text-xs">
-											<span className="font-medium text-neutral-400">Name</span>
-											<span className="text-neutral-600 tabular-nums">
-												{name.length || 0}/30
-											</span>
-										</span>
-										<Input
-											type="text"
-											name="name"
-											placeholder="NameOfGhCardInPascalCase"
-											className="font-semibold"
-											maxLength={30}
-											value={name}
-											onChange={(e) => handleNameChange(e.target.value)}
-											disabled={props.adding}
-											autoComplete="off"
-										/>
-									</label>
-									<label className="flex flex-col gap-1.5">
-										<span className="flex items-baseline justify-between text-xs">
-											<span className="font-medium text-neutral-400">
-												Description
-											</span>
-											<span className="text-neutral-600 tabular-nums">
-												{description.length || 0}/150
-											</span>
-										</span>
-										<Textarea
-											name="description"
-											placeholder="What does this definition do?"
-											maxLength={150}
-											value={description}
-											onChange={(e) => setDescription(e.target.value)}
-											disabled={props.adding}
-											autoComplete="off"
-										/>
-									</label>
-									<div className="flex flex-col gap-2">
-										<span className="text-xs font-medium text-neutral-400">
-											Tags
-										</span>
-										{tags.length > 0 && (
-											<div className="flex flex-wrap items-center gap-1.5">
-												{tags.map((tag, i) => (
-													<AddGhTagDisplay
-														key={`tag-${i}-${tag}`}
-														tag={tag}
-														handleDeleteTag={deleteTag}
-													/>
-												))}
-											</div>
-										)}
-										<div className="flex w-full max-w-xs items-center gap-2">
-											<Input
-												type="text"
-												name="tag"
-												placeholder="Add a tag"
-												maxLength={20}
-												onChange={(e) => {
-													onTagValueChange(e.target.value);
-												}}
-												autoComplete="off"
-												disabled={props.adding}
-												value={tag}
-												onKeyDown={(e) => {
-													if (e.key === "Enter" && tag.length > 0) {
-														handleAddTag(tag);
-													}
-												}}
-											/>
-											<Button
-												type="submit"
-												variant="secondary"
-												onClick={() => handleAddTag(tag)}
-											>
-												Add
-											</Button>
-										</div>
-										{availableTags.length > 0 && (
-											<div className="flex flex-wrap items-center gap-1.5">
-												{availableTags.map((tag, i) => (
-													<AvailableGhTagDisplay
-														key={`availableTag-${i}-${tag}`}
-														tag={tag}
-														handleAddTag={handleAddTag}
-													/>
-												))}
-											</div>
-										)}
-									</div>
-								</div>
-							</TabsContent>
-
-							<TabsContent
-								value="flow"
-								forceMount
-								inert={activeTab !== "flow"}
-								className="col-start-1 row-start-1 mt-0 min-h-[360px] overflow-hidden rounded-lg border border-white/[0.06] data-[state=inactive]:opacity-0"
-							>
-								<GhFlowView
-									nodes={flowPreview?.nodes ?? []}
-									edges={flowPreview?.edges ?? []}
-									emptyMessage={
-										xmlData && isValidXml
-											? "This script does not contain any flow data."
-											: "Import valid Grasshopper XML to preview its flow."
-									}
-								/>
-							</TabsContent>
-						</div>
-					</Tabs>
 				</AlertDialogHeader>
-				<AlertDialogFooter>
+
+				<Tabs
+					value={activeTab}
+					onValueChange={(value) => setActiveTab(value as AddDialogTab)}
+					className="min-h-0 flex-1 gap-4 overflow-hidden"
+				>
+					<TabsList aria-label="Add card views" className="shrink-0">
+						<TabsTrigger value="details">Details</TabsTrigger>
+						<TabsTrigger value="flow" disabled={!isValidXml}>
+							Preview graph
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent
+						value="details"
+						className="mt-0 min-h-0 overflow-y-auto p-1 text-left"
+					>
+						<div className="flex flex-col gap-4">
+							<GhCardXmlPaste
+								xmlData={xmlData}
+								setXmlData={setXmlData}
+								isValidXml={isValidXml}
+								xmlError={addError}
+								setXmlError={setAddError}
+								handlePasteFromClipboard={handlePasteFromClipboard}
+								handleFileSelected={handleFileSelected}
+								onClearPastedXml={handleClearPastedXml}
+								pasteShortcutEnabled
+							/>
+							<label className="flex flex-col gap-1.5">
+								<span className="flex items-baseline justify-between text-xs">
+									<span className="font-medium text-neutral-400">Name</span>
+									<span className="text-neutral-600 tabular-nums">
+										{name.length || 0}/30
+									</span>
+								</span>
+								<Input
+									type="text"
+									name="name"
+									placeholder="NameOfGhCardInPascalCase"
+									className="font-semibold"
+									maxLength={30}
+									value={name}
+									onChange={(e) => handleNameChange(e.target.value)}
+									disabled={props.adding}
+									autoComplete="off"
+								/>
+							</label>
+							<label className="flex flex-col gap-1.5">
+								<span className="flex items-baseline justify-between text-xs">
+									<span className="font-medium text-neutral-400">
+										Description
+									</span>
+									<span className="text-neutral-600 tabular-nums">
+										{description.length || 0}/150
+									</span>
+								</span>
+								<Textarea
+									name="description"
+									placeholder="What does this definition do?"
+									maxLength={150}
+									value={description}
+									onChange={(e) => setDescription(e.target.value)}
+									disabled={props.adding}
+									autoComplete="off"
+								/>
+							</label>
+							<div className="flex flex-col gap-2">
+								<span className="text-xs font-medium text-neutral-400">
+									Tags
+								</span>
+								{tags.length > 0 && (
+									<div className="flex flex-wrap items-center gap-1.5">
+										{tags.map((tag, i) => (
+											<AddGhTagDisplay
+												key={`tag-${i}-${tag}`}
+												tag={tag}
+												handleDeleteTag={deleteTag}
+											/>
+										))}
+									</div>
+								)}
+								<div className="flex w-full max-w-xs items-center gap-2">
+									<Input
+										type="text"
+										name="tag"
+										placeholder="Add a tag"
+										maxLength={20}
+										onChange={(e) => {
+											onTagValueChange(e.target.value);
+										}}
+										autoComplete="off"
+										disabled={props.adding}
+										value={tag}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" && tag.length > 0) {
+												handleAddTag(tag);
+											}
+										}}
+									/>
+									<Button
+										type="submit"
+										variant="secondary"
+										onClick={() => handleAddTag(tag)}
+									>
+										Add
+									</Button>
+								</div>
+								{availableTags.length > 0 && (
+									<div className="flex flex-wrap items-center gap-1.5">
+										{availableTags.map((tag, i) => (
+											<AvailableGhTagDisplay
+												key={`availableTag-${i}-${tag}`}
+												tag={tag}
+												handleAddTag={handleAddTag}
+											/>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+					</TabsContent>
+
+					<TabsContent
+						value="flow"
+						className="mt-0 min-h-0 overflow-hidden rounded-lg border border-white/[0.06]"
+					>
+						<GhFlowView
+							nodes={flowPreview?.nodes ?? []}
+							edges={flowPreview?.edges ?? []}
+							emptyMessage={
+								xmlData && isValidXml
+									? "This script does not contain any flow data."
+									: "Import valid Grasshopper XML to preview its flow."
+							}
+						/>
+					</TabsContent>
+				</Tabs>
+				<AlertDialogFooter className="shrink-0">
 					<AlertDialogCancel
 						disabled={props.adding}
 						onClick={() => handleCancel()}

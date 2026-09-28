@@ -332,10 +332,15 @@ export function useDuckerwebState(): {
 	}, [applyPastedXml]);
 
 	const handleFileSelected = useCallback(
-		async (file: File) => {
+		async (pendingFile: File | Promise<File>) => {
 			const requestId = ++activeRequest.current;
 			dispatch({ type: "importStart" });
+			let file: File | undefined;
 			try {
+				// Register remote imports before downloading, so a newer paste, file,
+				// or Clear also invalidates an in-flight sample download.
+				file = await pendingFile;
+				if (requestId !== activeRequest.current) return;
 				const xml = await ghFileToGhXml(file);
 				if (requestId !== activeRequest.current) return;
 				ingestXml(xml, "file", file.name);
@@ -346,7 +351,7 @@ export function useDuckerwebState(): {
 					message:
 						err instanceof GhFileError
 							? err.message
-							: `Failed to read file "${file.name}": \n${
+							: `Failed to import ${file ? `"${file.name}"` : "definition"}: \n${
 									err instanceof Error ? err.message : String(err)
 								}`,
 				});

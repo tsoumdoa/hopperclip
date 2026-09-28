@@ -71,7 +71,7 @@ export function NameDescriptionAndTags(props: {
 					{props.titleAdornment}
 				</div>
 				<p
-					className={`mt-1 line-clamp-3 text-sm leading-relaxed break-words ${hasDescription ? "text-neutral-400" : "text-neutral-600 italic"}`}
+					className={`mt-1 text-sm leading-relaxed break-words ${hasDescription ? "text-neutral-400" : "text-neutral-600 italic"}`}
 				>
 					{hasDescription ? props.ghInfo.description : "No description"}
 				</p>

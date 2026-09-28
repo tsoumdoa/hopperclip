@@ -113,7 +113,7 @@ export type DuckerwebState = {
 export type DuckerwebActions = {
 	handlePasteFromClipboard: () => Promise<void>;
 	handlePastedXml: (text: string) => void;
-	handleFileSelected: (file: File) => Promise<void>;
+	handleFileSelected: (file: File | Promise<File>) => Promise<void>;
 	handlePasteComparison: () => Promise<void>;
 	handlePastedComparisonXml: (text: string) => void;
 	handleComparisonFileSelected: (file: File) => Promise<void>;
@@ -144,7 +144,6 @@ export type XmlPasteAreaProps = {
 	isValidXml: boolean;
 	xmlError: string;
 	fileName?: string;
-	compact?: boolean;
 	onPaste: () => void;
 	onFileSelected: (file: File) => void;
 	onClear: () => void;

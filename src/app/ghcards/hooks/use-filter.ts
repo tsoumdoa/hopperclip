@@ -27,26 +27,39 @@ export default function useFilter(
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
+	const indexes = useMemo(
+		() => [
+			new Fuse(
+				ghCards.map((card) => card.name ?? ""),
+				fuseOptions
+			),
+			new Fuse(
+				ghCards.map((card) => card.description ?? ""),
+				fuseOptions
+			),
+			new Fuse(
+				ghCards.flatMap((card) => card.tags ?? []),
+				fuseOptions
+			),
+		],
+		[ghCards]
+	);
 
 	// Must stay derived during render: syncing via an effect shows the empty
 	// state for a frame after cards load.
 	const filteredCards = useMemo(() => {
 		if (filterKeyword === "") return ghCards;
 
-		const search = (values: string[]) =>
-			new Fuse(values, fuseOptions).search(filterKeyword).map((m) => m.item);
-		const set = new Set([
-			...search(ghCards.map((card) => card.name ?? "")),
-			...search(ghCards.map((card) => card.description ?? "")),
-			...search(ghCards.flatMap((card) => card.tags ?? [])),
-		]);
+		const set = new Set(
+			indexes.flatMap((index) => index.search(filterKeyword).map((m) => m.item))
+		);
 		return ghCards.filter(
 			(card) =>
 				set.has(card.name ?? "") ||
 				set.has(card.description ?? "") ||
 				card.tags?.some((tag) => set.has(tag))
 		);
-	}, [ghCards, filterKeyword]);
+	}, [ghCards, filterKeyword, indexes]);
 
 	const clearFilter = () => {
 		setFilterKeyword("");
@@ -86,9 +99,7 @@ export default function useFilter(
 
 	return {
 		filteredCards,
-		showFilter: showFilterInput,
 		handleFilter,
-		setShowFilter: setShowFilterInput,
 		filterKeyword,
 		clearFilter,
 	};
