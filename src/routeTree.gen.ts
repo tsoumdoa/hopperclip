@@ -9,38 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShareRouteImport } from './routes/share'
-import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DevFlowGalleryRouteImport } from './routes/dev/flow-gallery'
-import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms-of-service'
-import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
-import { Route as StaticDuckerwebRouteImport } from './routes/_static/duckerweb'
+import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as ShareRouteImport } from './routes/share'
 import { Route as AuthedGhcardsRouteImport } from './routes/_authed/ghcards'
+import { Route as StaticDuckerwebRouteImport } from './routes/_static/duckerweb'
+import { Route as StaticPrivacyRouteImport } from './routes/_static/privacy'
+import { Route as StaticTermsOfServiceRouteImport } from './routes/_static/terms-of-service'
+import { Route as DevFlowGalleryRouteImport } from './routes/dev/flow-gallery'
 import { Route as AuthedUserProfileSplatRouteImport } from './routes/_authed/user-profile.$'
 
-const ShareRoute = ShareRouteImport.update({
-  id: '/share',
-  path: '/share',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ShareRoute = ShareRouteImport.update({
+  id: '/share',
+  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DevFlowGalleryRoute = DevFlowGalleryRouteImport.update({
-  id: '/dev/flow-gallery',
-  path: '/dev/flow-gallery',
-  getParentRoute: () => rootRouteImport,
+const AuthedGhcardsRoute = AuthedGhcardsRouteImport.update({
+  id: '/ghcards',
+  path: '/ghcards',
+  getParentRoute: () => AuthedRoute,
 } as any)
-const StaticTermsOfServiceRoute = StaticTermsOfServiceRouteImport.update({
-  id: '/_static/terms-of-service',
-  path: '/terms-of-service',
+const StaticDuckerwebRoute = StaticDuckerwebRouteImport.update({
+  id: '/_static/duckerweb',
+  path: '/duckerweb',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaticPrivacyRoute = StaticPrivacyRouteImport.update({
@@ -48,15 +48,15 @@ const StaticPrivacyRoute = StaticPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StaticDuckerwebRoute = StaticDuckerwebRouteImport.update({
-  id: '/_static/duckerweb',
-  path: '/duckerweb',
+const StaticTermsOfServiceRoute = StaticTermsOfServiceRouteImport.update({
+  id: '/_static/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedGhcardsRoute = AuthedGhcardsRouteImport.update({
-  id: '/ghcards',
-  path: '/ghcards',
-  getParentRoute: () => AuthedRoute,
+const DevFlowGalleryRoute = DevFlowGalleryRouteImport.update({
+  id: '/dev/flow-gallery',
+  path: '/dev/flow-gallery',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedUserProfileSplatRoute = AuthedUserProfileSplatRouteImport.update({
   id: '/user-profile/$',
@@ -142,11 +142,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/share': {
-      id: '/share'
-      path: '/share'
-      fullPath: '/share'
-      preLoaderRoute: typeof ShareRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -156,25 +156,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/share': {
+      id: '/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dev/flow-gallery': {
-      id: '/dev/flow-gallery'
-      path: '/dev/flow-gallery'
-      fullPath: '/dev/flow-gallery'
-      preLoaderRoute: typeof DevFlowGalleryRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authed/ghcards': {
+      id: '/_authed/ghcards'
+      path: '/ghcards'
+      fullPath: '/ghcards'
+      preLoaderRoute: typeof AuthedGhcardsRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/_static/terms-of-service': {
-      id: '/_static/terms-of-service'
-      path: '/terms-of-service'
-      fullPath: '/terms-of-service'
-      preLoaderRoute: typeof StaticTermsOfServiceRouteImport
+    '/_static/duckerweb': {
+      id: '/_static/duckerweb'
+      path: '/duckerweb'
+      fullPath: '/duckerweb'
+      preLoaderRoute: typeof StaticDuckerwebRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_static/privacy': {
@@ -184,19 +184,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaticPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_static/duckerweb': {
-      id: '/_static/duckerweb'
-      path: '/duckerweb'
-      fullPath: '/duckerweb'
-      preLoaderRoute: typeof StaticDuckerwebRouteImport
+    '/_static/terms-of-service': {
+      id: '/_static/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof StaticTermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/ghcards': {
-      id: '/_authed/ghcards'
-      path: '/ghcards'
-      fullPath: '/ghcards'
-      preLoaderRoute: typeof AuthedGhcardsRouteImport
-      parentRoute: typeof AuthedRoute
+    '/dev/flow-gallery': {
+      id: '/dev/flow-gallery'
+      path: '/dev/flow-gallery'
+      fullPath: '/dev/flow-gallery'
+      preLoaderRoute: typeof DevFlowGalleryRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/user-profile/$': {
       id: '/_authed/user-profile/$'
