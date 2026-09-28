@@ -148,6 +148,7 @@ export type XmlPasteAreaProps = {
 	onPaste: () => void;
 	onFileSelected: (file: File) => void;
 	onClear: () => void;
+	onLoadSample?: () => Promise<void>;
 };
 
 export type ViewControlsProps = {

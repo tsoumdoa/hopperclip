@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
+import { toast } from "sonner";
 import Header from "@/app/components/header";
 import { PageHeader } from "@/app/components/page-header";
 import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
@@ -18,6 +19,8 @@ import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
 import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
 const contentWidth = "mx-auto w-full max-w-400";
+const SAMPLE_FILE_NAME = "surface-evaluation.ghx";
+const SAMPLE_URL = `/samples/${SAMPLE_FILE_NAME}`;
 const pagePadding = "px-4 md:px-6 2xl:px-10 min-[2200px]:px-16";
 
 const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
@@ -64,6 +67,17 @@ function DuckerWebPage() {
 	);
 	useNativeGhXmlPaste({ enabled: true, onPasteText: handleNativePaste });
 
+	const handleLoadSample = useCallback(async () => {
+		try {
+			const res = await fetch(SAMPLE_URL);
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			const blob = await res.blob();
+			actions.handleFileSelected(new File([blob], SAMPLE_FILE_NAME));
+		} catch {
+			toast.error("Couldn't load the sample definition");
+		}
+	}, [actions]);
+
 	const views: Record<ViewMode, React.ReactNode> = {
 		flow: <GHFlowCanvas nodes={state.nodes} edges={state.edges} />,
 		diff: (
@@ -98,14 +112,27 @@ function DuckerWebPage() {
 				isDiff ? "min-h-dvh" : "h-dvh overflow-hidden"
 			)}
 		>
-			<div className={cn("w-full shrink-0", pagePadding)}>
-				<div className={contentWidth}>
+			<div
+				className={cn(
+					"w-full",
+					pagePadding,
+					state.parsedData
+						? "shrink-0"
+						: "flex min-h-0 flex-1 flex-col overflow-y-auto pb-4 md:pb-6"
+				)}
+			>
+				<div
+					className={cn(
+						contentWidth,
+						!state.parsedData && "flex flex-1 flex-col"
+					)}
+				>
 					<Header />
 					<PageHeader
 						title="DuckerWeb"
 						description={
 							!state.parsedData &&
-							"Inspect and diff Grasshopper definitions without Rhino. Runs entirely in your browser — no account needed."
+							"Inspect and diff Grasshopper definitions without Rhino — no account needed."
 						}
 						actions={
 							<a
@@ -148,6 +175,7 @@ function DuckerWebPage() {
 							onPaste={actions.handlePasteFromClipboard}
 							onFileSelected={actions.handleFileSelected}
 							onClear={actions.handleClear}
+							onLoadSample={handleLoadSample}
 						/>
 					)}
 
