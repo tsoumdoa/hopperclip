@@ -9,12 +9,12 @@ import {
 import Fuse from "fuse.js";
 import { GhPost } from "@/types/types";
 
-const fuseOptions = {
-	keys: [],
-	includeScore: true,
+const cardSearchOptions = {
+	keys: ["name", "description", "tags"],
+	// Keep the order supplied by the Library sort selector.
+	shouldSort: false,
 	threshold: 0.3,
 	ignoreLocation: true,
-	ignoreCase: true,
 };
 
 export default function useFilter(
@@ -27,39 +27,15 @@ export default function useFilter(
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
-	const indexes = useMemo(
-		() => [
-			new Fuse(
-				ghCards.map((card) => card.name ?? ""),
-				fuseOptions
-			),
-			new Fuse(
-				ghCards.map((card) => card.description ?? ""),
-				fuseOptions
-			),
-			new Fuse(
-				ghCards.flatMap((card) => card.tags ?? []),
-				fuseOptions
-			),
-		],
-		[ghCards]
-	);
+	const index = useMemo(() => new Fuse(ghCards, cardSearchOptions), [ghCards]);
 
 	// Must stay derived during render: syncing via an effect shows the empty
 	// state for a frame after cards load.
 	const filteredCards = useMemo(() => {
 		if (filterKeyword === "") return ghCards;
 
-		const set = new Set(
-			indexes.flatMap((index) => index.search(filterKeyword).map((m) => m.item))
-		);
-		return ghCards.filter(
-			(card) =>
-				set.has(card.name ?? "") ||
-				set.has(card.description ?? "") ||
-				card.tags?.some((tag) => set.has(tag))
-		);
-	}, [ghCards, filterKeyword, indexes]);
+		return index.search(filterKeyword).map(({ item }) => item);
+	}, [ghCards, filterKeyword, index]);
 
 	const clearFilter = () => {
 		setFilterKeyword("");
@@ -69,6 +45,13 @@ export default function useFilter(
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
+			// Dialogs own their keyboard handling while open.
+			if (
+				e.defaultPrevented ||
+				(e.target instanceof Element &&
+					e.target.closest('[role="dialog"], [role="alertdialog"]'))
+			)
+				return;
 			if ((e.metaKey || e.ctrlKey) && e.key === "k") {
 				e.preventDefault();
 				setShowFilterInput((prev) => !prev);
@@ -82,9 +65,6 @@ export default function useFilter(
 				} else {
 					clearFilter();
 				}
-			}
-			if (e.key === "Enter") {
-				setShowFilterInput(false);
 			}
 		};
 		window.addEventListener("keydown", handleKeyDown);

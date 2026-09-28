@@ -140,6 +140,7 @@ export default function GHCardDisplay(props: {
 				prevFilter={filterKeyword}
 				matchCount={filteredCards.length}
 				onDismiss={() => setSearchOpen(false)}
+				onClear={clearFilter}
 			/>
 			{hasSearchKeyword && (
 				<div className="flex items-center gap-2 pb-4 text-sm">

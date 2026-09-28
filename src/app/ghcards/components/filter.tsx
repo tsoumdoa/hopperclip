@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Kbd } from "@/components/ui/kbd";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export default function Filter(props: {
 	handleFilterAction: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -8,26 +9,48 @@ export default function Filter(props: {
 	prevFilter: string;
 	matchCount: number;
 	onDismiss: () => void;
+	onClear: () => void;
 }) {
 	const ref = useRef<HTMLInputElement>(null);
-	useEffect(() => {
-		if (props.showFilter) {
-			ref.current?.focus();
-		}
-	}, [props.showFilter]);
+	const returnFocus = useRef<HTMLElement | null>(null);
 
-	if (!props.showFilter) return null;
 	return (
-		<div
-			className="animate-in fade-in-0 fixed inset-0 z-50 flex items-start justify-center bg-black/70 px-4 pt-[15vh] backdrop-blur-sm duration-150"
-			onClick={props.onDismiss}
+		<Dialog
+			open={props.showFilter}
+			onOpenChange={(open) => {
+				if (!open) props.onDismiss();
+			}}
 		>
-			<div
-				role="search"
-				className="animate-in zoom-in-95 slide-in-from-top-2 bg-popover w-full max-w-xl overflow-hidden rounded-xl border border-white/10 shadow-2xl duration-150"
-				onClick={(e) => e.stopPropagation()}
+			<DialogContent
+				className="top-[15vh] w-[calc(100%-2rem)] max-w-xl translate-y-0 gap-0 overflow-hidden p-0"
+				aria-describedby={undefined}
+				onOpenAutoFocus={(event) => {
+					event.preventDefault();
+					returnFocus.current = document.activeElement as HTMLElement | null;
+					ref.current?.focus();
+				}}
+				onCloseAutoFocus={(event) => {
+					event.preventDefault();
+					returnFocus.current?.focus();
+				}}
+				onEscapeKeyDown={(event) => {
+					event.preventDefault();
+					props.onClear();
+				}}
+				onKeyDown={(event) => {
+					if (event.nativeEvent.isComposing) return;
+					if (
+						(event.key === "Enter" && event.target === ref.current) ||
+						((event.metaKey || event.ctrlKey) &&
+							event.key.toLowerCase() === "k")
+					) {
+						event.preventDefault();
+						props.onDismiss();
+					}
+				}}
 			>
-				<div className="flex items-center gap-3 border-b border-white/[0.06] px-4">
+				<DialogTitle className="sr-only">Search cards</DialogTitle>
+				<div className="flex items-center gap-3 border-b border-white/[0.06] pr-12 pl-4">
 					<Search className="size-4 shrink-0 text-neutral-500" aria-hidden />
 					<input
 						ref={ref}
@@ -53,7 +76,7 @@ export default function Filter(props: {
 						</span>
 					</span>
 				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }

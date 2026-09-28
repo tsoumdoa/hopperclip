@@ -9,23 +9,15 @@ import { GhCardXmlPaste } from "./gh-card-xml-paste";
 import { useQuery } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
 
-export function NameDescriptionAndTags(props: {
+type CardBodyProps = {
 	editMode: boolean;
-	setEditMode: () => void;
 	setGhInfo: (ghInfo: GhCard) => void;
 	ghInfo: GhCard;
-	// DEPRECATED: Not used anymore, kept for compatibility
-	isShared?: boolean;
-	// DEPRECATED: Not used anymore, kept for compatibility
-	expiryDate?: string;
-	bucketId: string;
 	titleAdornment?: React.ReactNode;
 	tagsSlot?: React.ReactNode;
 	addTag: (tag: string) => void;
 	tag: string;
 	setTag: (t: string) => void;
-	reset: boolean;
-	setReset: (b: boolean) => void;
 	newXmlData: string | undefined;
 	setNewXmlData: (data: string | undefined) => void;
 	isValidXml: boolean;
@@ -33,52 +25,46 @@ export function NameDescriptionAndTags(props: {
 	setXmlError: (error: string) => void;
 	handlePasteFromClipboard: () => void;
 	handleFileSelected: (file: File) => void;
-}) {
+};
+
+export function NameDescriptionAndTags(props: CardBodyProps) {
+	if (props.editMode) return <CardEditor {...props} />;
+
+	const hasDescription = props.ghInfo.description.length > 0;
+	return (
+		<div className="flex w-full flex-1 flex-col">
+			<div className="flex items-start justify-between gap-3">
+				<h3
+					className="min-w-0 truncate text-base font-semibold text-neutral-50"
+					title={props.ghInfo.name}
+				>
+					{props.ghInfo.name}
+				</h3>
+				{props.titleAdornment}
+			</div>
+			<p
+				className={`mt-1 text-sm leading-relaxed break-words ${hasDescription ? "text-neutral-400" : "text-neutral-600 italic"}`}
+			>
+				{hasDescription ? props.ghInfo.description : "No description"}
+			</p>
+			{props.tagsSlot && <div className="mt-3">{props.tagsSlot}</div>}
+		</div>
+	);
+}
+
+function CardEditor(props: CardBodyProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const [addError, setAddError] = useState("");
 	const {
 		onTagValueChange,
 		handleAddTag: validateTag,
 		availableTags,
-		setAvailableTags: setAvailableTagsDisplay,
-		setTags: setAvailableTags,
+		setTags: setValidationTags,
 	} = useValidateNameDescriptionAndTags(setAddError, userTags ?? []);
 
 	useEffect(() => {
-		setAvailableTags(props.ghInfo.tags ?? []);
-	}, [props.ghInfo.tags, setAvailableTags]);
-
-	useEffect(() => {
-		if (props.reset) {
-			props.setReset(false);
-			setAddError("");
-			setAvailableTags([]);
-			setAvailableTagsDisplay([]);
-		}
-	}, [props.reset, setAvailableTags, setAvailableTagsDisplay, props]);
-
-	if (!props.editMode) {
-		const hasDescription = props.ghInfo.description.length > 0;
-		return (
-			<div className="flex w-full flex-1 flex-col">
-				<div className="flex items-start justify-between gap-3">
-					<h3
-						className="min-w-0 truncate text-base font-semibold text-neutral-50"
-						title={props.ghInfo.name}
-					>
-						{props.ghInfo.name}
-					</h3>
-					{props.titleAdornment}
-				</div>
-				<p
-					className={`mt-1 text-sm leading-relaxed break-words ${hasDescription ? "text-neutral-400" : "text-neutral-600 italic"}`}
-				>
-					{hasDescription ? props.ghInfo.description : "No description"}
-				</p>
-				{props.tagsSlot && <div className="mt-3">{props.tagsSlot}</div>}
-			</div>
-		);
-	}
+		setValidationTags(props.ghInfo.tags);
+	}, [props.ghInfo.tags, setValidationTags]);
 
 	return (
 		<div className="flex w-full flex-1 flex-col gap-4">

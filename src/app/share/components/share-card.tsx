@@ -15,6 +15,7 @@ import { GetSharedPost } from "@/types/types";
 import { GhFlowView } from "../../components/gh-flow-view";
 import type { GHNode } from "../../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/app/components/page-header";
 import {
@@ -78,18 +79,12 @@ export default function GhShareCard(props: {
 					for a fresh link.
 				</p>
 				<div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-					<Link
-						to="/"
-						className="inline-flex h-9 items-center rounded-lg bg-green-300 px-4 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200"
-					>
-						Go to Hopper Clip
-					</Link>
-					<Link
-						to="/duckerweb"
-						className="inline-flex h-9 items-center rounded-lg border border-white/10 px-4 text-sm font-medium text-neutral-200 transition-colors hover:bg-white/5"
-					>
-						Open DuckerWeb
-					</Link>
+					<Button asChild>
+						<Link to="/">Go to Hopper Clip</Link>
+					</Button>
+					<Button asChild variant="outline">
+						<Link to="/duckerweb">Open DuckerWeb</Link>
+					</Button>
 				</div>
 			</div>
 		);
@@ -133,23 +128,18 @@ export default function GhShareCard(props: {
 				actions={
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<button
+							<Button
 								type="button"
 								onClick={() => handleCopy()}
 								disabled={copyDisabled}
-								className={cn(
-									"inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-colors disabled:opacity-60",
-									copied
-										? "bg-green-300/15 text-green-300"
-										: "bg-green-300 text-neutral-900 hover:bg-green-200"
-								)}
+								className={cn(copied && "bg-green-300/15 text-green-300")}
 							>
 								<CopyIcon
 									className={cn("size-4", copyPending && "animate-spin")}
 									aria-hidden
 								/>
 								{copied ? "Copied" : "Copy GhXml"}
-							</button>
+							</Button>
 						</TooltipTrigger>
 						<TooltipContent side="bottom">
 							Then paste into Grasshopper with Ctrl+V
@@ -178,13 +168,13 @@ export default function GhShareCard(props: {
 						</p>
 					</div>
 					<SignUpButton mode="modal">
-						<button
+						<Button
 							type="button"
-							className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
+							className="bg-white text-black hover:bg-neutral-200"
 						>
 							Get started
 							<ArrowRight className="size-4" aria-hidden />
-						</button>
+						</Button>
 					</SignUpButton>
 				</div>
 			</SignedOut>

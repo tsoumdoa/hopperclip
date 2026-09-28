@@ -11,14 +11,13 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function NormalButtons(props: {
-	editMode: boolean;
 	bucketId: string;
 	postId: Id<"post">;
 	setEditMode: () => void;
-	handleEdit: (b: boolean) => void;
 	openSharedDialog: boolean;
 	setOpenSharedDialog: (b: boolean) => void;
 	handleShare: () => void;
@@ -57,15 +56,17 @@ export function NormalButtons(props: {
 		<div className="flex items-center gap-0.5">
 			<ShareDialog
 				open={props.openSharedDialog}
-				setOpen={() => props.setOpenSharedDialog(!props.openSharedDialog)}
+				setOpen={props.setOpenSharedDialog}
 				postId={props.postId}
 			/>
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<button
+					<Button
 						type="button"
+						variant="secondary"
+						size="sm"
 						className={cn(
-							"mr-1 inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors",
+							"mr-1 h-7 text-xs font-semibold",
 							copied
 								? "bg-green-300/15 text-green-300"
 								: "bg-white/[0.07] text-neutral-100 hover:bg-green-300 hover:text-neutral-900"
@@ -78,7 +79,7 @@ export function NormalButtons(props: {
 							aria-hidden
 						/>
 						{copied ? "Copied" : "Copy"}
-					</button>
+					</Button>
 				</TooltipTrigger>
 				<TooltipContent side="bottom">
 					Copy GhXml, then paste into Grasshopper
@@ -103,14 +104,16 @@ function CardIconButton(props: {
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<button
+				<Button
 					type="button"
 					aria-label={props.label}
-					className="inline-flex size-7 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+					variant="ghost"
+					size="icon"
+					className="size-7 text-neutral-400 hover:text-white"
 					onClick={props.onClick}
 				>
 					<Icon className="size-3.5" aria-hidden />
-				</button>
+				</Button>
 			</TooltipTrigger>
 			<TooltipContent side="bottom">{props.label}</TooltipContent>
 		</Tooltip>

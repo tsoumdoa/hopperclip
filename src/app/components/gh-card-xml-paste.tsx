@@ -6,6 +6,7 @@ import type { ParsedGrasshopper } from "parser/src/types";
 import { validateGhXml } from "../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
 import { useModifierKeyLabel } from "../hooks/use-modifier-key-label";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
 	GhCardXmlPasteProps,
@@ -103,9 +104,6 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 		event.target.value = "";
 	};
 
-	const actionClass =
-		"inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-neutral-200 transition-colors hover:border-white/20 hover:bg-white/[0.07]";
-
 	return (
 		<div className="text-sm">
 			{props.xmlData ? (
@@ -125,14 +123,16 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 					) : (
 						<span className="font-medium text-red-400">Invalid GhXml</span>
 					)}
-					<button
+					<Button
 						type="button"
-						className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-neutral-400 transition-colors hover:bg-white/5 hover:text-white"
+						variant="ghost"
+						size="sm"
+						className="h-auto py-1 text-xs text-neutral-400 hover:text-white"
 						onClick={handleClear}
 					>
 						<X className="size-3.5" aria-hidden />
 						Remove
-					</button>
+					</Button>
 				</div>
 			) : (
 				<div
@@ -148,23 +148,25 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 						</div>
 					)}
 					<div className="flex flex-wrap items-center gap-2">
-						<button
+						<Button
 							type="button"
 							onClick={props.handlePasteFromClipboard}
-							className={actionClass}
+							variant="outline"
+							size="sm"
 						>
 							<Clipboard className="size-3.5 text-neutral-400" aria-hidden />
 							Paste GhXml
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							onClick={() => inputRef.current?.click()}
-							className={actionClass}
+							variant="outline"
+							size="sm"
 							data-testid="gh-file-browse-button"
 						>
 							<FileUp className="size-3.5 text-neutral-400" aria-hidden />
 							Browse .gh / .ghx
-						</button>
+						</Button>
 					</div>
 					<p className="text-xs text-neutral-500">
 						{props.pasteShortcutEnabled ? (

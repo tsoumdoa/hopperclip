@@ -38,8 +38,6 @@ export default function GHCard(props: {
 		addTag,
 		tag: inputTag,
 		setTag: setInputTag,
-		reset,
-		setReset,
 		newXmlData,
 		setNewXmlData,
 		isValidXml,
@@ -142,10 +140,8 @@ export default function GHCard(props: {
 
 				<NameDescriptionAndTags
 					editMode={editMode}
-					setEditMode={() => setEditMode(!editMode)}
 					setGhInfo={setGhInfo}
 					ghInfo={ghInfo}
-					bucketId={props.cardInfo.bucketUrl ?? ""}
 					titleAdornment={
 						hasActiveShare && (
 							<button
@@ -174,8 +170,6 @@ export default function GHCard(props: {
 					addTag={addTag}
 					tag={inputTag}
 					setTag={setInputTag}
-					reset={reset}
-					setReset={setReset}
 					newXmlData={newXmlData}
 					setNewXmlData={setNewXmlData}
 					isValidXml={isValidXml}
@@ -196,9 +190,6 @@ export default function GHCard(props: {
 					)}
 					{editMode ? (
 						<EditButtons
-							editMode={editMode}
-							setEditMode={setEditMode}
-							setGhInfo={setGhInfo}
 							deletePost={() => deletePost()}
 							handleEdit={(b) => handleEdit(b)}
 							handleCancel={() => handleCancelEditMode()}
@@ -210,11 +201,9 @@ export default function GHCard(props: {
 						/>
 					) : (
 						<NormalButtons
-							editMode={editMode}
 							bucketId={props.cardInfo.bucketUrl}
 							postId={props.cardInfo._id}
 							setEditMode={() => setEditMode(true)}
-							handleEdit={(b) => handleEdit(b)}
 							openSharedDialog={openSharedDialog}
 							setOpenSharedDialog={setOpenSharedDialog}
 							handleShare={handleShare}
