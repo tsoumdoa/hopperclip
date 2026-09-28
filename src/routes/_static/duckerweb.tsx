@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
 import { toast } from "sonner";
+import { decompress } from "@/app/utils/gzip";
 import Header from "@/app/components/header";
 import { PageHeader } from "@/app/components/page-header";
 import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
@@ -19,8 +20,9 @@ import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
 import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
 const contentWidth = "mx-auto w-full max-w-400";
-const SAMPLE_FILE_NAME = "surface-evaluation.ghx";
-const SAMPLE_URL = `/samples/${SAMPLE_FILE_NAME}`;
+const SAMPLE_FILE_NAME = "Attractor_Perforated_Facade_12x7.ghx";
+// Stored gzipped to keep the public asset small; decompressed client-side.
+const SAMPLE_URL = `/samples/${SAMPLE_FILE_NAME}.gz`;
 const pagePadding = "px-4 md:px-6 2xl:px-10 min-[2200px]:px-16";
 
 const viewLayouts: Record<ViewMode, { outer: string; inner?: string }> = {
@@ -71,8 +73,10 @@ function DuckerWebPage() {
 		try {
 			const res = await fetch(SAMPLE_URL);
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const blob = await res.blob();
-			actions.handleFileSelected(new File([blob], SAMPLE_FILE_NAME));
+			const xml = await decompress(await res.arrayBuffer());
+			actions.handleFileSelected(
+				new File([xml as Uint8Array<ArrayBuffer>], SAMPLE_FILE_NAME)
+			);
 		} catch {
 			toast.error("Couldn't load the sample definition");
 		}
