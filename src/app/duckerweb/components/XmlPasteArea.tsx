@@ -33,7 +33,7 @@ export function XmlPasteArea({
 		return (
 			<div className="contents">
 				<div className="flex min-w-0 flex-wrap items-center gap-2">
-					<span className="inline-flex items-center gap-1.5 px-1 text-xs font-medium whitespace-nowrap text-emerald-400">
+					<span className="inline-flex items-center gap-1.5 px-1 text-xs font-medium whitespace-nowrap text-green-300">
 						<span aria-hidden>✓</span>
 						GhXml validated
 					</span>
@@ -95,10 +95,17 @@ export function XmlPasteArea({
 
 	return (
 		<div className="mb-6">
-			<div className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-5">
+			<div
+				className={cn(
+					"rounded-2xl border p-5",
+					hasLoadedDefinition
+						? "bg-card border-white/[0.08]"
+						: "flex flex-col items-center border-dashed border-white/15 bg-white/[0.015] px-6 py-14 text-center md:py-20"
+				)}
+			>
 				{hasLoadedDefinition ? (
 					<div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-						<span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-400">
+						<span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-300">
 							<span aria-hidden>✓</span>
 							GhXml validated
 						</span>
@@ -112,16 +119,26 @@ export function XmlPasteArea({
 						</button>
 					</div>
 				) : (
-					<p className="mb-4 text-sm leading-relaxed text-neutral-400">
-						Import a Grasshopper definition to inspect its components. Press{" "}
-						{modifier}+V to paste GhXml, browse for a{" "}
-						<span className="font-mono text-neutral-300">.gh</span> or{" "}
-						<span className="font-mono text-neutral-300">.ghx</span> file, or
-						drag and drop anywhere in this view.
-					</p>
+					<>
+						<div className="mb-4 flex size-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+							<FileUp className="size-6 text-neutral-400" aria-hidden />
+						</div>
+						<p className="text-lg font-semibold text-neutral-100">
+							Drop a .gh or .ghx file anywhere
+						</p>
+						<p className="mt-1 mb-6 max-w-md text-sm text-neutral-500">
+							Or copy components in Grasshopper and press {modifier}+V to paste.
+							See the graph, list every component, or diff two versions.
+						</p>
+					</>
 				)}
 
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<div
+					className={cn(
+						"grid grid-cols-1 gap-3 sm:grid-cols-2",
+						!hasLoadedDefinition && "w-full max-w-lg"
+					)}
+				>
 					<button type="button" onClick={onPaste} className={actionButtonClass}>
 						<Clipboard className="h-4 w-4 shrink-0 text-neutral-400" />
 						<span>
@@ -153,10 +170,12 @@ export function XmlPasteArea({
 					/>
 				</div>
 
-				<p className="mt-3 text-center text-xs text-neutral-500">
-					Press {modifier}+V to {hasLoadedDefinition ? "replace" : "paste"}, or
-					drag a file over this page to drop it anywhere in the view
-				</p>
+				{hasLoadedDefinition && (
+					<p className="mt-3 text-center text-xs text-neutral-500">
+						Press {modifier}+V to replace, or drag a file over this page to drop
+						it anywhere in the view
+					</p>
+				)}
 			</div>
 
 			{xmlError.length > 0 && (

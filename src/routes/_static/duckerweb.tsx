@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SiRefinedgithub } from "@icons-pack/react-simple-icons";
 import Header from "@/app/components/header";
 import { useDuckerwebState } from "@/app/duckerweb/hooks/use-duckerweb-state";
 import { useMarkdownExport } from "@/app/duckerweb/hooks/use-markdown-export";
@@ -86,27 +87,40 @@ function DuckerWebPage() {
 			}
 			dropTitle={isDiff ? "Drop changed .gh or .ghx definition" : undefined}
 			className={cn(
-				"flex flex-col bg-black font-sans text-white",
+				"bg-background text-foreground flex flex-col font-sans",
 				isDiff ? "min-h-dvh" : "h-dvh overflow-hidden"
 			)}
 		>
-			<div className="w-full shrink-0 px-4 pt-4 md:px-6 md:pt-6">
-				<div className={contentWidth}>
+			<div className="w-full shrink-0 px-4 min-[2200px]:px-16 md:px-6 2xl:px-10">
+				<div className="mx-auto w-full max-w-400">
 					<Header />
-					<div className="flex items-center justify-between pb-2">
-						<h1 className="text-lg font-medium">DuckerWeb</h1>
+				</div>
+				<div className={contentWidth}>
+					<div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 pt-2 pb-4">
+						<div className="min-w-0">
+							<h1 className="text-2xl font-semibold tracking-tight">
+								DuckerWeb
+							</h1>
+							{!state.parsedData && (
+								<p className="mt-1 text-sm text-neutral-500">
+									Inspect and diff Grasshopper definitions without Rhino. Runs
+									entirely in your browser — no account needed.
+								</p>
+							)}
+						</div>
 						<a
 							href="https://github.com/tsoumdoa/hopperclip"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+							className="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-white"
 						>
-							GitHub
+							<SiRefinedgithub size={14} color="currentColor" aria-hidden />
+							Source
 						</a>
 					</div>
 
 					{state.parsedData ? (
-						<div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-950/60 p-2">
+						<div className="bg-card mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.08] p-2">
 							<XmlPasteArea
 								xmlData={state.xmlData}
 								isValidXml={state.isValidXml}

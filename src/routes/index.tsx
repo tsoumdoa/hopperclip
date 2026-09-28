@@ -9,8 +9,7 @@ import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
-import Footer from "@/app/components/footer";
-import Header from "@/app/components/header";
+import { PageShell } from "@/app/components/page-shell";
 import { ClipLibraryDemo } from "@/app/components/landing/clip-library-demo";
 import { InspectDiffVisual } from "@/app/components/landing/inspect-diff-visual";
 import { Reveal } from "@/app/components/landing/reveal";
@@ -45,13 +44,9 @@ function Home() {
 	}
 
 	return (
-		<div className="min-h-screen bg-black font-sans text-white">
-			<div className="mx-auto flex min-h-screen max-w-400 flex-col p-4 min-[2200px]:px-16 md:px-6 md:pt-6 md:pb-2 2xl:px-10 2xl:pt-8">
-				<Header />
-				{isSignedIn ? <SignedInLandingContent /> : <LandingPageContent />}
-				<Footer />
-			</div>
-		</div>
+		<PageShell>
+			{isSignedIn ? <SignedInLandingContent /> : <LandingPageContent />}
+		</PageShell>
 	);
 }
 
@@ -109,7 +104,7 @@ function Hero() {
 					</p>
 				</Reveal>
 				<Reveal delay={0.1}>
-					<div className="pt-1">
+					<div className="flex flex-wrap items-center gap-3 pt-1">
 						<SignUpButton mode="modal">
 							<button
 								type="button"
@@ -119,7 +114,16 @@ function Hero() {
 								<ArrowRight className="h-4 w-4" />
 							</button>
 						</SignUpButton>
+						<Link
+							to="/duckerweb"
+							className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-neutral-200 transition-colors hover:border-white/30 hover:bg-white/5 2xl:px-7 2xl:py-3.5 2xl:text-base"
+						>
+							Try the viewer
+						</Link>
 					</div>
+					<p className="pt-3 text-xs text-neutral-500">
+						Viewer works without an account. Open source on GitHub.
+					</p>
 				</Reveal>
 			</div>
 

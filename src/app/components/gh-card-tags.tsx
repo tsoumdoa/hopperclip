@@ -4,16 +4,13 @@ import { LoadingSpinner } from "../ghcards/components/loading-spinner";
 
 export default function GhCardTags(props: {
 	tags: string[];
-	useNarrow: boolean;
 	tagFilters?: string[];
 	editMode: boolean;
 	removeTag: (tag: string, bool: boolean) => void;
 }) {
 	const { updateSearchParam, isPending } = useTagFilters();
 	return (
-		<div
-			className={`flex ${props.useNarrow ? "w-[calc(100%-4.25rem)]" : "w-full"} flex-wrap items-center gap-2 pb-2`}
-		>
+		<div className="flex w-full flex-wrap items-center gap-1.5">
 			{props.tags.map((tag, i) => (
 				<TagDisplay
 					key={`tag-${i}-${tag}-${props.editMode}`}

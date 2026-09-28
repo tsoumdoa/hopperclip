@@ -1,5 +1,6 @@
-import { Plus, X } from "lucide-react";
+import { Undo2, X } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function TagDisplay(props: {
 	tag: string;
@@ -14,10 +15,6 @@ export default function TagDisplay(props: {
 		props.removeTag(props.tag, toBeRemoved);
 	};
 
-	const colorClasses = props.isHighlighted
-		? `text-neutral-800 ${toBeRemoved ? "bg-neutral-100/30" : "bg-neutral-100"}`
-		: `text-neutral-100 ${toBeRemoved ? "bg-neutral-600/30" : "bg-neutral-600"}`;
-
 	return (
 		<button
 			type="button"
@@ -27,7 +24,13 @@ export default function TagDisplay(props: {
 					? `${toBeRemoved ? "Keep" : "Remove"} tag ${props.tag}`
 					: `Filter by tag ${props.tag}`
 			}
-			className={`flex flex-row items-center gap-x-2 rounded-sm px-2 text-sm font-semibold ${colorClasses} transition-all hover:cursor-pointer`}
+			className={cn(
+				"inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium ring-1 transition-colors ring-inset hover:cursor-pointer",
+				props.isHighlighted
+					? "bg-green-300/15 text-green-200 ring-green-300/30 hover:bg-green-300/25"
+					: "bg-white/[0.05] text-neutral-300 ring-white/10 hover:bg-white/10 hover:text-white",
+				toBeRemoved && "text-neutral-500 line-through opacity-60"
+			)}
 			onClick={(e) => {
 				e.stopPropagation();
 				if (props.editMode) {
@@ -38,15 +41,12 @@ export default function TagDisplay(props: {
 			}}
 		>
 			{props.tag}
-			{props.editMode && <ControlIcon toBeRemoved={toBeRemoved} />}
+			{props.editMode &&
+				(toBeRemoved ? (
+					<Undo2 className="size-3" aria-hidden />
+				) : (
+					<X className="size-3" aria-hidden />
+				))}
 		</button>
 	);
-}
-
-function ControlIcon(props: { toBeRemoved: boolean }) {
-	if (props.toBeRemoved) {
-		return <Plus className="h-3 w-3" aria-hidden />;
-	} else {
-		return <X className="h-3 w-3" aria-hidden />;
-	}
 }

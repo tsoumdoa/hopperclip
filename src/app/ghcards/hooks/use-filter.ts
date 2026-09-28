@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useMemo,
+	useState,
+	useRef,
+} from "react";
 import Fuse from "fuse.js";
 import { GhPost } from "@/types/types";
 
@@ -12,51 +19,40 @@ const fuseOptions = {
 
 export default function useFilter(
 	ghCards: GhPost[],
-	onClearTagFilters?: () => void
+	onClearTagFilters: (() => void) | undefined,
+	showFilterInput: boolean,
+	setShowFilterInput: Dispatch<SetStateAction<boolean>>
 ) {
-	const [filteredCards, setFilteredCards] = useState(ghCards);
-	const [showFilterInput, setShowFilterInput] = useState(false);
-	const filterKeyword = useRef<string>("");
+	const [filterKeyword, setFilterKeyword] = useState("");
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
-	const nameFuse = useMemo(
-		() =>
-			new Fuse(
-				ghCards.map((card) => card.name ?? ""),
-				fuseOptions
-			),
-		[ghCards]
-	);
 
-	const tagFuse = useMemo(
-		() => new Fuse(ghCards.map((card) => card.tags ?? []).flat(), fuseOptions),
-		[ghCards]
-	);
+	// Must stay derived during render: syncing via an effect shows the empty
+	// state for a frame after cards load.
+	const filteredCards = useMemo(() => {
+		if (filterKeyword === "") return ghCards;
 
-	const descriptionFuse = useMemo(
-		() =>
-			new Fuse(
-				ghCards.map((card) => card.description ?? ""),
-				fuseOptions
-			),
-		[ghCards]
-	);
+		const search = (values: string[]) =>
+			new Fuse(values, fuseOptions).search(filterKeyword).map((m) => m.item);
+		const set = new Set([
+			...search(ghCards.map((card) => card.name ?? "")),
+			...search(ghCards.map((card) => card.description ?? "")),
+			...search(ghCards.flatMap((card) => card.tags ?? [])),
+		]);
+		return ghCards.filter(
+			(card) =>
+				set.has(card.name ?? "") ||
+				set.has(card.description ?? "") ||
+				card.tags?.some((tag) => set.has(tag))
+		);
+	}, [ghCards, filterKeyword]);
 
 	const clearFilter = () => {
-		setFilteredCards(ghCards);
-		filterKeyword.current = "";
+		setFilterKeyword("");
 		setShowFilterInput(false);
 		tagFiltersCleared.current = false;
 	};
-
-	useEffect(() => {
-		if (filterKeyword.current === "") {
-			setFilteredCards(ghCards);
-		} else {
-			updateFilter(filterKeyword.current); //updateFilter when ghCards changes and use current keyword
-		}
-	}, [ghCards]);
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -82,36 +78,10 @@ export default function useFilter(
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [ghCards, showFilterInput]);
+	}, [showFilterInput]);
 
 	const handleFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const keyword = e.target.value.toLowerCase();
-		filterKeyword.current = keyword;
-		updateFilter(keyword);
-	};
-
-	const updateFilter = (keyword: string) => {
-		if (keyword === "") {
-			setFilteredCards(ghCards);
-			return;
-		}
-
-		const nameMatches = nameFuse.search(keyword);
-		const descriptionMatches = descriptionFuse.search(keyword);
-		const tagMatches = tagFuse.search(keyword);
-		const set = new Set([
-			...nameMatches.map((m) => m.item),
-			...descriptionMatches.map((m) => m.item),
-			...tagMatches.map((m) => m.item),
-		]);
-		setFilteredCards(
-			ghCards.filter(
-				(card) =>
-					set.has(card.name ?? "") ||
-					set.has(card.description ?? "") ||
-					card.tags?.some((tag) => set.has(tag))
-			)
-		);
+		setFilterKeyword(e.target.value.toLowerCase());
 	};
 
 	return {
@@ -119,7 +89,6 @@ export default function useFilter(
 		showFilter: showFilterInput,
 		handleFilter,
 		setShowFilter: setShowFilterInput,
-		updateFilter,
 		filterKeyword,
 		clearFilter,
 	};

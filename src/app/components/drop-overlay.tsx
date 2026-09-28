@@ -28,9 +28,9 @@ export function DropOverlay({
 			)}
 			aria-hidden
 		>
-			<div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[inherit] border-2 border-dashed border-emerald-500/40 p-3">
-				<div className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
-					<FileUp className="h-4 w-4 text-emerald-300" />
+			<div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[inherit] border-2 border-dashed border-green-300/40 p-3">
+				<div className="flex h-9 w-9 items-center justify-center rounded-full border border-green-300/30 bg-green-300/10">
+					<FileUp className="h-4 w-4 text-green-300" />
 				</div>
 				<p className="text-sm font-semibold text-neutral-100">{text}</p>
 				{hint && <p className="text-xs text-neutral-400">{hint}</p>}

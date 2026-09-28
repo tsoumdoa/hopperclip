@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
 	useGhCardsPageActions,
@@ -66,10 +67,17 @@ export default function AddGHCard() {
 				onInitialXmlConsumed={consumePendingXml}
 			/>
 			<button
-				className="h-8 rounded-md bg-black px-3 py-1 text-sm font-bold ring-2 ring-neutral-300 transition-all hover:translate-x-0.5 hover:translate-y-0.5"
+				type="button"
+				className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-green-300 px-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200 disabled:opacity-60"
 				onClick={handleAddClick}
+				disabled={adding}
 			>
-				{adding ? "Adding..." : "Add"}
+				{adding ? (
+					<Loader2 className="size-4 animate-spin" aria-hidden />
+				) : (
+					<Plus className="size-4" strokeWidth={2.5} aria-hidden />
+				)}
+				{adding ? "Adding…" : "New card"}
 			</button>
 		</div>
 	);

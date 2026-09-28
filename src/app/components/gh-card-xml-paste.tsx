@@ -1,4 +1,4 @@
-import { Clipboard, FileUp, X } from "lucide-react";
+import { CheckCircle2, Clipboard, FileUp, X } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
@@ -103,77 +103,77 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 		event.target.value = "";
 	};
 
-	const linkClass = cn(
-		"inline-flex items-center gap-1.5 text-sm transition-colors",
-		props.isEditMode
-			? "text-neutral-900 hover:text-black"
-			: "text-neutral-500 hover:text-neutral-800"
-	);
-
-	const hintClass = cn(
-		"text-xs",
-		props.isEditMode ? "text-neutral-800" : "text-neutral-400"
-	);
+	const actionClass =
+		"inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-neutral-200 transition-colors hover:border-white/20 hover:bg-white/[0.07]";
 
 	return (
 		<div className="text-sm">
 			{props.xmlData ? (
-				<div className="space-y-2">
-					{props.isValidXml ? (
-						<div className="flex flex-row items-center gap-x-2">
-							<button
-								className={`flex flex-row items-center gap-x-1 text-sm hover:cursor-pointer ${props.isEditMode ? "text-red-200" : "text-red-500"}`}
-								onClick={handleClear}
-							>
-								Delete pasted GhXml
-								<X size={16} />
-							</button>
-							<span
-								className={`text-sm ${props.isEditMode ? "text-green-200" : "text-green-600"} font-bold hover:cursor-default`}
-							>
-								{props.isEditMode
-									? "✓ New GhXml validated"
-									: "✓ GhXml validated"}
-							</span>
-						</div>
-					) : (
-						<div className="flex flex-row items-center gap-x-2">
-							<button
-								className="flex flex-row items-center gap-x-1 text-sm text-red-500"
-								onClick={handleClear}
-							>
-								Delete invalid GhXml
-								<X size={16} />
-							</button>
-						</div>
+				<div
+					className={cn(
+						"flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5",
+						props.isValidXml
+							? "border-green-300/25 bg-green-300/[0.06]"
+							: "border-red-500/25 bg-red-500/[0.06]"
 					)}
+				>
+					{props.isValidXml ? (
+						<span className="inline-flex items-center gap-2 font-medium text-green-300">
+							<CheckCircle2 className="size-4" aria-hidden />
+							{props.isEditMode ? "New GhXml ready" : "GhXml validated"}
+						</span>
+					) : (
+						<span className="font-medium text-red-400">Invalid GhXml</span>
+					)}
+					<button
+						type="button"
+						className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-neutral-400 transition-colors hover:bg-white/5 hover:text-white"
+						onClick={handleClear}
+					>
+						<X className="size-3.5" aria-hidden />
+						Remove
+					</button>
 				</div>
 			) : (
-				<div className="flex flex-col gap-1">
-					<div className="flex items-center gap-3">
+				<div
+					className={cn(
+						"flex flex-col gap-2",
+						!props.isEditMode &&
+							"items-center rounded-lg border border-dashed border-white/15 px-4 py-6 text-center"
+					)}
+				>
+					{!props.isEditMode && (
+						<div className="mb-1 flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+							<FileUp className="size-4 text-neutral-400" aria-hidden />
+						</div>
+					)}
+					<div className="flex flex-wrap items-center gap-2">
 						<button
 							type="button"
 							onClick={props.handlePasteFromClipboard}
-							className={linkClass}
+							className={actionClass}
 						>
-							<Clipboard className="h-3.5 w-3.5" />
-							<span>Paste</span>
+							<Clipboard className="size-3.5 text-neutral-400" aria-hidden />
+							Paste GhXml
 						</button>
 						<button
 							type="button"
 							onClick={() => inputRef.current?.click()}
-							className={linkClass}
+							className={actionClass}
 							data-testid="gh-file-browse-button"
 						>
-							<FileUp className="h-3.5 w-3.5" />
-							<span>Browse</span>
+							<FileUp className="size-3.5 text-neutral-400" aria-hidden />
+							Browse .gh / .ghx
 						</button>
 					</div>
-					<p className={hintClass}>
+					<p className="text-xs text-neutral-500">
 						{props.pasteShortcutEnabled ? (
-							<>Press {modifier}+V to paste, or drop a file</>
+							<>
+								Copy components in Grasshopper, then press {modifier}+V here —
+								or drop a file
+							</>
 						) : (
-							"or drop a file"
+							"or drop a file onto this card"
 						)}
 					</p>
 					<input
@@ -186,9 +186,7 @@ export function GhCardXmlPaste(props: GhCardXmlPasteProps) {
 				</div>
 			)}
 			{props.xmlError.length > 0 && (
-				<div
-					className={`${props.isEditMode ? "text-red-200" : "text-red-500"} mt-2 text-sm font-bold`}
-				>
+				<div className="mt-2 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-3 py-2 text-sm whitespace-pre-line text-red-300">
 					{props.xmlError}
 				</div>
 			)}

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/env";
+import { Check, Clock, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "convex/react";
@@ -25,15 +26,14 @@ export function InvalidValueDialog(props: {
 		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Invalid Input</AlertDialogTitle>
+					<AlertDialogTitle>Couldn't save changes</AlertDialogTitle>
 					<AlertDialogDescription>
-						Name must be between 3 and 30 characters long and in PascalCase.
-						Description must be between 1 and 150 characters long.
+						Names need 3–30 characters (PascalCase recommended). Descriptions
+						can be up to 150 characters.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction>Continue</AlertDialogAction>
+					<AlertDialogAction>Keep editing</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
@@ -143,51 +143,62 @@ export function ShareDialog(props: {
 
 	return (
 		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
-			<AlertDialogContent>
+			<AlertDialogContent onClick={(e) => e.stopPropagation()}>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Share</AlertDialogTitle>
+					<AlertDialogTitle>Share this card</AlertDialogTitle>
 					<AlertDialogDescription>
 						{isRevoked
-							? "Share link has been revoked. You can now close this dialog."
+							? "The link has been revoked. Anyone who opens it will see an expired page."
 							: shareLink
-								? "Copy the link to share this card with others!"
+								? "Anyone with this link can view the graph and copy the GhXml — no account needed."
 								: isGenerating
-									? "Creating share link..."
+									? "Creating share link…"
 									: "Failed to create share link. Please try again."}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
-				<div className="flex items-center space-x-2 pb-2">
+				<div className="flex items-center gap-2">
 					<Input
-						className="truncate"
-						value={shareLink ?? (isGenerating ? "Generating..." : "")}
+						className="truncate font-mono text-xs"
+						value={shareLink ?? (isGenerating ? "Generating…" : "")}
 						readOnly
+						onFocus={(e) => e.currentTarget.select()}
 						disabled={!shareLink || isRevoked}
 					/>
 					{!isRevoked && shareLink && (
 						<Button
-							variant="outline"
-							size="sm"
 							onClick={handleCopyClick}
 							disabled={revoking || isGenerating}
+							className="shrink-0"
 						>
-							{copied ? "Copied!" : "Copy"}
+							{copied ? (
+								<Check className="size-4" aria-hidden />
+							) : (
+								<Copy className="size-4" aria-hidden />
+							)}
+							{copied ? "Copied" : "Copy link"}
 						</Button>
 					)}
 				</div>
 				{shareLink && !isRevoked && (
-					<p className="text-xs text-neutral-400">{formatExpiry(expiryDate)}</p>
+					<p className="flex items-center gap-1.5 text-xs text-neutral-500">
+						<Clock className="size-3.5" aria-hidden />
+						{formatExpiry(expiryDate)}
+					</p>
 				)}
-				<AlertDialogFooter>
-					{shareLink && !isRevoked && (
+				<AlertDialogFooter className="sm:justify-between">
+					{shareLink && !isRevoked ? (
 						<Button
-							className="bg-pink-500 hover:bg-pink-600"
+							variant="ghost"
+							className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
 							onClick={handleRevokeClick}
 							disabled={revoking || isGenerating}
 						>
-							{revoking ? "Revoking..." : "Revoke"}
+							{revoking ? "Revoking…" : "Revoke link"}
 						</Button>
+					) : (
+						<span />
 					)}
-					<AlertDialogAction disabled={revoking}>Close</AlertDialogAction>
+					<AlertDialogCancel disabled={revoking}>Done</AlertDialogCancel>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>

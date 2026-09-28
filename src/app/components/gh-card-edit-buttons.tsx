@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,44 +24,50 @@ export function EditButtons(props: {
 	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
 	return (
-		<div className="flex items-center justify-end text-neutral-400 transition-all">
+		<div className="flex w-full items-center justify-between">
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete this card?</AlertDialogTitle>
 						<AlertDialogDescription>
-							{`"${props.ghInfo.name}" and its GhXml will be permanently deleted. This cannot be undone.`}
+							{`"${props.ghInfo.name}" and its GhXml will be permanently deleted. Any active share link will stop working. This cannot be undone.`}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
-							className="bg-red-600 text-white hover:bg-red-700"
+							className="bg-red-600 text-white hover:bg-red-500"
 							onClick={() => props.deletePost()}
 						>
-							Delete
+							Delete card
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 			<button
-				className={`px-2 font-bold hover:text-neutral-50`}
+				type="button"
+				className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
 				onClick={() => setConfirmDeleteOpen(true)}
 			>
-				delete
+				<Trash2 className="size-3.5" aria-hidden />
+				Delete
 			</button>
-			<button
-				className={`px-2 font-bold hover:text-neutral-50`}
-				onClick={() => props.handleCancel()}
-			>
-				cancel
-			</button>
-			<button
-				className={`px-2 font-bold hover:text-neutral-50`}
-				onClick={() => props.handleEdit(true)}
-			>
-				save
-			</button>
+			<div className="flex items-center gap-1.5">
+				<button
+					type="button"
+					className="h-8 rounded-md px-3 text-sm font-medium text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+					onClick={() => props.handleCancel()}
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					className="h-8 rounded-md bg-green-300 px-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-green-200"
+					onClick={() => props.handleEdit(true)}
+				>
+					Save
+				</button>
+			</div>
 		</div>
 	);
 }

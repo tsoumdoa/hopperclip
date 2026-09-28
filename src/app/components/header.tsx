@@ -6,28 +6,40 @@ import {
 	UserButton,
 } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
+import { LogoMark } from "./logo";
+
+const navLinkClass =
+	"rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-white/5 hover:text-white";
+const navLinkActiveClass = "bg-white/[0.07] text-white";
 
 export default function Header() {
 	return (
-		<header className="flex w-full items-center justify-between pb-3">
-			<Link className="text-2xl font-bold md:text-4xl" to="/">
+		<header className="bg-background/80 sticky top-0 z-40 mb-2 flex h-16 w-full items-center justify-between backdrop-blur-md">
+			<Link
+				to="/"
+				className="group flex items-center gap-2.5 rounded-md text-lg font-semibold tracking-tight md:text-xl"
+			>
+				<LogoMark />
 				Hopper Clip
 			</Link>
-			<div className="flex items-center gap-3">
+			<nav className="flex items-center gap-1 sm:gap-2">
 				<SignedOut>
-					<SignInButton>
-						<button
-							type="button"
-							className="px-1 text-sm font-medium text-neutral-300 transition-colors hover:text-white"
-						>
+					<Link
+						to="/duckerweb"
+						className={`${navLinkClass} hidden sm:inline-flex`}
+						activeProps={{ className: navLinkActiveClass }}
+					>
+						DuckerWeb
+					</Link>
+					<SignInButton mode="modal">
+						<button type="button" className={navLinkClass}>
 							Sign in
 						</button>
 					</SignInButton>
-
-					<SignUpButton>
+					<SignUpButton mode="modal">
 						<button
 							type="button"
-							className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-black transition-colors hover:bg-neutral-200"
+							className="ml-1 rounded-full bg-white px-3.5 py-1.5 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
 						>
 							Sign up
 						</button>
@@ -36,22 +48,26 @@ export default function Header() {
 				<SignedIn>
 					<Link
 						to="/ghcards"
-						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+						className={navLinkClass}
+						activeProps={{ className: navLinkActiveClass }}
 					>
-						My Cards
+						Library
 					</Link>
 					<Link
 						to="/duckerweb"
-						className="text-sm font-medium text-neutral-300 transition-colors hover:text-white"
+						className={navLinkClass}
+						activeProps={{ className: navLinkActiveClass }}
 					>
 						DuckerWeb
 					</Link>
-					<UserButton
-						userProfileMode="navigation"
-						userProfileUrl="/user-profile"
-					/>
+					<div className="ml-2 flex items-center">
+						<UserButton
+							userProfileMode="navigation"
+							userProfileUrl="/user-profile"
+						/>
+					</div>
 				</SignedIn>
-			</div>
+			</nav>
 		</header>
 	);
 }

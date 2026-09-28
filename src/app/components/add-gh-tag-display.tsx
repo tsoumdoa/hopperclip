@@ -5,14 +5,18 @@ export default function AddGHTagDisplay(props: {
 	handleDeleteTag: (tag: string) => void;
 }) {
 	return (
-		<span className="bg-secondary text-secondary-foreground hover:bg-secondary/60 animate-fadeIn inline-flex h-8 w-fit cursor-default items-center rounded-sm border border-solid px-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50">
+		<span className="animate-fadeIn inline-flex h-7 w-fit items-center gap-1 rounded-md bg-white/[0.06] pr-1 pl-2.5 text-xs font-medium text-neutral-200 ring-1 ring-white/10 ring-inset">
 			{props.tag}
-			<X
-				className="ml-2 h-4 w-3 hover:cursor-pointer"
+			<button
+				type="button"
+				aria-label={`Remove tag ${props.tag}`}
+				className="rounded p-0.5 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
 				onClick={() => {
 					props.handleDeleteTag(props.tag);
 				}}
-			/>
+			>
+				<X className="size-3" aria-hidden />
+			</button>
 		</span>
 	);
 }
@@ -22,14 +26,15 @@ export function AvailableGhTagDisplay(props: {
 	handleAddTag: (tag: string) => void;
 }) {
 	return (
-		<span
-			className="bg-primary text-primary-foreground hover:bg-primary/80 animate-fadeIn inline-flex h-8 w-fit cursor-default items-center rounded-sm px-2 text-sm transition-all hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+		<button
+			type="button"
+			className="animate-fadeIn inline-flex h-7 w-fit items-center gap-1 rounded-md border border-dashed border-white/15 px-2.5 text-xs text-neutral-400 transition-colors hover:border-green-300/40 hover:text-green-200"
 			onClick={() => {
 				props.handleAddTag(props.tag);
 			}}
 		>
+			<Plus className="size-3" aria-hidden />
 			{props.tag}
-			<Plus className="ml-2 h-4 w-3 hover:cursor-pointer" />
-		</span>
+		</button>
 	);
 }

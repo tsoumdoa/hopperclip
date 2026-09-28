@@ -237,9 +237,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 				{isDragging && <DropOverlay className="rounded-lg" />}
 				<AlertDialogHeader>
 					<AlertDialogTitle className="text-lg">
-						{props.adding && addError.length === 0
-							? "Adding..."
-							: "Add a new card"}
+						{props.adding && addError.length === 0 ? "Adding…" : "New card"}
 					</AlertDialogTitle>
 
 					<Tabs
@@ -249,11 +247,13 @@ export function AddGhDialog(props: AddGhDialogProps) {
 					>
 						<TabsList aria-label="Add card views">
 							<TabsTrigger value="details">Details</TabsTrigger>
-							<TabsTrigger value="flow">Flow</TabsTrigger>
+							<TabsTrigger value="flow" disabled={!isValidXml}>
+								Preview graph
+							</TabsTrigger>
 						</TabsList>
 
-						<TabsContent value="details" className="mt-0">
-							<div className="flex flex-col space-y-3">
+						<TabsContent value="details" className="mt-0 text-left">
+							<div className="flex flex-col gap-4">
 								<GhCardXmlPaste
 									xmlData={xmlData}
 									setXmlData={setXmlData}
@@ -265,7 +265,13 @@ export function AddGhDialog(props: AddGhDialogProps) {
 									onClearPastedXml={handleClearPastedXml}
 									pasteShortcutEnabled
 								/>
-								<div className="flex flex-col gap-y-1.5">
+								<label className="flex flex-col gap-1.5">
+									<span className="flex items-baseline justify-between text-xs">
+										<span className="font-medium text-neutral-400">Name</span>
+										<span className="text-neutral-600 tabular-nums">
+											{name.length || 0}/30
+										</span>
+									</span>
 									<Input
 										type="text"
 										name="name"
@@ -277,34 +283,42 @@ export function AddGhDialog(props: AddGhDialogProps) {
 										disabled={props.adding}
 										autoComplete="off"
 									/>
-									<p className="w-full text-right text-xs text-wrap text-neutral-700">
-										{name.length || 0} / 30 characters
-									</p>
-								</div>
-								<div className="flex flex-col gap-y-1.5">
+								</label>
+								<label className="flex flex-col gap-1.5">
+									<span className="flex items-baseline justify-between text-xs">
+										<span className="font-medium text-neutral-400">
+											Description
+										</span>
+										<span className="text-neutral-600 tabular-nums">
+											{description.length || 0}/150
+										</span>
+									</span>
 									<Textarea
 										name="description"
-										placeholder="Type your description here."
+										placeholder="What does this definition do?"
 										maxLength={150}
 										value={description}
 										onChange={(e) => setDescription(e.target.value)}
 										disabled={props.adding}
 										autoComplete="off"
 									/>
-									<p className="text-right text-xs text-neutral-700">
-										{description.length || 0} / 150 characters
-									</p>
-								</div>
-								<div className="flex flex-wrap items-center gap-2">
-									{tags.map((tag, i) => (
-										<AddGhTagDisplay
-											key={`tag-${i}-${tag}`}
-											tag={tag}
-											handleDeleteTag={deleteTag}
-										/>
-									))}
-
-									<div className="flex w-full max-w-3xs items-center gap-2">
+								</label>
+								<div className="flex flex-col gap-2">
+									<span className="text-xs font-medium text-neutral-400">
+										Tags
+									</span>
+									{tags.length > 0 && (
+										<div className="flex flex-wrap items-center gap-1.5">
+											{tags.map((tag, i) => (
+												<AddGhTagDisplay
+													key={`tag-${i}-${tag}`}
+													tag={tag}
+													handleDeleteTag={deleteTag}
+												/>
+											))}
+										</div>
+									)}
+									<div className="flex w-full max-w-xs items-center gap-2">
 										<Input
 											type="text"
 											name="tag"
@@ -324,24 +338,24 @@ export function AddGhDialog(props: AddGhDialogProps) {
 										/>
 										<Button
 											type="submit"
-											variant="outline"
+											variant="secondary"
 											onClick={() => handleAddTag(tag)}
 										>
 											Add
 										</Button>
 									</div>
+									{availableTags.length > 0 && (
+										<div className="flex flex-wrap items-center gap-1.5">
+											{availableTags.map((tag, i) => (
+												<AvailableGhTagDisplay
+													key={`availableTag-${i}-${tag}`}
+													tag={tag}
+													handleAddTag={handleAddTag}
+												/>
+											))}
+										</div>
+									)}
 								</div>
-								{availableTags.length > 0 && (
-									<div className="flex flex-wrap items-center gap-2">
-										{availableTags.map((tag, i) => (
-											<AvailableGhTagDisplay
-												key={`availableTag-${i}-${tag}`}
-												tag={tag}
-												handleAddTag={handleAddTag}
-											/>
-										))}
-									</div>
-								)}
 							</div>
 						</TabsContent>
 
@@ -369,7 +383,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 						onClick={() => handleSubmit()}
 						disabled={!isValid || props.adding || xmlData === undefined}
 					>
-						Add
+						{props.adding ? "Adding…" : "Add to library"}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
