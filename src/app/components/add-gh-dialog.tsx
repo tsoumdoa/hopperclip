@@ -230,7 +230,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	return (
 		<AlertDialog open={props.open}>
 			<AlertDialogContent
-				className="sm:max-w-4xl"
+				className="sm:max-w-xl"
 				onEscapeKeyDown={handleEscapeKeyDown}
 				{...dragHandlers}
 			>
@@ -369,7 +369,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 								value="flow"
 								forceMount
 								inert={activeTab !== "flow"}
-								className="col-start-1 row-start-1 mt-0 min-h-[420px] overflow-hidden rounded-lg border border-white/[0.06] data-[state=inactive]:opacity-0"
+								className="col-start-1 row-start-1 mt-0 min-h-[360px] overflow-hidden rounded-lg border border-white/[0.06] data-[state=inactive]:opacity-0"
 							>
 								<GhFlowView
 									nodes={flowPreview?.nodes ?? []}
