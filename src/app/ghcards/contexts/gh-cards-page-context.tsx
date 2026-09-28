@@ -25,6 +25,7 @@ export function pendingGhCardXmlImport(xml: string): PendingGhCardImportState {
 
 type GhCardsPageState = {
 	addDialogOpen: boolean;
+	searchOpen: boolean;
 	pendingFile: File | null;
 	pendingXml: string | null;
 	hasEditingCards: boolean;
@@ -32,6 +33,7 @@ type GhCardsPageState = {
 
 type GhCardsPageActions = {
 	setAddDialogOpen: Dispatch<SetStateAction<boolean>>;
+	setSearchOpen: Dispatch<SetStateAction<boolean>>;
 	openAddDialog: (file?: File) => void;
 	openAddDialogFromPaste: (xml: string) => void;
 	consumePendingFile: () => void;
@@ -46,6 +48,7 @@ const GhCardsPageActionsContext = createContext<GhCardsPageActions | null>(
 
 export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 	const [addDialogOpen, setAddDialogOpen] = useState(false);
+	const [searchOpen, setSearchOpen] = useState(false);
 	const [pendingFile, setPendingFile] = useState<File | null>(null);
 	const [pendingXml, setPendingXml] = useState<string | null>(null);
 	const [editingCardIds, setEditingCardIds] = useState<Set<string>>(
@@ -81,15 +84,17 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 	const state = useMemo(
 		() => ({
 			addDialogOpen,
+			searchOpen,
 			pendingFile,
 			pendingXml,
 			hasEditingCards: editingCardIds.size > 0,
 		}),
-		[addDialogOpen, pendingFile, pendingXml, editingCardIds]
+		[addDialogOpen, searchOpen, pendingFile, pendingXml, editingCardIds]
 	);
 	const actions = useMemo(
 		() => ({
 			setAddDialogOpen,
+			setSearchOpen,
 			openAddDialog,
 			openAddDialogFromPaste,
 			consumePendingFile,

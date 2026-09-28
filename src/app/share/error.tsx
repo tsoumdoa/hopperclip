@@ -1,4 +1,5 @@
-import Header from "@/app/components/header";
+import { Loader2 } from "lucide-react";
+import { PageShell } from "@/app/components/page-shell";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -13,11 +14,11 @@ export default function ShareError() {
 	}, [navigate]);
 
 	return (
-		<div className="flex min-h-screen flex-col bg-black p-4 font-sans text-white md:p-6">
-			<Header />
-			<div className="flex h-full w-full flex-grow flex-col items-center justify-center p-4 pb-[72px]">
-				Something went wrong! Redirecting...
+		<PageShell footer={false}>
+			<div className="flex flex-1 items-center justify-center gap-2 text-sm text-neutral-400">
+				<Loader2 className="size-4 animate-spin" aria-hidden />
+				This share link isn't valid. Redirecting…
 			</div>
-		</div>
+		</PageShell>
 	);
 }

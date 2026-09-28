@@ -1,7 +1,13 @@
+import { LogoMark } from "./logo";
+
 export function AuthLoadingScreen() {
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-black">
-			<div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-600 border-t-white" />
+		<div
+			className="bg-background flex min-h-screen items-center justify-center"
+			role="status"
+			aria-label="Loading"
+		>
+			<LogoMark className="size-9 animate-pulse rounded-[8px]" />
 		</div>
 	);
 }

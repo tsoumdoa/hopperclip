@@ -8,7 +8,11 @@ import {
 	useGhCardsPageActions,
 	useGhCardsPageState,
 } from "@/app/ghcards/contexts/gh-cards-page-context";
-import Header from "@/app/components/header";
+import { Search } from "lucide-react";
+import { PageHeader } from "@/app/components/page-header";
+import { PageShell } from "@/app/components/page-shell";
+import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
+import { Kbd } from "@/components/ui/kbd";
 import GhCardDisplay from "@/app/ghcards/components/gh-card-display";
 import { GhCardGridSkeleton } from "@/app/ghcards/components/gh-card-skeleton";
 import { ShortcutHint } from "@/app/ghcards/components/shortcut-hint";
@@ -52,31 +56,51 @@ function GhcardsPageContent() {
 			: [];
 	return (
 		<GhCardsPageDropLayer>
-			<div className="min-h-screen bg-black p-4 font-sans text-white md:p-6">
-				<div className="mx-auto max-w-400">
-					<Header />
-					<div className="flex flex-col items-start justify-between gap-2 pb-1 sm:flex-row sm:items-center sm:gap-4">
-						<div className="flex items-center gap-2 text-lg font-medium">
-							<span>{`${username}'s Fav`}</span>
-						</div>
-						<div className="flex items-center gap-4">
+			<PageShell footer={false} className="pb-24">
+				<PageHeader
+					title="Library"
+					description={
+						username
+							? `${username}'s Grasshopper snippets`
+							: "Your Grasshopper snippets"
+					}
+					actions={
+						<>
+							<SearchButton />
 							<SortDropDown />
 							<AddGHCard />
-						</div>
-					</div>
-					<div className="flex flex-row flex-wrap items-start justify-start gap-2 pb-3">
-						<UserTags tagFilters={sanitizedTagFilter} />
-					</div>
-					<Suspense fallback={<GhCardGridSkeleton />}>
-						<GhCardDisplay
-							tagFilters={sanitizedTagFilter}
-							sortOrder={sortKey}
-						/>
-					</Suspense>
+						</>
+					}
+				/>
+				<div className="pb-4">
+					<UserTags tagFilters={sanitizedTagFilter} />
 				</div>
-				<ShortcutHint />
-			</div>
+				<Suspense fallback={<GhCardGridSkeleton />}>
+					<GhCardDisplay tagFilters={sanitizedTagFilter} sortOrder={sortKey} />
+				</Suspense>
+			</PageShell>
+			<ShortcutHint />
 		</GhCardsPageDropLayer>
+	);
+}
+
+function SearchButton() {
+	const { setSearchOpen } = useGhCardsPageActions();
+	const mod = useModifierKeyLabel();
+	return (
+		<button
+			type="button"
+			onClick={() => setSearchOpen(true)}
+			aria-label="Search cards"
+			className="flex h-9 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-sm text-neutral-500 transition-colors hover:border-white/20 hover:text-neutral-300 md:w-64 md:flex-none"
+		>
+			<Search className="size-4 shrink-0" aria-hidden />
+			<span className="flex-1 text-left">Search…</span>
+			<span className="hidden items-center gap-0.5 sm:flex">
+				<Kbd>{mod}</Kbd>
+				<Kbd>K</Kbd>
+			</span>
+		</button>
 	);
 }
 

@@ -49,7 +49,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 
 				const guidSet = new Set<string>();
 				for (const comp of Object.values(parsed.components)) {
-					guidSet.add(comp.instanceGuid);
+					guidSet.add(comp.typeGuid);
 				}
 				const uniqueCount = guidSet.size;
 

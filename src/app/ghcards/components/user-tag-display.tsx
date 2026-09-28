@@ -22,7 +22,7 @@ export default function FilterTagDisplay(props: {
 	return (
 		<Toggle
 			aria-label={`Filter by tag ${props.userTag.tag}`}
-			className={`h-6 rounded-md ${props.tagFilters.length > 0 ? "bg-neutral-500 text-neutral-300 ring-0 ring-neutral-300" : "bg-neutral-800 text-neutral-100 ring-1 ring-neutral-200"} px-2 text-sm font-semibold hover:cursor-pointer hover:bg-neutral-800/80`}
+			className="h-7 min-w-0 gap-1.5 rounded-full bg-transparent px-3 text-xs font-medium text-neutral-400 ring-1 ring-white/10 ring-inset hover:cursor-pointer hover:bg-white/5 hover:text-neutral-100 data-[state=on]:bg-green-300/15 data-[state=on]:text-green-200 data-[state=on]:ring-green-300/40 data-[state=on]:hover:bg-green-300/20"
 			pressed={isChecked}
 			onPressedChange={(bool) => {
 				setIsChecked(bool);
@@ -35,10 +35,8 @@ export default function FilterTagDisplay(props: {
 			}}
 		>
 			{props.userTag.tag}
-			<span
-				className={`text-xs font-normal tracking-wider ${props.tagFilters.length > 0 ? "text-neutral-600" : "text-neutral-400"}`}
-			>
-				{`(${props.userTag.count})`}
+			<span className="text-[11px] text-neutral-500 tabular-nums">
+				{props.userTag.count}
 			</span>
 		</Toggle>
 	);

@@ -1,4 +1,7 @@
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { InvalidValueDialog } from "./gh-card-dialog";
+import { DateDisplay } from "./gh-card-date-display";
 import { NormalButtons } from "./gh-card-normal-buttons";
 import { EditButtons } from "./gh-card-edit-buttons";
 import { NameDescriptionAndTags } from "./gh-card-body";
@@ -35,8 +38,6 @@ export default function GHCard(props: {
 		addTag,
 		tag: inputTag,
 		setTag: setInputTag,
-		reset,
-		setReset,
 		newXmlData,
 		setNewXmlData,
 		isValidXml,
@@ -92,10 +93,11 @@ export default function GHCard(props: {
 	if (deleting) {
 		return (
 			<div
-				className="flex h-full w-full items-center justify-center rounded-md bg-neutral-800 p-3 ring-1 ring-neutral-500"
+				className="bg-card flex h-full min-h-40 w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 p-4 text-sm text-neutral-400"
 				role="status"
 			>
-				<p className="py-8 text-sm text-neutral-400">Deleting...</p>
+				<Loader2 className="size-4 animate-spin" aria-hidden />
+				Deleting…
 			</div>
 		);
 	}
@@ -105,13 +107,21 @@ export default function GHCard(props: {
 		return null;
 	}
 
+	const isEditing = editMode || updating;
+
 	return (
 		<>
 			<div
-				className={`relative flex cursor-pointer flex-col justify-between rounded-md p-3 ring-1 ring-neutral-500 transition-all focus-visible:ring-2 focus-visible:ring-neutral-100 focus-visible:outline-none ${editMode || updating ? "bg-neutral-500" : "bg-neutral-900 hover:bg-neutral-800"}`}
+				className={cn(
+					"group bg-card focus-visible:ring-ring relative flex flex-col rounded-xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+					isEditing
+						? "border-green-300/30 ring-1 ring-green-300/15"
+						: "cursor-pointer border-white/[0.08] hover:border-white/20 hover:bg-neutral-900",
+					updating && "pointer-events-none opacity-70"
+				)}
 				role="button"
 				tabIndex={editMode ? -1 : 0}
-				aria-label={`View metrics for ${ghInfo.name}`}
+				aria-label={`Open ${ghInfo.name}`}
 				onClick={handleCardClick}
 				onKeyDown={(e) => {
 					if (e.target !== e.currentTarget) return;
@@ -122,46 +132,44 @@ export default function GHCard(props: {
 				}}
 				{...dragHandlers}
 			>
-				{isDragging && <DropOverlay className="rounded-md" />}
-				{hasActiveShare && (
-					<button
-						className={`absolute top-3 right-3 h-fit w-fit rounded-md bg-green-300 px-2 text-sm font-bold text-neutral-800 hover:cursor-pointer`}
-						onClick={(e) => {
-							e.stopPropagation();
-							handleShare();
-						}}
-					>
-						Shared
-					</button>
-				)}
+				{isDragging && <DropOverlay className="rounded-xl" />}
 				<InvalidValueDialog
 					open={invalidInput}
 					setOpen={() => setInvalidInput(false)}
 				/>
 
-				{ghInfo.tags.length > 0 && (
-					<GhCardTags
-						tags={ghInfo.tags}
-						useNarrow={!!hasActiveShare}
-						tagFilters={props.tagFilters}
-						editMode={editMode}
-						removeTag={removeTag}
-					/>
-				)}
-
 				<NameDescriptionAndTags
 					editMode={editMode}
-					setEditMode={() => setEditMode(!editMode)}
 					setGhInfo={setGhInfo}
 					ghInfo={ghInfo}
-					bucketId={props.cardInfo.bucketUrl ?? ""}
-					lastEdited={props.cardInfo.dateUpdated!}
-					created={props.cardInfo.dateCreated!}
+					titleAdornment={
+						hasActiveShare && (
+							<button
+								type="button"
+								className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-green-300/10 px-2 py-0.5 text-[11px] font-semibold text-green-300 ring-1 ring-green-300/30 transition-colors ring-inset hover:bg-green-300/20"
+								onClick={(e) => {
+									e.stopPropagation();
+									handleShare();
+								}}
+							>
+								<span className="size-1.5 rounded-full bg-green-300" />
+								Shared
+							</button>
+						)
+					}
+					tagsSlot={
+						ghInfo.tags.length > 0 && (
+							<GhCardTags
+								tags={ghInfo.tags}
+								tagFilters={props.tagFilters}
+								editMode={editMode}
+								removeTag={removeTag}
+							/>
+						)
+					}
 					addTag={addTag}
 					tag={inputTag}
 					setTag={setInputTag}
-					reset={reset}
-					setReset={setReset}
 					newXmlData={newXmlData}
 					setNewXmlData={setNewXmlData}
 					isValidXml={isValidXml}
@@ -170,12 +178,18 @@ export default function GHCard(props: {
 					handlePasteFromClipboard={handlePasteFromClipboard}
 					handleFileSelected={handleFileSelected}
 				/>
-				<div onClick={(e) => e.stopPropagation()}>
+				<div
+					className="mt-4 flex items-center justify-between gap-2 border-t border-white/[0.06] pt-3"
+					onClick={(e) => e.stopPropagation()}
+				>
+					{!editMode && (
+						<DateDisplay
+							createdDate={props.cardInfo.dateCreated}
+							lastModDate={props.cardInfo.dateUpdated}
+						/>
+					)}
 					{editMode ? (
 						<EditButtons
-							editMode={editMode}
-							setEditMode={setEditMode}
-							setGhInfo={setGhInfo}
 							deletePost={() => deletePost()}
 							handleEdit={(b) => handleEdit(b)}
 							handleCancel={() => handleCancelEditMode()}
@@ -187,11 +201,9 @@ export default function GHCard(props: {
 						/>
 					) : (
 						<NormalButtons
-							editMode={editMode}
 							bucketId={props.cardInfo.bucketUrl}
 							postId={props.cardInfo._id}
 							setEditMode={() => setEditMode(true)}
-							handleEdit={(b) => handleEdit(b)}
 							openSharedDialog={openSharedDialog}
 							setOpenSharedDialog={setOpenSharedDialog}
 							handleShare={handleShare}
@@ -200,6 +212,7 @@ export default function GHCard(props: {
 				</div>
 			</div>
 			<MetricsDialog
+				title={ghInfo.name}
 				open={openMetricsDialog}
 				setOpen={setOpenMetricsDialog}
 				metrics={metrics}

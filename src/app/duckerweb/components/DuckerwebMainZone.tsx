@@ -90,9 +90,9 @@ export function DuckerwebMainZone({
 					aria-hidden
 					data-testid="duckerweb-drop-overlay"
 				>
-					<div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-emerald-500/40">
-						<div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
-							<FileUp className="h-7 w-7 text-emerald-300" />
+					<div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-green-300/40">
+						<div className="flex h-14 w-14 items-center justify-center rounded-full border border-green-300/30 bg-green-300/10">
+							<FileUp className="h-7 w-7 text-green-300" />
 						</div>
 						<p className="text-lg font-semibold text-neutral-100">
 							{dropTitle}

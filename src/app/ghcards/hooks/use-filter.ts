@@ -1,65 +1,57 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useMemo,
+	useState,
+	useRef,
+} from "react";
 import Fuse from "fuse.js";
 import { GhPost } from "@/types/types";
 
-const fuseOptions = {
-	keys: [],
-	includeScore: true,
+const cardSearchOptions = {
+	keys: ["name", "description", "tags"],
+	// Keep the order supplied by the Library sort selector.
+	shouldSort: false,
 	threshold: 0.3,
 	ignoreLocation: true,
-	ignoreCase: true,
 };
 
 export default function useFilter(
 	ghCards: GhPost[],
-	onClearTagFilters?: () => void
+	onClearTagFilters: (() => void) | undefined,
+	showFilterInput: boolean,
+	setShowFilterInput: Dispatch<SetStateAction<boolean>>
 ) {
-	const [filteredCards, setFilteredCards] = useState(ghCards);
-	const [showFilterInput, setShowFilterInput] = useState(false);
-	const filterKeyword = useRef<string>("");
+	const [filterKeyword, setFilterKeyword] = useState("");
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;
-	const nameFuse = useMemo(
-		() =>
-			new Fuse(
-				ghCards.map((card) => card.name ?? ""),
-				fuseOptions
-			),
-		[ghCards]
-	);
+	const index = useMemo(() => new Fuse(ghCards, cardSearchOptions), [ghCards]);
 
-	const tagFuse = useMemo(
-		() => new Fuse(ghCards.map((card) => card.tags ?? []).flat(), fuseOptions),
-		[ghCards]
-	);
+	// Must stay derived during render: syncing via an effect shows the empty
+	// state for a frame after cards load.
+	const filteredCards = useMemo(() => {
+		if (filterKeyword === "") return ghCards;
 
-	const descriptionFuse = useMemo(
-		() =>
-			new Fuse(
-				ghCards.map((card) => card.description ?? ""),
-				fuseOptions
-			),
-		[ghCards]
-	);
+		return index.search(filterKeyword).map(({ item }) => item);
+	}, [ghCards, filterKeyword, index]);
 
 	const clearFilter = () => {
-		setFilteredCards(ghCards);
-		filterKeyword.current = "";
+		setFilterKeyword("");
 		setShowFilterInput(false);
 		tagFiltersCleared.current = false;
 	};
 
 	useEffect(() => {
-		if (filterKeyword.current === "") {
-			setFilteredCards(ghCards);
-		} else {
-			updateFilter(filterKeyword.current); //updateFilter when ghCards changes and use current keyword
-		}
-	}, [ghCards]);
-
-	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
+			// Dialogs own their keyboard handling while open.
+			if (
+				e.defaultPrevented ||
+				(e.target instanceof Element &&
+					e.target.closest('[role="dialog"], [role="alertdialog"]'))
+			)
+				return;
 			if ((e.metaKey || e.ctrlKey) && e.key === "k") {
 				e.preventDefault();
 				setShowFilterInput((prev) => !prev);
@@ -74,52 +66,20 @@ export default function useFilter(
 					clearFilter();
 				}
 			}
-			if (e.key === "Enter") {
-				setShowFilterInput(false);
-			}
 		};
 		window.addEventListener("keydown", handleKeyDown);
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [ghCards, showFilterInput]);
+	}, [showFilterInput]);
 
 	const handleFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const keyword = e.target.value.toLowerCase();
-		filterKeyword.current = keyword;
-		updateFilter(keyword);
-	};
-
-	const updateFilter = (keyword: string) => {
-		if (keyword === "") {
-			setFilteredCards(ghCards);
-			return;
-		}
-
-		const nameMatches = nameFuse.search(keyword);
-		const descriptionMatches = descriptionFuse.search(keyword);
-		const tagMatches = tagFuse.search(keyword);
-		const set = new Set([
-			...nameMatches.map((m) => m.item),
-			...descriptionMatches.map((m) => m.item),
-			...tagMatches.map((m) => m.item),
-		]);
-		setFilteredCards(
-			ghCards.filter(
-				(card) =>
-					set.has(card.name ?? "") ||
-					set.has(card.description ?? "") ||
-					card.tags?.some((tag) => set.has(tag))
-			)
-		);
+		setFilterKeyword(e.target.value.toLowerCase());
 	};
 
 	return {
 		filteredCards,
-		showFilter: showFilterInput,
 		handleFilter,
-		setShowFilter: setShowFilterInput,
-		updateFilter,
 		filterKeyword,
 		clearFilter,
 	};

@@ -11,9 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { env } from "@/env";
-import { useEffect, useState } from "react";
+import { Check, Clock, Copy } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
 
@@ -25,107 +26,102 @@ export function InvalidValueDialog(props: {
 		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Invalid Input</AlertDialogTitle>
+					<AlertDialogTitle>Couldn't save changes</AlertDialogTitle>
 					<AlertDialogDescription>
-						Name must be between 3 and 30 characters long and in PascalCase.
-						Description must be between 1 and 150 characters long.
+						Names need 3–30 characters (PascalCase recommended). Descriptions
+						can be up to 150 characters.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction>Continue</AlertDialogAction>
+					<AlertDialogAction>Keep editing</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
 	);
 }
 
-export function ShareDialog(props: {
+type ShareDialogProps = {
 	open: boolean;
-	setOpen: () => void;
+	setOpen: (open: boolean) => void;
 	postId: Id<"post">;
-}) {
+};
+
+type ShareState =
+	| { status: "loading" | "error" | "revoked" }
+	| { status: "ready"; shareToken: string; expiryDate: string };
+
+export function ShareDialog(props: ShareDialogProps) {
+	return (
+		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
+			{props.open && (
+				<ShareDialogContent key={props.postId} postId={props.postId} />
+			)}
+		</AlertDialog>
+	);
+}
+
+function ShareDialogContent({ postId }: Pick<ShareDialogProps, "postId">) {
 	const createShare = useMutation(api.ghCard.createShare);
 	const revokeShare = useMutation(api.ghCard.revokeShare);
-	const activeShares = useQuery(
-		api.ghCard.getActiveSharesForPost,
-		props.open ? { postId: props.postId } : "skip"
-	);
-
-	const [shareLink, setShareLink] = useState<string | null>(null);
-	const [shareToken, setShareToken] = useState<string | null>(null);
+	const [share, setShare] = useState<ShareState>({ status: "loading" });
+	const [attempt, setAttempt] = useState(0);
 	const [copied, setCopied] = useState(false);
 	const [revoking, setRevoking] = useState(false);
-	const [isRevoked, setIsRevoked] = useState(false);
-	const [isGenerating, setIsGenerating] = useState(false);
-	const [expiryDate, setExpiryDate] = useState<string | null>(null);
+	const copiedTimer = useRef<number | undefined>(undefined);
 
-	// Generate share link when dialog opens
+	useEffect(() => () => window.clearTimeout(copiedTimer.current), []);
+
 	useEffect(() => {
-		if (props.open && !isGenerating && !shareLink && !isRevoked) {
-			setIsGenerating(true);
-			createShare({ postId: props.postId, expiresInHours: 24 * 7 })
-				.then((result) => {
-					const baseUrl =
-						process.env.NODE_ENV === "development"
-							? "http://localhost:3000"
-							: env.VITE_HOSTING_DOMAIN;
-					const link = `${baseUrl}/share?token=${result.shareToken}`;
-					setShareLink(link);
-					setShareToken(result.shareToken);
-					setExpiryDate(result.expiryDate);
-					setIsGenerating(false);
-				})
-				.catch((err) => {
-					console.error("Failed to create share:", err);
-					toast.error("Failed to create share link. Please try again.");
-					setShareLink(null);
-					setIsGenerating(false);
-				});
-		}
-	}, [
-		props.open,
-		props.postId,
-		createShare,
-		isGenerating,
-		shareLink,
-		isRevoked,
-	]);
+		let cancelled = false;
+		// createShare already returns an existing active link when there is one.
+		void createShare({ postId, expiresInHours: 24 * 7 }).then(
+			(result) => {
+				if (!cancelled) setShare({ status: "ready", ...result });
+			},
+			() => {
+				if (cancelled) return;
+				setShare({ status: "error" });
+				toast.error("Failed to create share link. Please try again.");
+			}
+		);
+		return () => {
+			cancelled = true;
+		};
+	}, [postId, createShare, attempt]);
 
-	// Handle existing active shares
-	useEffect(() => {
-		if (activeShares && activeShares.length > 0 && !shareLink && !isRevoked) {
-			const share = activeShares[0];
-			const baseUrl =
-				process.env.NODE_ENV === "development"
-					? "http://localhost:3000"
-					: env.VITE_HOSTING_DOMAIN;
-			const link = `${baseUrl}/share?token=${share.shareToken}`;
-			setShareLink(link);
-			setShareToken(share.shareToken);
-			setExpiryDate(share.expiryDate);
-		}
-	}, [activeShares, shareLink, isRevoked]);
+	const isGenerating = share.status === "loading";
+	const isRevoked = share.status === "revoked";
+	const expiryDate = share.status === "ready" ? share.expiryDate : null;
+	const baseUrl =
+		process.env.NODE_ENV === "development"
+			? window.location.origin
+			: env.VITE_HOSTING_DOMAIN;
+	const shareLink =
+		share.status === "ready"
+			? `${baseUrl}/share?token=${share.shareToken}`
+			: null;
 
-	const handleCopyClick = () => {
-		if (shareLink) {
-			navigator.clipboard.writeText(shareLink);
+	const handleCopyClick = async () => {
+		if (!shareLink) return;
+		try {
+			await navigator.clipboard.writeText(shareLink);
 			setCopied(true);
 			toast.success("Share link copied to clipboard");
-			setTimeout(() => setCopied(false), 2000);
+			window.clearTimeout(copiedTimer.current);
+			copiedTimer.current = window.setTimeout(() => setCopied(false), 2000);
+		} catch {
+			toast.error("Failed to copy share link. Please try again.");
 		}
 	};
 
 	const handleRevokeClick = async () => {
-		if (!shareToken) return;
+		if (share.status !== "ready") return;
 		setRevoking(true);
 		try {
-			await revokeShare({ shareToken });
-			setIsRevoked(true);
-			setShareLink(null);
+			await revokeShare({ shareToken: share.shareToken });
+			setShare({ status: "revoked" });
 			toast.success("Share link revoked");
-		} catch (err) {
-			console.error("Failed to revoke share:", err);
+		} catch {
 			toast.error("Failed to revoke share link. Please try again.");
 		} finally {
 			setRevoking(false);
@@ -142,54 +138,77 @@ export function ShareDialog(props: {
 	};
 
 	return (
-		<AlertDialog open={props.open} onOpenChange={props.setOpen}>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Share</AlertDialogTitle>
-					<AlertDialogDescription>
-						{isRevoked
-							? "Share link has been revoked. You can now close this dialog."
-							: shareLink
-								? "Copy the link to share this card with others!"
-								: isGenerating
-									? "Creating share link..."
-									: "Failed to create share link. Please try again."}
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<div className="flex items-center space-x-2 pb-2">
-					<Input
-						className="truncate"
-						value={shareLink ?? (isGenerating ? "Generating..." : "")}
-						readOnly
-						disabled={!shareLink || isRevoked}
-					/>
-					{!isRevoked && shareLink && (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleCopyClick}
-							disabled={revoking || isGenerating}
-						>
-							{copied ? "Copied!" : "Copy"}
-						</Button>
-					)}
-				</div>
-				{shareLink && !isRevoked && (
-					<p className="text-xs text-neutral-400">{formatExpiry(expiryDate)}</p>
+		<AlertDialogContent
+			onClick={(e) => e.stopPropagation()}
+			onEscapeKeyDown={(event) => {
+				if (revoking) event.preventDefault();
+			}}
+		>
+			<AlertDialogHeader>
+				<AlertDialogTitle>Share this card</AlertDialogTitle>
+				<AlertDialogDescription>
+					{isRevoked
+						? "The link has been revoked. Anyone who opens it will see an expired page."
+						: shareLink
+							? "Anyone with this link can view the graph and copy the GhXml — no account needed."
+							: isGenerating
+								? "Creating share link…"
+								: "Failed to create share link. Please try again."}
+				</AlertDialogDescription>
+			</AlertDialogHeader>
+			<div className="flex items-center gap-2">
+				<Input
+					className="truncate font-mono text-xs"
+					value={shareLink ?? (isGenerating ? "Generating…" : "")}
+					readOnly
+					onFocus={(e) => e.currentTarget.select()}
+					disabled={!shareLink || isRevoked}
+				/>
+				{!isRevoked && shareLink && (
+					<Button
+						onClick={handleCopyClick}
+						disabled={revoking || isGenerating}
+						className="shrink-0"
+					>
+						{copied ? (
+							<Check className="size-4" aria-hidden />
+						) : (
+							<Copy className="size-4" aria-hidden />
+						)}
+						{copied ? "Copied" : "Copy link"}
+					</Button>
 				)}
-				<AlertDialogFooter>
-					{shareLink && !isRevoked && (
-						<Button
-							className="bg-pink-500 hover:bg-pink-600"
-							onClick={handleRevokeClick}
-							disabled={revoking || isGenerating}
-						>
-							{revoking ? "Revoking..." : "Revoke"}
-						</Button>
-					)}
-					<AlertDialogAction disabled={revoking}>Close</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+			</div>
+			{shareLink && !isRevoked && (
+				<p className="flex items-center gap-1.5 text-xs text-neutral-500">
+					<Clock className="size-3.5" aria-hidden />
+					{formatExpiry(expiryDate)}
+				</p>
+			)}
+			<AlertDialogFooter className="sm:justify-between">
+				{shareLink && !isRevoked ? (
+					<Button
+						variant="ghost"
+						className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+						onClick={handleRevokeClick}
+						disabled={revoking || isGenerating}
+					>
+						{revoking ? "Revoking…" : "Revoke link"}
+					</Button>
+				) : share.status === "error" ? (
+					<Button
+						onClick={() => {
+							setShare({ status: "loading" });
+							setAttempt((current) => current + 1);
+						}}
+					>
+						Retry
+					</Button>
+				) : (
+					<span />
+				)}
+				<AlertDialogCancel disabled={revoking}>Done</AlertDialogCancel>
+			</AlertDialogFooter>
+		</AlertDialogContent>
 	);
 }

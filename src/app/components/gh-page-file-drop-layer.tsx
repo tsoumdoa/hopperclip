@@ -84,17 +84,19 @@ export function GhPageFileDropLayer({
 			{children}
 			{enabled && isDragging && (
 				<div
-					className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
+					className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/85 p-4 backdrop-blur-md md:p-6"
 					data-testid="gh-page-file-drop-overlay"
 					aria-hidden
 				>
-					<div className="flex max-w-lg flex-col items-center gap-3 rounded-xl border-2 border-dashed border-blue-400 bg-neutral-900/90 px-8 py-10 text-center shadow-2xl">
-						<FileUp className="h-10 w-10 text-blue-400" />
-						<p className="text-xl font-semibold text-white">
-							Drop .gh or .ghx file to add a card
+					<div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-green-300/40 text-center">
+						<div className="flex size-14 items-center justify-center rounded-full border border-green-300/30 bg-green-300/10">
+							<FileUp className="size-7 text-green-300" />
+						</div>
+						<p className="text-lg font-semibold text-white">
+							Drop to add a new card
 						</p>
 						<p className="text-sm text-neutral-400">
-							Grasshopper definition files will open in the add-card dialog.
+							.gh and .ghx files open in the new-card dialog
 						</p>
 					</div>
 				</div>

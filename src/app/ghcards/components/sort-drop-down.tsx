@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SORT_ORDERS, SortOrder, SortOrderValue } from "@/types/types";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { ArrowDownUp, ChevronDown } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { LoadingSpinner } from "./loading-spinner";
 
@@ -32,13 +32,21 @@ export default function SortDropDown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<div className="flex h-8 cursor-pointer items-center gap-1 rounded-md px-3 py-1 text-sm ring-1 ring-neutral-500 transition-all">
-					<span>{sortBy || "Sort by"}</span>
-					{isPending && <LoadingSpinner variant={"regular"} />}
-					<ChevronDown className="h-4 w-4" />
-				</div>
+				<button
+					type="button"
+					aria-label={`Sort order: ${sortBy ?? "default"}`}
+					className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-white/10 px-3 text-sm text-neutral-300 transition-colors hover:border-white/20 hover:text-white data-[state=open]:border-white/20"
+				>
+					{isPending ? (
+						<LoadingSpinner variant={"small"} />
+					) : (
+						<ArrowDownUp className="size-4 text-neutral-500" aria-hidden />
+					)}
+					<span className="hidden lg:inline">{sortBy || "Sort by"}</span>
+					<ChevronDown className="size-3.5 text-neutral-500" aria-hidden />
+				</button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className="w-56">
+			<DropdownMenuContent className="w-56" align="end">
 				<DropdownMenuLabel>Sort Order</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuRadioGroup

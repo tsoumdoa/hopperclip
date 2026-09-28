@@ -1,16 +1,20 @@
+import { useEffect, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GhFlowView } from "./gh-flow-view";
 import type { ScriptMetrics } from "../hooks/use-script-metrics";
 import type { GHNode } from "../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
+import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function MetricsDialog(props: {
+	title?: string;
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	metrics: ScriptMetrics | null;
@@ -19,119 +23,145 @@ export function MetricsDialog(props: {
 	loading: boolean;
 	error?: string | null;
 }) {
+	const [detailsOpen, setDetailsOpen] = useState(true);
+
+	useEffect(() => {
+		if (props.open) {
+			setDetailsOpen(window.matchMedia("(min-width: 1024px)").matches);
+		}
+	}, [props.open]);
+
+	const ToggleIcon = detailsOpen ? PanelRightClose : PanelRightOpen;
+
 	return (
 		<Dialog open={props.open} onOpenChange={props.setOpen}>
 			<DialogContent
-				className="flex max-h-[90vh] w-[90vw] max-w-[90vw] flex-col gap-0 p-0"
+				className="flex h-[88vh] w-[94vw] max-w-[94vw] flex-col gap-0 overflow-hidden p-0 xl:max-w-7xl"
 				onPointerDownOutside={(e) => e.preventDefault()}
 			>
-				<DialogHeader className="flex flex-row items-center justify-between border-neutral-700 px-6 py-4">
-					<DialogTitle>Script Metrics</DialogTitle>
+				<DialogHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-white/[0.06] py-3 pr-14 pl-5">
+					<DialogTitle className="min-w-0 truncate text-base">
+						{props.title ?? "Script"}
+					</DialogTitle>
+					<button
+						type="button"
+						onClick={() => setDetailsOpen((open) => !open)}
+						aria-pressed={detailsOpen}
+						className={cn(
+							"ml-auto inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium transition-colors",
+							detailsOpen
+								? "bg-white/[0.07] text-white"
+								: "text-neutral-400 hover:bg-white/5 hover:text-white"
+						)}
+					>
+						<ToggleIcon className="size-4" aria-hidden />
+						Details
+					</button>
 				</DialogHeader>
 
-				{props.error && (
-					<div className="mx-6 mb-2 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-800">
-						{props.error}
-					</div>
-				)}
-
-				<Tabs defaultValue="flow" className="flex-1 overflow-hidden">
-					<div className="border-neutral-700 pl-4">
-						<TabsList>
-							<TabsTrigger value="flow">Flow View</TabsTrigger>
-							<TabsTrigger value="metrics">Metrics</TabsTrigger>
-						</TabsList>
-					</div>
-
-					<TabsContent
-						value="metrics"
-						className="mt-0 overflow-y-auto px-6 py-4"
-					>
-						{props.loading ? (
-							<div className="flex items-center justify-center py-8">
-								<span className="text-neutral-400">Loading metrics...</span>
-							</div>
-						) : props.metrics ? (
-							<div className="space-y-4 py-2">
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-1">
-										<div className="text-xs text-neutral-500">
-											Grasshopper Version
-										</div>
-										<div className="font-semibold text-neutral-800">
-											{props.metrics.GhVersion}
-										</div>
-									</div>
-									<div className="space-y-1">
-										<div className="text-xs text-neutral-500">
-											Total Components
-										</div>
-										<div className="font-semibold text-neutral-800">
-											{props.metrics.componentsCount}
-										</div>
-									</div>
-									<div className="space-y-1">
-										<div className="text-xs text-neutral-500">
-											Unique Components
-										</div>
-										<div className="font-semibold text-neutral-800">
-											{props.metrics.uniqueCount}
-										</div>
-									</div>
-									<div className="space-y-1">
-										<div className="text-xs text-neutral-500">
-											Plugin Libraries
-										</div>
-										<div className="font-semibold text-neutral-800">
-											{props.metrics.ghLibs?.length ?? 0}
-										</div>
-									</div>
-								</div>
-								{(props.metrics.ghLibs?.length ?? 0) > 0 && (
-									<div className="space-y-2">
-										<div className="text-xs text-neutral-500">
-											Plugin Libraries
-										</div>
-										<div className="max-h-48 space-y-1 overflow-y-auto rounded-md bg-neutral-900 p-3">
-											{props.metrics.ghLibs?.map((lib, index) => (
-												<div
-													key={index}
-													className="flex items-center justify-between border-b border-neutral-800 pb-2 last:border-0 last:pb-0"
-												>
-													<div>
-														<div className="font-medium text-neutral-100">
-															{lib.name}
-														</div>
-														<div className="text-xs text-neutral-400">
-															{lib.author}
-														</div>
-													</div>
-													<div className="text-xs text-neutral-500">
-														{lib.version}
-													</div>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
-							</div>
-						) : (
-							<div className="py-8 text-neutral-400">No metrics available</div>
-						)}
-					</TabsContent>
-
-					<TabsContent
-						value="flow"
-						className="mt-0 h-[70vh] min-h-0 flex-none p-4"
-					>
+				<div className="relative flex min-h-0 flex-1">
+					<div className="min-w-0 flex-1 p-3">
 						<GhFlowView
 							nodes={props.nodes}
 							edges={props.edges}
 							loading={props.loading}
+							errorMessage={props.error ?? undefined}
 						/>
-					</TabsContent>
-				</Tabs>
+					</div>
+
+					{detailsOpen && (
+						<aside
+							aria-label="Script details"
+							className="bg-popover absolute inset-y-0 right-0 z-10 flex w-72 flex-col gap-6 overflow-y-auto border-l border-white/[0.06] p-5 shadow-2xl lg:static lg:shadow-none"
+						>
+							<ScriptDetails metrics={props.metrics} loading={props.loading} />
+						</aside>
+					)}
+				</div>
 			</DialogContent>
 		</Dialog>
+	);
+}
+
+function ScriptDetails(props: {
+	metrics: ScriptMetrics | null;
+	loading: boolean;
+}) {
+	if (props.loading) {
+		return (
+			<div
+				className="grid grid-cols-2 gap-2"
+				role="status"
+				aria-label="Loading"
+			>
+				{Array.from({ length: 4 }).map((_, i) => (
+					<Skeleton key={i} className="h-[74px] rounded-lg bg-white/[0.05]" />
+				))}
+			</div>
+		);
+	}
+
+	if (!props.metrics) {
+		return <p className="text-sm text-neutral-500">No details available</p>;
+	}
+
+	const libs = props.metrics.ghLibs ?? [];
+	const stats = [
+		{ label: "Components", value: props.metrics.componentsCount },
+		{ label: "Unique", value: props.metrics.uniqueCount },
+		{ label: "Plugins", value: libs.length },
+		{ label: "Grasshopper", value: props.metrics.GhVersion },
+	];
+
+	return (
+		<>
+			<div className="grid grid-cols-2 gap-2">
+				{stats.map((stat) => (
+					<div
+						key={stat.label}
+						className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+					>
+						<div className="text-xs text-neutral-500">{stat.label}</div>
+						<div
+							className="mt-1 truncate text-xl font-semibold text-neutral-50 tabular-nums"
+							title={String(stat.value)}
+						>
+							{stat.value}
+						</div>
+					</div>
+				))}
+			</div>
+
+			<section className="flex flex-col gap-2">
+				<h3 className="text-xs font-medium text-neutral-400">
+					Plugin libraries
+				</h3>
+				{libs.length > 0 ? (
+					<ul className="divide-y divide-white/[0.06] overflow-hidden rounded-lg border border-white/[0.06]">
+						{libs.map((lib, index) => (
+							<li key={index} className="px-3 py-2.5">
+								<div className="flex items-baseline justify-between gap-3">
+									<span className="truncate text-sm font-medium text-neutral-100">
+										{lib.name}
+									</span>
+									<span className="shrink-0 font-mono text-[11px] text-neutral-500">
+										{lib.version}
+									</span>
+								</div>
+								{lib.author && (
+									<div className="truncate text-xs text-neutral-500">
+										{lib.author}
+									</div>
+								)}
+							</li>
+						))}
+					</ul>
+				) : (
+					<p className="text-sm text-neutral-500">
+						No plugin libraries referenced.
+					</p>
+				)}
+			</section>
+		</>
 	);
 }

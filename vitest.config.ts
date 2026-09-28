@@ -5,6 +5,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	resolve: {
 		alias: {
+			"@convex": fileURLToPath(new URL("./convex", import.meta.url)),
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
 			parser: fileURLToPath(new URL("./parser", import.meta.url)),
 		},

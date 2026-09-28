@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Header from "@/app/components/header";
+import { PageShell } from "@/app/components/page-shell";
 
 export const Route = createFileRoute("/_static/terms-of-service")({
 	head: () => ({
@@ -10,9 +10,8 @@ export const Route = createFileRoute("/_static/terms-of-service")({
 
 function TermsOfService() {
 	return (
-		<div className="min-h-screen bg-black font-sans text-white [&_h2]:text-neutral-200 [&_h3]:text-neutral-200 [&_li]:text-neutral-300 [&_p]:text-neutral-300">
-			<div className="mx-auto max-w-[100rem] p-4 md:px-6 md:pt-6 md:pb-2">
-				<Header />
+		<PageShell>
+			<div className="[&_h2]:text-neutral-200 [&_h3]:text-neutral-200 [&_li]:text-neutral-300 [&_p]:text-neutral-300">
 				<div className="font-sans text-neutral-800 antialiased">
 					<div className="mx-auto max-w-4xl px-4 py-2 sm:px-6 lg:px-8">
 						<h1 className="pb-6 text-center text-2xl font-extrabold text-neutral-100 sm:text-3xl">
@@ -394,6 +393,6 @@ function TermsOfService() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</PageShell>
 	);
 }

@@ -30,7 +30,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		cardInfo.tags,
 	]);
 	const lastSyncedVersion = useRef(cardInfoVersion);
-	const [reset, setReset] = useState(false);
 	const prevTags = useRef(cardInfo.tags ?? []);
 	const newTags = useRef(cardInfo.tags ?? []);
 	useEffect(() => {
@@ -70,7 +69,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		newTags.current = tags;
 		prevTags.current = tags;
 		lastSyncedVersion.current = cardInfoVersion;
-		setReset(true);
 		setEditMode(false);
 		setTag("");
 		setNewXmlData(undefined);
@@ -108,8 +106,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 	};
 
 	const handleEdit = async (submit: boolean) => {
-		setReset(true);
-
 		const metadataChanged =
 			ghInfo.name !== cardInfo.name ||
 			ghInfo.description !== cardInfo.description ||
@@ -238,8 +234,6 @@ export default function useGhCardControl(cardInfo: GhPost) {
 		handleCancelEditMode,
 		tag,
 		setTag,
-		reset,
-		setReset,
 		newXmlData,
 		setNewXmlData,
 		isValidXml,
