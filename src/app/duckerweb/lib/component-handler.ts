@@ -102,6 +102,7 @@ export function handleComponent(
 
 	const nodeData: GHNodeData = {
 		label: component.nickName,
+		library: component.library,
 		type: nodeType,
 		inputs,
 		outputs,
