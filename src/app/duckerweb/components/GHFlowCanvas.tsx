@@ -24,9 +24,11 @@ import { GHGroupNode } from "./GHGroupNode";
 import { GHRelayNode } from "./GHRelayNode";
 import { GHScribbleNode } from "./GHScribbleNode";
 import { GHEdge } from "./GHEdge";
+import { GHCanvasOrigin } from "./GHCanvasOrigin";
+import { withPluginHint } from "./GHPluginNode";
 import type { GHFlowCanvasProps } from "../types/type";
 
-const nodeTypes: NodeTypes = {
+const baseNodeTypes: NodeTypes = {
 	panel: GHPanelNode as NodeTypes[string],
 	scribble: GHScribbleNode as NodeTypes[string],
 	value: GHPanelNode as NodeTypes[string],
@@ -40,6 +42,13 @@ const nodeTypes: NodeTypes = {
 	group: GHGroupNode as NodeTypes[string],
 	relay: GHRelayNode as NodeTypes[string],
 };
+
+const nodeTypes: NodeTypes = Object.fromEntries(
+	Object.entries(baseNodeTypes).map(([type, component]) => [
+		type,
+		withPluginHint(component),
+	])
+);
 
 const edgeTypes: EdgeTypes = {
 	default: GHEdge as EdgeTypes[string],
@@ -114,6 +123,7 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 					bgColor="#cbc9c8"
 					color="#bbb8af"
 				/>
+				<GHCanvasOrigin />
 				<Controls />
 				<Panel position="top-right">
 					<button

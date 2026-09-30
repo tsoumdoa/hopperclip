@@ -19,6 +19,7 @@ export type GHNodeType =
 
 export type GHNodeData = {
 	label: string;
+	library?: string;
 	type: GHNodeType;
 	inputs: Port[];
 	outputs: Port[];
