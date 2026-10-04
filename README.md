@@ -108,6 +108,8 @@ The application should now be accessible in your web browser at \(http://localho
 
 Run `pnpm run check`, `pnpm exec vitest run`, and `pnpm run build` before merging changes. The build needs the variables in `env.example`.
 
+GitHub Actions runs these checks and `pnpm audit --audit-level=high` on pull requests, pushes to `main`, and weekly. CI uses placeholder build credentials and does not deploy. Security review decisions and follow-ups are recorded in [the security triage](docs/security-review-triage.md).
+
 ### TODO:
 
 -- when param has same name, it doesnt parse corrcectly

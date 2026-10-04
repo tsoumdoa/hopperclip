@@ -1,14 +1,11 @@
 import { customAlphabet } from "nanoid";
-import { ShareLinkUid } from "../types/types";
+import { SHARE_LINK_UID_LENGTH } from "../types/types";
+
+const generateCustomNanoid = customAlphabet(
+	"0123456789abcdefghijklmnopqrstuvwxyz",
+	SHARE_LINK_UID_LENGTH
+);
 
 export function generateSharableLinkUid() {
-	const customAlphabetString = "0123456789abcdefghijklmnopqrstuvwxyz";
-	const customIdLength = 10;
-
-	const generateCustomNanoid = customAlphabet(
-		customAlphabetString,
-		customIdLength
-	);
-
-	return generateCustomNanoid() as ShareLinkUid;
+	return generateCustomNanoid();
 }

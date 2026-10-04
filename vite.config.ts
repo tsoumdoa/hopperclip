@@ -64,7 +64,6 @@ const nextPublicToViteAliases: [string, string][] = [
 	["NEXT_PUBLIC_POSTHOG_KEY", "VITE_POSTHOG_KEY"],
 	["NEXT_PUBLIC_POSTHOG_HOST", "VITE_POSTHOG_HOST"],
 	["NEXT_PUBLIC_HOSTING_DOMAIN", "VITE_HOSTING_DOMAIN"],
-	["NEXT_PUBLIC_CF_WORKER", "VITE_CF_WORKER"],
 ];
 
 function migrateNextPublicEnv(env: Record<string, string>) {

@@ -39,9 +39,14 @@ export const GhXml = z.object({
 	}),
 });
 
-const ShareLinkUidRegex = /^[a-z0-9]{10}$/;
+// 15 base36 characters provide ~78 bits of entropy for compact capability URLs.
+export const SHARE_LINK_UID_LENGTH = 15;
+// Previously issued 10- and 25-character links keep working until expiry.
+const ShareLinkUidRegex = new RegExp(
+	`^(?:[a-z0-9]{10}|[a-z0-9]{25}|[a-z0-9]{${SHARE_LINK_UID_LENGTH}})$`
+);
 export const ShareLinkUidSchema = z.string().regex(ShareLinkUidRegex, {
-	message: "Invalid Nano ID format. Must be 10 characters using 0-9 and a-z.",
+	message: "Invalid share token format.",
 });
 
 export type ShareLinkUid = z.infer<typeof ShareLinkUidSchema>;

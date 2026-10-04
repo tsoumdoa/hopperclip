@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/setup@479c3cd2084b8e20207344a47dc10bdabea95adb # v3
+        with:
+          runtime: node@24
+          install: false
+          cache: true
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+      - run: pnpm run check
+      - run: pnpm exec vitest run
+      - run: pnpm run build
+        env:
+          # Build-only placeholders; CI never needs production credentials.
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuY2kuZXhhbXBsZSQ=
+          CLERK_SECRET_KEY: sk_test_dummy
+          VITE_CONVEX_URL: https://ci-placeholder.convex.cloud
+          R2_ACCESS_KEY_ID: ci-placeholder
+          R2_SECRET_ACCESS_KEY: ci-placeholder
+          R2_URL: https://ci-placeholder.r2.cloudflarestorage.com/hopperclip
+          VITE_POSTHOG_KEY: phc_ci_placeholder
+          VITE_POSTHOG_HOST: https://us.i.posthog.com
+          VITE_HOSTING_DOMAIN: https://hopperclip.example
