@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { handleShareAccess, shareClientKey } from "./share-gateway.server";
+import {
+	handleShareAccess,
+	resolveShareConvexUrl,
+	shareClientKey,
+} from "./share-gateway.server";
 
 const secret = "local-test-server-gateway-secret-12345678";
 const env = {
@@ -25,6 +29,42 @@ function request(
 }
 
 afterEach(() => vi.useRealTimers());
+
+describe("share gateway deployment URL", () => {
+	test("uses the build deployment even when hosting has stale URL variables", () => {
+		expect(
+			resolveShareConvexUrl(
+				{
+					VITE_CONVEX_URL: "https://stale-runtime.convex.cloud",
+					NEXT_PUBLIC_CONVEX_URL: "https://legacy-runtime.convex.cloud",
+				},
+				{
+					VITE_CONVEX_URL: "https://selected-build.convex.cloud",
+					NEXT_PUBLIC_CONVEX_URL: "https://legacy-build.convex.cloud",
+				}
+			)
+		).toBe("https://selected-build.convex.cloud");
+	});
+
+	test("keeps the same legacy build and runtime fallbacks as the app", () => {
+		const runtime = {
+			VITE_CONVEX_URL: "https://runtime.convex.cloud",
+			NEXT_PUBLIC_CONVEX_URL: "https://legacy-runtime.convex.cloud",
+		};
+		expect(
+			resolveShareConvexUrl(runtime, {
+				NEXT_PUBLIC_CONVEX_URL: "https://legacy-build.convex.cloud",
+			})
+		).toBe("https://legacy-build.convex.cloud");
+		expect(resolveShareConvexUrl(runtime)).toBe(runtime.VITE_CONVEX_URL);
+		expect(
+			resolveShareConvexUrl({
+				NEXT_PUBLIC_CONVEX_URL: runtime.NEXT_PUBLIC_CONVEX_URL,
+			})
+		).toBe(runtime.NEXT_PUBLIC_CONVEX_URL);
+		expect(resolveShareConvexUrl({})).toBeUndefined();
+	});
+});
 
 describe("share gateway client identity", () => {
 	test("uses the Vercel-controlled header and ignores spoofed forwarded headers", () => {

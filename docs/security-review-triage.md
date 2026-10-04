@@ -72,7 +72,7 @@ configuration; see [presigned URL behavior](https://developers.cloudflare.com/r2
 ## Validation
 
 Local verification passed: frozen-lockfile installation, `pnpm run check`, all
-227 tests across 23 files, a production build with placeholder credentials,
+229 tests across 23 files, production and Vercel-preset builds with placeholder credentials,
 changed-file formatting checks, and Actionlint validation of the workflow.
 `pnpm audit --audit-level=high` reports no known vulnerabilities. The initial
 hardening commit also passed the GitHub-hosted CI workflow on main.
@@ -85,12 +85,26 @@ Production-server HTTP checks verified upload origin/authentication rejection,
 share request validation, and fail-closed behavior without a trusted client IP.
 The emitted public assets contain neither server-secret placeholder value.
 
-Live Clerk/Convex/R2 integration and deployment were not performed. Convex API
-types were generated locally from the installed CLI's template; normal deployment
-codegen still runs against the chosen Convex deployment. The application and
-Convex changes require the coordinated rollout described below. For the earlier
-token-only hardening, deploy the updated client validator before enabling the
-updated backend generator if deploying them separately.
+The independent merge review also found and fixed a separate Convex typecheck
+failure and inconsistent build/runtime Convex URL precedence in sharing. Both
+TypeScript configurations now run in `check` and `build`; tests remain covered by
+the root configuration. Sharing uses the same selected backend as uploads and
+the browser.
+
+The earlier main commit passed GitHub CI but Vercel blocked deployment because
+TanStack Start 1.168.58 was affected by critical reflected XSS
+[CVE-2026-102989](https://github.com/TanStack/router/security/advisories/GHSA-qx66-fv34-fjm8).
+Updated React Start to 1.168.60 and its matching React Router to 1.170.41; the
+lockfile resolves the patched Start server core 1.169.39. No security bypass
+environment variable was enabled.
+
+Production preparation verified Convex's deployment dry run, matching web/backend
+R2 targets without trailing slashes, the canonical upload origin, and Clerk's
+Convex JWT `id` and `aud` claims. A temporary object verified web PUT and backend
+HEAD/GET/DELETE permissions and was removed. A matching random server gateway
+secret was installed in both production environments, sensitive on Vercel.
+An authenticated browser upload still needs an end-to-end production smoke check.
+The application and Convex changes require the coordinated rollout below.
 
 ## Storage and rate-limit deployment
 

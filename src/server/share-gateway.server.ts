@@ -19,6 +19,21 @@ type GatewayOptions = {
 	) => Promise<ShareAccessResult>;
 };
 
+export function resolveShareConvexUrl(
+	runtimeEnv: GatewayEnvironment,
+	buildEnv: GatewayEnvironment = {}
+): string | undefined {
+	// `convex deploy --cmd` supplies the deployment URL to the build only.
+	// Match the browser/upload env resolver so stale host variables cannot
+	// send public share requests to a different Convex deployment.
+	return (
+		buildEnv.VITE_CONVEX_URL ??
+		buildEnv.NEXT_PUBLIC_CONVEX_URL ??
+		runtimeEnv.VITE_CONVEX_URL ??
+		runtimeEnv.NEXT_PUBLIC_CONVEX_URL
+	);
+}
+
 function canonicalIpIdentity(value: string): string {
 	const version = isIP(value);
 	if (version === 4) return value;
@@ -235,13 +250,15 @@ export async function handleShareAccess(
 	}
 	try {
 		const gatewaySecret = env.SERVER_GATEWAY_SECRET;
-		const convexUrl =
-			env.VITE_CONVEX_URL ??
-			env.NEXT_PUBLIC_CONVEX_URL ??
-			(options.env
+		const convexUrl = resolveShareConvexUrl(
+			env,
+			options.env
 				? undefined
-				: (import.meta.env.VITE_CONVEX_URL ??
-					import.meta.env.NEXT_PUBLIC_CONVEX_URL));
+				: {
+						VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
+						NEXT_PUBLIC_CONVEX_URL: import.meta.env.NEXT_PUBLIC_CONVEX_URL,
+					}
+		);
 		if (!gatewaySecret || gatewaySecret.length < 32 || !convexUrl) {
 			throw new Error("Share gateway is not configured");
 		}

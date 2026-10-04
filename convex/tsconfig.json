@@ -35,6 +35,8 @@
 		"./**/*"
 	],
 	"exclude": [
-		"./_generated"
+		"./_generated",
+		"./**/*.test.ts",
+		"./**/*.spec.ts"
 	]
 }
