@@ -16,7 +16,6 @@
 		"format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
 		"format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
 		"test": "vitest",
-		"bench": "vitest bench",
 		"convex:generate": "convex dev --once"
 	},
 	"dependencies": {
@@ -55,8 +54,6 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.3.3",
-		"@types/bun": "^1.4.2",
-		"@types/jest": "^30.0.0",
 		"@types/node": "^24.13.6",
 		"@types/pako": "^2.0.4",
 		"@types/react": "^19.3.0",
@@ -64,7 +61,6 @@
 		"@vitejs/plugin-react": "^6.1.1",
 		"convex-test": "^0.0.60",
 		"eslint": "^9.39.5",
-		"happy-dom": "^20.14.5",
 		"nitro": "3.0.260903-beta",
 		"prettier": "^3.9.9",
 		"prettier-plugin-tailwindcss": "^0.6.14",

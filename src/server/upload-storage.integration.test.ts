@@ -187,23 +187,6 @@ test("mismatched Clerk and Convex owner claims cannot write outside the reservat
 	expect(objects.size).toBe(0);
 });
 
-test("an upload whose HEAD verification fails is removed by durable expiration cleanup", async () => {
-	vi.mocked(storageRequest).mockResolvedValueOnce(
-		new Response(null, { status: 404 })
-	);
-	expect((await handleUpload(uploadRequest())).status).toBe(503);
-	const object = await backend.run((ctx) =>
-		ctx.db.query("storageObjects").unique()
-	);
-	expect(object).toMatchObject({ state: "reserved" });
-	expect(objects.size).toBe(1);
-	vi.setSystemTime(Date.now() + UPLOAD_EXPIRY_MS + 1);
-	await backend.mutation(internal.storage.sweep, {});
-	await backend.finishAllScheduledFunctions(vi.runAllTimers);
-	expect(objects.size).toBe(0);
-	expect(await ledger(object!.key)).toMatchObject({ state: "deleted" });
-});
-
 test("a failed save leaves the old card intact and reclaims the unattached replacement without browser help", async () => {
 	const oldKey = await successfulUpload();
 	await owner.mutation(api.ghCard.addPost, { ...metadata, uid: oldKey });

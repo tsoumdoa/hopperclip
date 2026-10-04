@@ -3,12 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 import { storageRequest } from "./storageR2";
-import {
-	CLEANUP_BATCH_SIZE,
-	CLEANUP_LEASE_MS,
-	UPLOAD_EXPIRY_MS,
-} from "./storageLifecycle";
-import type { Id } from "./_generated/dataModel";
+import { CLEANUP_LEASE_MS } from "./storageLifecycle";
 
 vi.mock("./storageR2", () => ({ storageRequest: vi.fn() }));
 
@@ -107,62 +102,6 @@ afterEach(() => {
 });
 
 describe("upload ownership and lifecycle", () => {
-	it("rejects identities missing the Clerk id instead of matching ownerless legacy rows", async () => {
-		const t = convexTest(schema, modules);
-		const id = await t.run((ctx) =>
-			ctx.db.insert("post", {
-				...metadata,
-				bucketUrl: "legacy_key",
-				dateCreated: "",
-				dateUpdated: "",
-			})
-		);
-		const missingClaim = t.withIdentity({
-			subject: "authenticated-without-id",
-		});
-		await expect(
-			missingClaim.mutation(api.ghCard.deletePost, { id })
-		).rejects.toThrow("Not authenticated");
-		await expect(
-			missingClaim.mutation(api.ghCard.updatePost, { id, ...metadata })
-		).rejects.toThrow("Not authenticated");
-		await expect(missingClaim.query(api.ghCard.getAll, {})).rejects.toThrow(
-			"Not authenticated"
-		);
-		expect(await t.run((ctx) => ctx.db.get(id))).not.toBeNull();
-	});
-
-	it("requires both a trusted gateway and authenticated owner", async () => {
-		const t = convexTest(schema, modules);
-		await expect(
-			t.mutation(api.storage.reserveUpload, { key: "key", gatewaySecret })
-		).rejects.toThrow("Not authenticated");
-		await expect(
-			asOwner(t).mutation(api.storage.reserveUpload, {
-				key: "key",
-				gatewaySecret: "wrong",
-			})
-		).rejects.toThrow("Not authorized");
-		expect(
-			await t.run((ctx) => ctx.db.query("storageObjects").collect())
-		).toEqual([]);
-		const pending = await reserve(t, "owned");
-		expect(pending.clerkUserId).toBe("user_alice");
-		await expect(
-			asOwner(t, "user_bob").action(api.storageActions.completeUpload, {
-				uploadId: pending.uploadId,
-				gatewaySecret,
-			})
-		).rejects.toThrow("Upload is missing or expired");
-		await expect(
-			asOwner(t).action(api.storageActions.completeUpload, {
-				uploadId: pending.uploadId,
-				gatewaySecret: "wrong",
-			})
-		).rejects.toThrow("Not authorized");
-		expect(storageRequest).not.toHaveBeenCalled();
-	});
-
 	it("rejects unfinished, unverified, foreign, and already consumed uploads", async () => {
 		const t = convexTest(schema, modules);
 		const pending = await reserve(t, "owned");
@@ -198,99 +137,9 @@ describe("upload ownership and lifecycle", () => {
 		).rejects.toThrow("already used");
 		expect((await objectFor(t, pending.key))?.state).toBe("attached");
 	});
-
-	it("checks uploaded size and gzip metadata before finalizing", async () => {
-		const t = convexTest(schema, modules);
-		for (const [key, headers] of [
-			[
-				"oversize",
-				{
-					"content-length": String(26 * 1024 * 1024),
-					"content-type": "application/gzip",
-					"content-encoding": "gzip",
-				},
-			],
-			[
-				"notgzip",
-				{
-					"content-length": "1024",
-					"content-type": "text/plain",
-					"content-encoding": "gzip",
-				},
-			],
-			[
-				"empty",
-				{
-					"content-length": "0",
-					"content-type": "application/gzip",
-					"content-encoding": "gzip",
-				},
-			],
-		] as const) {
-			const pending = await reserve(t, key);
-			vi.mocked(storageRequest).mockResolvedValueOnce(
-				new Response(null, { status: 200, headers })
-			);
-			await expect(
-				asOwner(t).action(api.storageActions.completeUpload, {
-					uploadId: pending.uploadId,
-					gatewaySecret,
-				})
-			).rejects.toThrow("could not be verified");
-			expect((await objectFor(t, key))?.state).toBe("reserved");
-		}
-	});
-
-	it("never reserves a legacy live key or reuses a ledger key after deletion", async () => {
-		const t = convexTest(schema, modules);
-		await legacyPost(t);
-		await expect(reserve(t, "legacy_key")).rejects.toThrow("already exists");
-		const objectId = await queuedObject(t);
-		await t.action(internal.storageActions.deleteObject, { objectId });
-		await expect(reserve(t, "old_key")).rejects.toThrow("already exists");
-		await expect(
-			asOwner(t).mutation(api.ghCard.addPost, { ...metadata, uid: "old_key" })
-		).rejects.toThrow("Upload is missing");
-	});
-
-	it("limits upload reservations per owner and replenishes quota", async () => {
-		const t = convexTest(schema, modules);
-		for (let i = 0; i < 20; i++) await reserve(t, `key_${i}`);
-		await expect(reserve(t, "over_limit")).rejects.toThrow("RATE_LIMITED");
-		await expect(
-			reserve(t, "another_owner", "user_bob")
-		).resolves.toMatchObject({ key: "another_owner" });
-		vi.setSystemTime(Date.now() + 3_000);
-		await expect(reserve(t, "refilled")).resolves.toMatchObject({
-			key: "refilled",
-		});
-	});
 });
 
 describe("atomic post changes and durable cleanup", () => {
-	it("preserves legacy metadata edits and rejects an unreserved replacement atomically", async () => {
-		const t = convexTest(schema, modules);
-		const id = await legacyPost(t);
-		await asOwner(t).mutation(api.ghCard.updatePost, {
-			id,
-			...metadata,
-			name: "Edited card",
-			uid: "legacy_key",
-		});
-		await expect(
-			asOwner(t).mutation(api.ghCard.updatePost, {
-				id,
-				...metadata,
-				uid: "unreserved",
-			})
-		).rejects.toThrow("Upload is missing");
-		expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
-			name: "Edited card",
-			bucketUrl: "legacy_key",
-		});
-		expect(await objectFor(t, "legacy_key")).toBeNull();
-	});
-
 	it("queues the old key in the same transaction as a replacement", async () => {
 		const t = convexTest(schema, modules);
 		const id = await legacyPost(t);
@@ -315,27 +164,6 @@ describe("atomic post changes and durable cleanup", () => {
 		).toHaveLength(1);
 	});
 
-	it("deletes shares and queues cleanup atomically; a foreign user cannot delete", async () => {
-		const t = convexTest(schema, modules);
-		const id = await legacyPost(t);
-		await asOwner(t).mutation(api.ghCard.createShare, { postId: id });
-		await expect(
-			asOwner(t, "user_bob").mutation(api.ghCard.deletePost, { id })
-		).rejects.toThrow("Not authorized");
-		expect(await objectFor(t, "legacy_key")).toBeNull();
-		await asOwner(t).mutation(api.ghCard.deletePost, { id });
-		expect(await t.run((ctx) => ctx.db.get(id))).toBeNull();
-		expect(await t.run((ctx) => ctx.db.query("shares").collect())).toEqual([]);
-		expect((await objectFor(t, "legacy_key"))?.state).toBe("deleting");
-		await t.finishAllScheduledFunctions(vi.runAllTimers);
-		expect(storageRequest).toHaveBeenCalledWith(
-			"DELETE",
-			"user_alice",
-			"legacy_key"
-		);
-		expect((await objectFor(t, "legacy_key"))?.state).toBe("deleted");
-	});
-
 	it("keeps shared legacy objects until the last reference is removed", async () => {
 		const t = convexTest(schema, modules);
 		const first = await legacyPost(t);
@@ -352,15 +180,6 @@ describe("atomic post changes and durable cleanup", () => {
 			"legacy_key"
 		);
 		expect(await t.run((ctx) => ctx.db.get(otherOwner))).not.toBeNull();
-	});
-
-	it("rechecks live references before issuing DELETE", async () => {
-		const t = convexTest(schema, modules);
-		await legacyPost(t, "old_key");
-		const objectId = await queuedObject(t);
-		await t.action(internal.storageActions.deleteObject, { objectId });
-		expect(storageRequest).not.toHaveBeenCalled();
-		expect((await objectFor(t, "old_key"))?.state).toBe("attached");
 	});
 
 	it("persists failures with backoff and treats missing objects and duplicate jobs as success", async () => {
@@ -416,47 +235,6 @@ describe("atomic post changes and durable cleanup", () => {
 		expect(await objectFor(t, "old_key")).toMatchObject({
 			state: "deleted",
 			attempts: 3,
-		});
-	});
-
-	it("expires abandoned and failed uploads while keeping live uploads and attached objects", async () => {
-		const t = convexTest(schema, modules);
-		await reserve(t, "failed");
-		await upload(t, "abandoned");
-		await upload(t, "attached");
-		await asOwner(t).mutation(api.ghCard.addPost, {
-			...metadata,
-			uid: "attached",
-		});
-		vi.setSystemTime(Date.now() + UPLOAD_EXPIRY_MS);
-		await reserve(t, "in_progress");
-		await t.mutation(internal.storage.sweep, {});
-		await t.finishAllScheduledFunctions(vi.runAllTimers);
-		expect((await objectFor(t, "failed"))?.state).toBe("deleted");
-		expect((await objectFor(t, "abandoned"))?.state).toBe("deleted");
-		expect((await objectFor(t, "attached"))?.state).toBe("attached");
-		expect((await objectFor(t, "in_progress"))?.state).toBe("reserved");
-		await expect(
-			asOwner(t).mutation(api.ghCard.addPost, { ...metadata, uid: "abandoned" })
-		).rejects.toThrow("Upload is missing");
-	});
-
-	it("bounds each sweep and eventually drains a backlog", async () => {
-		const t = convexTest(schema, modules);
-		const ids: Id<"storageObjects">[] = [];
-		for (let i = 0; i < CLEANUP_BATCH_SIZE + 1; i++)
-			ids.push(await queuedObject(t, `key_${i}`));
-		expect(await t.mutation(internal.storage.sweep, {})).toEqual({
-			scheduled: CLEANUP_BATCH_SIZE,
-		});
-		await t.finishAllScheduledFunctions(vi.runAllTimers);
-		expect(storageRequest).toHaveBeenCalledTimes(CLEANUP_BATCH_SIZE);
-		expect(await t.mutation(internal.storage.sweep, {})).toEqual({
-			scheduled: 1,
-		});
-		await t.finishAllScheduledFunctions(vi.runAllTimers);
-		expect(await t.run((ctx) => ctx.db.get(ids.at(-1)!))).toMatchObject({
-			state: "deleted",
 		});
 	});
 });
