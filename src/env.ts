@@ -13,6 +13,11 @@ export const env = createEnv({
 		R2_ACCESS_KEY_ID: z.string(),
 		R2_SECRET_ACCESS_KEY: z.string(),
 		R2_URL: z.string(),
+		SERVER_GATEWAY_SECRET: z.string().min(32).optional(),
+		TRUSTED_CLIENT_IP_HEADER: z
+			.string()
+			.regex(/^[a-z0-9-]+$/)
+			.optional(),
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
 			.default("development"),
@@ -30,6 +35,8 @@ export const env = createEnv({
 		R2_ACCESS_KEY_ID: processEnv.R2_ACCESS_KEY_ID,
 		R2_SECRET_ACCESS_KEY: processEnv.R2_SECRET_ACCESS_KEY,
 		R2_URL: processEnv.R2_URL,
+		SERVER_GATEWAY_SECRET: processEnv.SERVER_GATEWAY_SECRET,
+		TRUSTED_CLIENT_IP_HEADER: processEnv.TRUSTED_CLIENT_IP_HEADER,
 		NODE_ENV: processEnv.NODE_ENV,
 		VITE_CLERK_PUBLISHABLE_KEY:
 			clientEnv?.VITE_CLERK_PUBLISHABLE_KEY ??

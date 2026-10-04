@@ -1,9 +1,8 @@
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server";
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { r2Client } from "./bucket";
 import { bucketUrl } from "./bucket-url";
-import { MAX_COMPRESSED_GH_XML_BYTES, StorageKeySchema } from "@/types/types";
+import { StorageKeySchema } from "@/types/types";
 
 const PRESIGNED_DOWNLOAD_EXPIRY_SECONDS = 300;
 
@@ -16,64 +15,6 @@ async function requireAuthenticatedUserId() {
 
 	return userId;
 }
-
-async function ensureOk(res: Response, action: string) {
-	if (!res.ok) {
-		console.error(`R2 ${action} failed: ${res.status} ${res.statusText}`);
-		throw new Error("Storage operation failed");
-	}
-}
-
-async function ensureDeleted(res: Response) {
-	// R2/S3 may return 404 when the object is already gone; treat that as success.
-	if (res.ok || res.status === 404) {
-		return;
-	}
-	console.error(`R2 delete failed: ${res.status} ${res.statusText}`);
-	throw new Error("Storage operation failed");
-}
-
-export const uploadToBucket = createServerFn({ method: "POST" })
-	.validator((input: unknown) => {
-		const parsed = z
-			.object({
-				nanoId: StorageKeySchema,
-				ghXmlZipped: z
-					.array(z.number().int().min(0).max(255))
-					.max(MAX_COMPRESSED_GH_XML_BYTES),
-			})
-			.parse(input);
-		return parsed;
-	})
-	.handler(async ({ data }) => {
-		const userId = await requireAuthenticatedUserId();
-		const ghXmlZipped = new Uint8Array(data.ghXmlZipped);
-
-		const res = await r2Client.fetch(
-			new Request(bucketUrl(userId, data.nanoId), {
-				method: "PUT",
-				body: ghXmlZipped,
-				headers: {
-					"content-encoding": "gzip",
-					"content-type": "application/gzip",
-				},
-			})
-		);
-		await ensureOk(res, "upload");
-	});
-
-export const deleteFromBucket = createServerFn({ method: "POST" })
-	.validator((nanoId: string) => StorageKeySchema.parse(nanoId))
-	.handler(async ({ data: nanoId }) => {
-		const userId = await requireAuthenticatedUserId();
-
-		const res = await r2Client.fetch(
-			new Request(bucketUrl(userId, nanoId), {
-				method: "DELETE",
-			})
-		);
-		await ensureDeleted(res);
-	});
 
 export const generatePresigneDownloadUrl = createServerFn({ method: "POST" })
 	.validator((nanoId: string) => StorageKeySchema.parse(nanoId))

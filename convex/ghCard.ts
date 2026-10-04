@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
 	GhCardSchema,
@@ -8,6 +8,10 @@ import {
 	SortOrderZenum,
 } from "../src/types/types";
 import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
+import {
+	attachUploadedObject,
+	enqueueUnreferencedObject,
+} from "./storageLifecycle";
 
 const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
 const MAX_SHARE_EXPIRY_HOURS = 24 * 30;
@@ -37,7 +41,7 @@ export const addPost = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 		GhCardSchema.parse({
@@ -46,11 +50,12 @@ export const addPost = mutation({
 			tags: args.tags,
 		});
 		const bucketUrl = validateStorageKey(args.uid);
+		await attachUploadedObject(ctx, identity.id, bucketUrl);
 		await ctx.db.insert("post", {
 			name: args.name,
 			description: args.description,
 			tags: args.tags,
-			clerkUserId: identity.id as string,
+			clerkUserId: identity.id,
 			bucketUrl,
 			dateCreated: new Date().toISOString(),
 			dateUpdated: new Date().toISOString(),
@@ -64,7 +69,7 @@ export const deletePost = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 		const post = await ctx.db.get(args.id);
@@ -85,6 +90,7 @@ export const deletePost = mutation({
 		}
 
 		await ctx.db.delete(args.id);
+		await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
 	},
 });
 
@@ -98,7 +104,7 @@ export const updatePost = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 		const post = await ctx.db.get(args.id);
@@ -115,6 +121,9 @@ export const updatePost = mutation({
 		});
 		if (args.uid !== undefined && args.uid !== null) {
 			const bucketUrl = validateStorageKey(args.uid);
+			if (bucketUrl !== post.bucketUrl) {
+				await attachUploadedObject(ctx, post.clerkUserId, bucketUrl);
+			}
 			await ctx.db.patch("post", args.id, {
 				name: args.name,
 				description: args.description,
@@ -122,6 +131,9 @@ export const updatePost = mutation({
 				dateUpdated: new Date().toISOString(),
 				bucketUrl,
 			});
+			if (bucketUrl !== post.bucketUrl) {
+				await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
+			}
 		} else {
 			await ctx.db.patch("post", args.id, {
 				name: args.name,
@@ -140,10 +152,11 @@ export const getAll = query({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 
+		const userId = identity.id;
 		const tags = args.tags ?? [];
 		const sortOrder = SortOrderZenum.parse(args.sortOrder ?? "ascLastEdited");
 
@@ -152,9 +165,7 @@ export const getAll = query({
 			case "ascAZ":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_name", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
 					.order("asc")
 					.collect();
 				break;
@@ -162,9 +173,7 @@ export const getAll = query({
 			case "descZA":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_name", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
 					.order("desc")
 					.collect();
 				break;
@@ -172,9 +181,7 @@ export const getAll = query({
 			case "ascLastEdited":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_dateUpdated", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
 					.order("desc")
 					.collect();
 				break;
@@ -182,9 +189,7 @@ export const getAll = query({
 			case "descLastEdited":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_dateUpdated", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
 					.order("asc")
 					.collect();
 				break;
@@ -192,9 +197,7 @@ export const getAll = query({
 			case "ascCreated":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_dateCreated", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
 					.order("desc")
 					.collect();
 				break;
@@ -202,9 +205,7 @@ export const getAll = query({
 			case "descCreated":
 				posts = await ctx.db
 					.query("post")
-					.withIndex("by_user_dateCreated", (q) =>
-						q.eq("clerkUserId", identity.id as string)
-					)
+					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
 					.order("asc")
 					.collect();
 				break;
@@ -232,14 +233,13 @@ export const getUserTags = query({
 	handler: async (ctx, _) => {
 		try {
 			const identity = await ctx.auth.getUserIdentity();
-			if (identity === null) {
+			if (identity === null || typeof identity.id !== "string") {
 				throw new Error("Not authenticated");
 			}
+			const userId = identity.id;
 			const posts = await ctx.db
 				.query("post")
-				.withIndex("by_clerkUserId", (q) =>
-					q.eq("clerkUserId", identity.id as string)
-				)
+				.withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", userId))
 				.collect();
 
 			const counts = posts
@@ -276,7 +276,7 @@ export const createShare = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 
@@ -328,7 +328,7 @@ export const createShare = mutation({
 			shareToken,
 			expiryDate: expiryDate.toISOString(),
 			createdAt: now.toISOString(),
-			clerkUserId: identity.id as string,
+			clerkUserId: identity.id,
 		});
 
 		return {
@@ -346,7 +346,7 @@ export const revokeShare = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 		const shareToken = validateShareToken(args.shareToken);
@@ -376,7 +376,7 @@ export const getActiveSharesForPost = query({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 		const post = await ctx.db.get(args.postId);
@@ -403,8 +403,8 @@ export const getActiveSharesForPost = query({
 	},
 });
 
-// Public query to get a shared post (no authentication required)
-export const getSharedPost = query({
+// Public reads go through the rate-limited server gateway.
+export const getSharedPost = internalQuery({
 	args: {
 		shareToken: v.string(),
 	},
@@ -425,7 +425,7 @@ export const getSharedPost = query({
 		}
 
 		const post = await ctx.db.get(share.postId);
-		if (!post) {
+		if (!post || post.clerkUserId !== share.clerkUserId) {
 			return null;
 		}
 
@@ -449,7 +449,7 @@ export const deleteSharesByPost = mutation({
 	},
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null) {
+		if (identity === null || typeof identity.id !== "string") {
 			throw new Error("Not authenticated");
 		}
 

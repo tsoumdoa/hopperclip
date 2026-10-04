@@ -41,6 +41,7 @@ jobs:
           R2_ACCESS_KEY_ID: ci-placeholder
           R2_SECRET_ACCESS_KEY: ci-placeholder
           R2_URL: https://ci-placeholder.r2.cloudflarestorage.com/hopperclip
+          SERVER_GATEWAY_SECRET: ci-placeholder-gateway-secret-not-for-production
           VITE_POSTHOG_KEY: phc_ci_placeholder
           VITE_POSTHOG_HOST: https://us.i.posthog.com
           VITE_HOSTING_DOMAIN: https://hopperclip.example

@@ -9,4 +9,16 @@ crons.daily(
 	internal.ghInternalMutation.cleanupExpiredShares
 );
 
+crons.interval(
+	"recover storage cleanup and abandoned uploads",
+	{ minutes: 5 },
+	internal.storage.sweep
+);
+
+crons.interval(
+	"prune expired access limits",
+	{ minutes: 10 },
+	internal.shareAccess.pruneExpiredLimits
+);
+
 export default crons;

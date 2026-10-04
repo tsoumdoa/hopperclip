@@ -1,16 +1,17 @@
-import { useAction } from "convex/react";
-import { api } from "@convex/_generated/api";
 import { useState, useEffect } from "react";
 import { decompress } from "../../utils/gzip";
 import { buildGhJson } from "parser/src/parser";
 import { generateFlowData } from "../../duckerweb/gh-flow-generator";
 import type { GHNode } from "../../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
-import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
+import { MAX_COMPRESSED_GH_XML_BYTES, type GetSharedPost } from "@/types/types";
+import { requestSharedSnippet, ShareAccessError } from "../share-access";
 
 export function useShareFlowState(shareToken: string) {
-	const getPresignedUrl = useAction(api.ghPublicAction.generateShareableLink);
-
+	const [sharedPost, setSharedPost] = useState<GetSharedPost | undefined>();
+	const [accessError, setAccessError] = useState<string | null>(null);
+	const [retryAt, setRetryAt] = useState(0);
+	const [attempt, setAttempt] = useState(0);
 	const [nodes, setNodes] = useState<GHNode[]>([]);
 	const [edges, setEdges] = useState<Edge[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -20,17 +21,27 @@ export function useShareFlowState(shareToken: string) {
 		let cancelled = false;
 		const controller = new AbortController();
 		setLoading(true);
+		setSharedPost(undefined);
+		setAccessError(null);
+		setRetryAt(0);
 		setError(null);
 		setDecodedXml(undefined);
 		setNodes([]);
 		setEdges([]);
 
 		const fetchAndParse = async () => {
+			let hasAccess = false;
 			try {
-				const presignedUrl = await getPresignedUrl({ shareToken });
+				const result = await requestSharedSnippet(
+					shareToken,
+					controller.signal
+				);
 				if (cancelled) return;
+				setSharedPost(result?.sharedPost ?? null);
+				if (!result) return;
+				hasAccess = true;
 
-				const res = await fetch(presignedUrl, {
+				const res = await fetch(result.downloadUrl, {
 					signal: controller.signal,
 					cache: "no-store",
 					headers: {
@@ -59,7 +70,21 @@ export function useShareFlowState(shareToken: string) {
 				setEdges(flowData.edges);
 			} catch (e) {
 				if (!cancelled) {
-					setError(e instanceof Error ? e.message : "Failed to load flow data");
+					if (hasAccess) {
+						setError(
+							e instanceof Error ? e.message : "Failed to load flow data"
+						);
+					} else {
+						setAccessError(
+							e instanceof ShareAccessError
+								? e.message
+								: "This snippet could not be loaded. Please try again."
+						);
+						setRetryAt(
+							Date.now() +
+								(e instanceof ShareAccessError ? e.retryAfterSeconds * 1000 : 0)
+						);
+					}
 				}
 			} finally {
 				if (!cancelled) setLoading(false);
@@ -71,7 +96,17 @@ export function useShareFlowState(shareToken: string) {
 			cancelled = true;
 			controller.abort();
 		};
-	}, [getPresignedUrl, shareToken]);
+	}, [shareToken, attempt]);
 
-	return { nodes, edges, decodedXml, loading, error };
+	return {
+		sharedPost,
+		accessError,
+		retryAt,
+		retry: () => setAttempt((value) => value + 1),
+		nodes,
+		edges,
+		decodedXml,
+		loading,
+		error,
+	};
 }

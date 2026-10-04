@@ -1,10 +1,13 @@
 import { z } from "zod";
-import type { FunctionReturnType } from "convex/server";
 import { Doc } from "@convex/_generated/dataModel";
-import { api } from "@convex/_generated/api";
 
 export type GhPost = Doc<"post">; // includes _id, _creationTime, fields
-export type GetSharedPost = FunctionReturnType<typeof api.ghCard.getSharedPost>;
+export type GetSharedPost = {
+	post: { name: string; description?: string; tags?: string[] };
+	sharedToken: string;
+	shareToken: string;
+	expiryDate: string;
+} | null;
 
 export const GhCardSchema = z.object({
 	name: z.string().min(3).max(30),

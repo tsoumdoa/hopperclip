@@ -15,7 +15,7 @@ or an audit of the deployed Clerk, Convex, hosting, and R2 settings.
 
 Fifteen characters trade some guessing resistance for shorter URLs: ~78 bits is
 stronger than the original ~52 bits, but below the report's 96–128-bit target.
-The unimplemented rate limits remain a separate follow-up.
+The IP and valid-share limits described below provide a separate layer of abuse control.
 
 The existing share expiry limit is 30 days. After all backends generating old
 tokens have been replaced, legacy links age out within that period; their
@@ -30,15 +30,15 @@ low-cost and worth applying. See the upstream advisories for
 
 ## Follow-up priorities
 
-| Finding                                           | Priority now                                                               | Reason and useful next step                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| L2: browser-managed R2 deletion                   | Highest follow-up; do before relying on deletion as a retention guarantee. | Both delete and replacement cleanup are currently best-effort browser calls. Replacement does attempt cleanup, contrary to the report's blanket orphaning claim, but closing the tab or losing a request leaves an object behind. Add a durable deletion queue in the same Convex transaction as the card change, then process it with bounded retries and a recovery sweep. Account for keys still referenced by another card and objects uploaded without a successful card save. Existing orphaned objects require separate reconciliation. |
-| L3: numeric-array upload payloads                 | Address with the storage work, or sooner if large uploads are common.      | The 25 MiB compressed limit is real, but JSON arrays amplify network and heap use, and schema validation happens after body parsing. Prefer binary transport with an early request-size limit, or direct R2 uploads with a verified server-enforced byte limit, upload finalization, and cleanup of abandoned uploads. A client-side size check or ordinary presigned PUT alone is insufficient.                                                                                                                                               |
-| M2: public share action abuse                     | Before a larger public launch, or when usage shows abuse.                  | Well-formed nonexistent tokens incur a query but return before signing. Rate limiting can reduce abuse but does not remove the cost of invoking the public function. Per-token throttles are bypassed by random tokens, and a Convex query cannot write limiter state. Use a trusted HTTP boundary for IP throttling or a verified challenge, with bounded limiter storage; ensure the original public function cannot bypass the gate. Consider authenticated upload/card quotas in the same work.                                            |
-| M3: CSP inline scripts / reporting                | Separate rendering and observability work.                                 | Do not remove `unsafe-inline` without checking streamed hydration, static prerenders, and Clerk. The installed TanStack server handler already accepts a nonce; static HTML/header coordination remains the issue. A report endpoint must actually receive and monitor reports and avoid retaining capability URLs. Narrowing image hosts must allow Clerk avatars as well as local images.                                                                                                                                                    |
-| L4: unused secrets / production keys              | Deployment housekeeping, not an automatic rotation task.                   | Local development keys do not establish that production uses test keys. Verify production settings in the owning dashboards, remove unused JWT/worker variables where confirmed, and rotate credentials when exposure or policy requires it. No evidence of leakage was established by this pass, and no credentials or dashboard settings were changed.                                                                                                                                                                                       |
-| L5: unbounded card/tag queries                    | Defer until library size warrants pagination.                              | Queries are scoped to the signed-in user. Pagination needs coordinated UI, filtering, sorting, and tag aggregation changes. Adding `.take(N)` alone would silently hide cards or produce incomplete tag counts.                                                                                                                                                                                                                                                                                                                                |
-| L7: additional headers, quotas, beta dependencies | Quotas belong with abuse controls; extra headers are low priority.         | Existing framing and content-type protections cover the main browser risks. CORP needs compatibility testing, and a legacy cross-domain-policy header adds little here. Audit actual dependencies rather than equating a beta version with a known vulnerability.                                                                                                                                                                                                                                                                              |
+| Finding                                           | Priority now                                                       | Reason and useful next step                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L2: browser-managed R2 deletion                   | Implemented in the follow-up worktree.                             | Card deletion/replacement now records cleanup atomically in Convex. A durable storage ledger retries R2 deletion, recovers crashed jobs, preserves referenced files, and reclaims new abandoned uploads after 24 hours. Historical orphans still need separate reconciliation.                                                                                                              |
+| L3: numeric-array upload payloads                 | Implemented in the follow-up worktree.                             | Raw binary uploads replace JSON number arrays. Authentication, trusted origin checks, and an upload reservation precede body reads. Actual bytes are bounded at 25 MiB, with cancellation and request deadlines. Small requests allocate small buffers. R2 HEAD verifies completion before the key can attach to a card.                                                                    |
+| M2: public share action abuse                     | Implemented in the follow-up worktree.                             | Share metadata and signing use one server gateway. Convex requires a server-only secret, consumes atomic IP and valid-share quotas, and returns retry delays. The old public metadata query is internal-only. Limits persist across server instances; guessed tokens never create token-specific limiter rows.                                                                              |
+| M3: CSP inline scripts / reporting                | Separate rendering and observability work.                         | Do not remove `unsafe-inline` without checking streamed hydration, static prerenders, and Clerk. The installed TanStack server handler already accepts a nonce; static HTML/header coordination remains the issue. A report endpoint must actually receive and monitor reports and avoid retaining capability URLs. Narrowing image hosts must allow Clerk avatars as well as local images. |
+| L4: unused secrets / production keys              | Deployment housekeeping, not an automatic rotation task.           | Local development keys do not establish that production uses test keys. Verify production settings in the owning dashboards, remove unused JWT/worker variables where confirmed, and rotate credentials when exposure or policy requires it. No evidence of leakage was established by this pass, and no credentials or dashboard settings were changed.                                    |
+| L5: unbounded card/tag queries                    | Defer until library size warrants pagination.                      | Queries are scoped to the signed-in user. Pagination needs coordinated UI, filtering, sorting, and tag aggregation changes. Adding `.take(N)` alone would silently hide cards or produce incomplete tag counts.                                                                                                                                                                             |
+| L7: additional headers, quotas, beta dependencies | Quotas belong with abuse controls; extra headers are low priority. | Existing framing and content-type protections cover the main browser risks. CORP needs compatibility testing, and a legacy cross-domain-policy header adds little here. Audit actual dependencies rather than equating a beta version with a known vulnerability.                                                                                                                           |
 
 Convex explicitly documents that scheduled actions are **not automatically
 retried**, which is why a single scheduled R2 DELETE is not a complete L2 fix.
@@ -72,12 +72,93 @@ configuration; see [presigned URL behavior](https://developers.cloudflare.com/r2
 ## Validation
 
 Local verification passed: frozen-lockfile installation, `pnpm run check`, all
-104 tests across 12 files, a production build with placeholder credentials, and
-Actionlint validation of the workflow. `pnpm audit --audit-level=high` now reports
-no known vulnerabilities. The GitHub-hosted workflow itself has not run yet.
+227 tests across 23 files, a production build with placeholder credentials,
+changed-file formatting checks, and Actionlint validation of the workflow.
+`pnpm audit --audit-level=high` reports no known vulnerabilities. The initial
+hardening commit also passed the GitHub-hosted CI workflow on main.
 
-Regression tests cover the stronger token format, continued acceptance of legacy
-tokens, and rejection of malformed tokens. The application and Convex changes
-must both be deployed for the new token format to work end to end; deploy the
-updated client validator before enabling the updated backend generator if
-deploying them separately. No deployment was performed in this pass.
+Regression coverage includes share-token compatibility, concurrent quotas,
+gateway bypass attempts, request size/deadline enforcement, upload completion,
+failed saves, deletion retries, and crash recovery. Integration tests exercise
+the actual Convex functions through `convex-test` with simulated R2 responses.
+Production-server HTTP checks verified upload origin/authentication rejection,
+share request validation, and fail-closed behavior without a trusted client IP.
+The emitted public assets contain neither server-secret placeholder value.
+
+Live Clerk/Convex/R2 integration and deployment were not performed. Convex API
+types were generated locally from the installed CLI's template; normal deployment
+codegen still runs against the chosen Convex deployment. The application and
+Convex changes require the coordinated rollout described below. For the earlier
+token-only hardening, deploy the updated client validator before enabling the
+updated backend generator if deploying them separately.
+
+## Storage and rate-limit deployment
+
+The follow-up branch requires a coordinated web/Convex rollout. Configure the
+following before deploying either side:
+
+- Set the same cryptographically random `SERVER_GATEWAY_SECRET` (at least 32
+  characters) on the web host and in Convex. Generate it locally, for example
+  with `openssl rand -hex 32`. Never give it a `VITE_` prefix, commit it, or send
+  it to a browser. Uploads and public sharing fail closed if it is missing or
+  mismatched. CI uses a non-production placeholder.
+- Convex needs `R2_URL`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY`, with object
+  read and delete permissions. The web host keeps permission to upload.
+- Set `VITE_HOSTING_DOMAIN` to the actual browser origin for each environment.
+  Uploads require that exact Origin and reject cross-site requests. Local
+  development additionally accepts matching loopback origins.
+- Vercel uses its overwritten `x-vercel-forwarded-for` header automatically when
+  `VERCEL=1`. On another production host, configure `TRUSTED_CLIENT_IP_HEADER`
+  only behind a proxy that overwrites that header and prevents direct access to
+  the origin. Otherwise public sharing fails closed. Development on loopback
+  uses a shared local quota and ignores forwarded headers. Raw IP addresses are
+  HMACed before reaching Convex; IPv6 addresses share a /64 quota.
+- Keep the existing Clerk Convex JWT template's `id` claim equal to the signed-in
+  Clerk user ID. Missing IDs are rejected; ownerless historical records are not
+  automatically assigned to a user.
+
+The backend schema adds a storage ledger, an owner/key index, a limiter table,
+and recovery crons. Existing card rows need no data rewrite. New card inserts
+and file replacements require a completed, owner-matched upload reservation;
+keys cannot be reused after attachment/deletion. Previously opened app tabs using
+the old upload/share APIs must reload after rollout. The old unbounded upload and
+browser deletion endpoints are removed. Do not roll back only the backend: that
+would restore routes that bypass the gateway and storage lifecycle.
+
+| Control                  | Default                                                               |
+| ------------------------ | --------------------------------------------------------------------- |
+| Share requests           | Burst of 30 per IP identity; refills at 30/minute                     |
+| Valid share requests     | Burst of 120 per share; refills at 120/minute                         |
+| Upload reservations      | Burst of 20 per signed-in user; refills at 20/minute                  |
+| Limiter state            | Expires after 1 hour idle; cleanup every 10 minutes in batches of 200 |
+| Upload request           | Actual compressed bytes capped at 25 MiB; 2-minute deadline           |
+| Unattached uploads       | Eligible for cleanup after 24 hours                                   |
+| Storage recovery         | Every 5 minutes; up to 50 due deletions per sweep                     |
+| Failed deletion          | Exponential retry delay from 1 minute to 1 day; jobs remain recorded  |
+| Crashed deletion         | A 5-minute lease allows a later sweep to recover the job              |
+| Presigned share download | At most 300 seconds, capped to remaining share lifetime               |
+
+Deletion is asynchronous: the card and its shares disappear immediately; R2
+removal completes afterward. Failed jobs remain in `storageObjects` with
+`state=deleting`, `attempts`, `nextAttemptAt`, and `lastFailureAt`. Monitor rows
+whose attempts keep rising or whose due time remains overdue, and restore R2
+credentials/connectivity when necessary. Deleted ledger rows remain as tombstones
+to prevent stale upload/key reuse. A batch backlog or storage outage delays
+physical deletion; there is no fixed deletion deadline.
+
+Files that were already orphaned before this ledger existed cannot be attributed
+to a deletion job automatically. Reconcile those separately against an R2
+inventory and live database references; this implementation does not purge the
+bucket or delete unknown objects.
+
+The byte cap bounds application memory, not every hosting platform's body size.
+Vercel can reject requests below the application's 25 MiB ceiling; see its
+[function payload limits](https://vercel.com/docs/functions/limitations#request-body-size).
+Binary transport removes JSON expansion but does not bypass the host's request
+limit. Supporting larger uploads there requires another transport, such as
+verified direct-to-R2 uploads. Rate limiting bounds accepted work per identity;
+platform-level DDoS protection and billing monitoring still apply to raw traffic
+and distributed attackers.
+
+The trusted Vercel header behavior is documented in
+[Vercel request headers](https://vercel.com/docs/headers/request-headers#x-vercel-forwarded-for).

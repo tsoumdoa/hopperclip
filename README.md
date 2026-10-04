@@ -59,6 +59,8 @@ You will also need to provide the necessary API keys and environment variables, 
 
 Copy `env.example` to `.env` for the Vite/TanStack Start app. Separately, set **`CLERK_JWT_ISSUER_DOMAIN`** in the **Convex dashboard** (not in the Vite `.env`) so Convex can validate Clerk JWTs — for example `https://your-instance.clerk.accounts.dev`.
 
+Uploads and public sharing also require the same random **`SERVER_GATEWAY_SECRET`** (at least 32 characters) on the web host and in Convex. Configure Convex's R2 credentials for read/delete access. Before deploying these changes, follow the [storage and rate-limit setup](docs/security-review-triage.md#storage-and-rate-limit-deployment), including trusted client-IP configuration for non-Vercel production hosts.
+
 Note: nitro 3.x beta is currently required by TanStack Start; track stable releases when upgrading.
 
 ### Installation

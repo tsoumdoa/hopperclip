@@ -1,8 +1,8 @@
-import { api } from "@convex/_generated/api";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useValidateShareToken } from "../hooks/use-validate-uid";
 import GhShareCard from "./share-card";
-import { useQuery } from "convex/react";
 import { useShareFlowState } from "../hooks/use-share-flow-state";
 
 function ShareLoading() {
@@ -28,11 +28,27 @@ export default function ShareView() {
 }
 
 function ShareContent({ token }: { token: string }) {
-	const sharedPost = useQuery(api.ghCard.getSharedPost, {
-		shareToken: token,
-	});
-
 	const flowState = useShareFlowState(token);
+	const { sharedPost } = flowState;
+	const [now, setNow] = useState(Date.now());
+	useEffect(() => {
+		setNow(Date.now());
+		if (!flowState.retryAt) return;
+		const timer = window.setInterval(() => setNow(Date.now()), 1000);
+		return () => window.clearInterval(timer);
+	}, [flowState.retryAt]);
+	const retrySeconds = Math.max(0, Math.ceil((flowState.retryAt - now) / 1000));
+
+	if (flowState.accessError) {
+		return (
+			<div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+				<p role="alert">{flowState.accessError}</p>
+				<Button onClick={flowState.retry} disabled={retrySeconds > 0}>
+					{retrySeconds > 0 ? `Try again in ${retrySeconds}s` : "Try again"}
+				</Button>
+			</div>
+		);
+	}
 
 	// undefined = still loading; null = expired or invalid token
 	if (sharedPost === undefined) {

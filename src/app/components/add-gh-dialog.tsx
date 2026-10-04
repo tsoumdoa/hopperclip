@@ -25,8 +25,7 @@ import { Button } from "@/components/ui/button";
 import AddGhTagDisplay, { AvailableGhTagDisplay } from "./add-gh-tag-display";
 import { useMutation, useQuery } from "convex/react";
 import { api as convex } from "../../../convex/_generated/api";
-import { nanoid } from "nanoid";
-import { uploadToBucket, deleteFromBucket } from "@/server/r2-storage";
+import { UploadError, uploadCompressedXml } from "../utils/upload";
 import { compress } from "../utils/gzip";
 import type { AddGhDialogProps } from "@/types/gh-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -167,21 +166,15 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		if (isValidXml && isValid && xmlData) {
 			setAddError("");
 			props.setAdding(true);
-			const nanoId = nanoid();
-			let uploaded = false;
 			try {
 				const ghXmlZipped = compress(xmlData);
-
-				await uploadToBucket({
-					data: { nanoId, ghXmlZipped: Array.from(ghXmlZipped) },
-				});
-				uploaded = true;
+				const storageKey = await uploadCompressedXml(ghXmlZipped);
 
 				await addGhCard({
 					name: name,
 					description: description,
 					tags: tags,
-					uid: nanoId,
+					uid: storageKey,
 				});
 
 				props.setAdding(false);
@@ -195,13 +188,12 @@ export function AddGhDialog(props: AddGhDialogProps) {
 				autoFilledNameRef.current = null;
 				toast.success(`"${name}" added to your library`);
 			} catch (error) {
-				setAddError("Failed to add card. Please try again.");
+				setAddError(
+					error instanceof UploadError
+						? error.message
+						: "Failed to add card. Please try again."
+				);
 				props.setAdding(false);
-				if (uploaded) {
-					try {
-						await deleteFromBucket({ data: nanoId });
-					} catch {}
-				}
 			}
 		}
 	};
