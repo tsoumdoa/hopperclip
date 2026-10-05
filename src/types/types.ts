@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/zod";
 import { Doc } from "@convex/_generated/dataModel";
 
 export type GhPost = Doc<"post">; // includes _id, _creationTime, fields

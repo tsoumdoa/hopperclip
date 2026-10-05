@@ -1,3 +1,8 @@
+"use node";
+
+// The default runtime's fetch strips Content-Encoding and Content-Length from
+// gzip responses, including HEAD. Node preserves the stored R2 metadata needed
+// to verify the compressed size and format before finalizing an upload.
 import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";

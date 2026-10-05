@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import AddGHCard from "@/app/components/add-gh-card";
 import { GhPageFileDropLayer } from "@/app/components/gh-page-file-drop-layer";
 import {
