@@ -39,15 +39,17 @@ backend; legacy `NEXT_PUBLIC_*` names remain supported for existing deployments.
 
 ## Checks
 
+Run these checks manually before merging changes:
+
 ```bash
+pnpm audit --audit-level=high
 pnpm run check
 pnpm exec vitest run
 pnpm run build
 ```
 
 `check` runs ESLint and both application and Convex TypeScript configurations.
-The build also needs the variables in `env.example`. GitHub CI runs these checks
-and a dependency audit with placeholder credentials; Vercel deploys separately.
+The build also needs the variables in `env.example`. Vercel handles deployment.
 
 Keep tests for behavior that is costly to verify by inspection: file conversion,
 graph matching, authorization boundaries, concurrent quotas, and durable cleanup.
