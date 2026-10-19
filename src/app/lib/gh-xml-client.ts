@@ -49,7 +49,8 @@ export class GhXmlClient {
 		private readonly deployment: string,
 		private readonly resolve: ResolveDownload,
 		private readonly cache = new GhPayloadCache(),
-		private readonly download: typeof fetch = fetch
+		private readonly download: typeof fetch = (input, init) =>
+			globalThis.fetch(input, init)
 	) {}
 
 	connect(): () => void {

@@ -202,6 +202,35 @@ describe("bounded persistent snippet cache", () => {
 });
 
 describe("verified cache reads", () => {
+	test("the default browser transport preserves the fetch receiver on a cold read", async () => {
+		const { cache } = fixture();
+		const nativeFetch = vi.fn<typeof fetch>(async function (this: unknown) {
+			if (this !== globalThis)
+				throw new TypeError(
+					"'fetch' called on an object that does not implement interface Window."
+				);
+			return new Response(compress(xml));
+		});
+		vi.stubGlobal("fetch", nativeFetch);
+		const client = new GhXmlClient(
+			"deployment",
+			async () => ({
+				...target,
+				userId: "alice",
+				downloadUrl: "https://storage.invalid/file",
+			}),
+			cache
+		);
+		client.setUser("alice");
+		expect(
+			await Promise.all([client.read(target), client.read(target)])
+		).toEqual([xml, xml]);
+		await waitForStored(cache);
+		expect(await client.read(target)).toBe(xml);
+		expect(nativeFetch).toHaveBeenCalledTimes(1);
+		cache.close();
+	});
+
 	test("Copy and preview share a download; a reload still verifies online before reusing bytes", async () => {
 		const { cache, makeCache } = fixture();
 		const { client, resolve, download } = reader(cache);
