@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useFetchGhXml } from "./use-fetch-gh-xml";
+import { isCancelledGhRead, type GhXmlTarget } from "../lib/gh-xml-client";
 import { buildGhJson } from "parser/src/parser";
 import { generateFlowData } from "../duckerweb/gh-flow-generator";
 import type { ParsedGrasshopper } from "parser/src/types";
@@ -20,7 +21,7 @@ interface ScriptMetricsState {
 	parsedData: ParsedGrasshopper | null;
 	loading: boolean;
 	error: string | null;
-	loadMetrics: (bucketUrl: string) => Promise<void>;
+	loadMetrics: (target: GhXmlTarget) => Promise<void>;
 	reset: () => void;
 }
 
@@ -35,12 +36,12 @@ export function useScriptMetrics(): ScriptMetricsState {
 	const { downloadData } = useFetchGhXml();
 
 	const loadMetrics = useCallback(
-		async (bucketUrl: string) => {
+		async (target: GhXmlTarget) => {
 			setLoading(true);
 			setError(null);
 
 			try {
-				const decoded = await downloadData(bucketUrl);
+				const decoded = await downloadData(target);
 				const parsed = buildGhJson(decoded, { includeVisuals: true });
 				setParsedData(parsed);
 
@@ -64,6 +65,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 				setNodes(flowData.nodes as GHNode[]);
 				setEdges(flowData.edges);
 			} catch (e) {
+				if (isCancelledGhRead(e)) return;
 				setError(
 					e instanceof Error ? e.message : "Failed to load script metrics"
 				);

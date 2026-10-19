@@ -87,7 +87,10 @@ export default function GHCard(props: {
 	const handleCardClick = async () => {
 		if (editMode) return;
 		setOpenMetricsDialog(true);
-		await loadMetrics(props.cardInfo.bucketUrl!);
+		await loadMetrics({
+			postId: props.cardInfo._id,
+			bucketKey: props.cardInfo.bucketUrl,
+		});
 	};
 
 	if (deleting) {

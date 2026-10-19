@@ -3,6 +3,7 @@ import { Check, Copy, Link2, Loader2, Pencil } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useFetchGhXml } from "../hooks/use-fetch-gh-xml";
+import { isCancelledGhRead } from "../lib/gh-xml-client";
 import { ShareDialog } from "./gh-card-dialog";
 import { Id } from "../../../convex/_generated/dataModel";
 import { normalizeGhXmlForClipboard } from "../utils/gh-xml";
@@ -32,13 +33,17 @@ export function NormalButtons(props: {
 	const handleCopy = async () => {
 		setIsLoading(true);
 		try {
-			const decoded = await downloadData(props.bucketId);
+			const decoded = await downloadData({
+				postId: props.postId,
+				bucketKey: props.bucketId,
+			});
 			await navigator.clipboard.writeText(normalizeGhXmlForClipboard(decoded));
 			toast.success("Copied — paste into Grasshopper with Ctrl+V");
 			setCopied(true);
 			window.clearTimeout(copiedTimer.current);
 			copiedTimer.current = window.setTimeout(() => setCopied(false), 2000);
-		} catch {
+		} catch (error) {
+			if (isCancelledGhRead(error)) return;
 			toast.error("Failed to copy GhXml", {
 				action: {
 					label: "Retry",

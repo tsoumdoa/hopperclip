@@ -76,6 +76,39 @@ requires the server secret; direct public metadata queries are disabled.
 
 ## Release checks
 
+### Local snippet cache
+
+Signed-in library previews and Copy share a disposable IndexedDB cache. Every
+read first resolves the currently owned file through `resolveOwnedGhDownload`
+and `ghCard.getOwnedFile`; cached content is never an authorization fallback.
+Entries are scoped to the Convex deployment, Clerk user, card and immutable
+storage key. The cache has a 25 MiB accounting budget (payload, metadata and a
+1 KiB per-entry allowance), least-recently-used eviction and seven-day absolute
+expiry. There is no file-count limit. Browser storage overhead can differ from
+the accounting budget. Cleanup runs when the app is used, not on a background
+schedule. A checksum detects corrupted local payloads before decoding.
+
+Replacement and deletion invalidate cached versions after the server commits;
+renaming keeps the same file. Sign-out/account changes clear the previous cache.
+Transactions fence late writes, and cross-tab messages cancel pending reads.
+Storage failures fall back to the verified online download. Public share reads,
+uploads and server mutations do not use this cache. Users can clear it from the
+account menu. These local copies are disposable browser data, not a backup or
+encrypted vault; a closed/offline browser cannot immediately observe remote changes.
+
+The cache is enabled automatically, without rollout flags or an account allowlist.
+To undo this release, roll the Vercel website back to the recorded last working
+deployment and leave the additive Convex query deployed. The original download
+endpoint and database schema remain compatible with that website. Refresh tabs
+still running the newer client; a deployment rollback does not replace JavaScript
+already loaded in a browser or erase its IndexedDB data. The old app does not use
+that database; browser site-data cleanup can remove it after rollback. For a
+longer-term rollback, revert the cache changes and deploy normally, retaining the
+additive Convex query while newer tabs may still call it. No server data migration
+or restoration is needed.
+
+### Before merging
+
 Run the checks in the [README](../README.md#checks) before merging. Configure both
 platforms before deployment, then verify a signed-in upload → share → delete cycle
 and the resulting cleanup. Open tabs using an older API may need refreshing.

@@ -228,6 +228,20 @@ export const getAll = query({
 	},
 });
 
+// Always resolve the current owned version before a browser reuses local bytes.
+export const getOwnedFile = query({
+	args: { postId: v.id("post") },
+	handler: async (ctx, { postId }) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity || typeof identity.id !== "string") {
+			throw new Error("Not authenticated");
+		}
+		const post = await ctx.db.get(postId);
+		if (!post || post.clerkUserId !== identity.id) return null;
+		return { userId: identity.id, bucketKey: post.bucketUrl };
+	},
+});
+
 export const getUserTags = query({
 	args: {},
 	handler: async (ctx, _) => {

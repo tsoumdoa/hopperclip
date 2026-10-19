@@ -15,6 +15,8 @@ import useTagFilters from "../hooks/use-tag-filters";
 import { cardGridClass, GhCardGridSkeleton } from "./gh-card-skeleton";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
 import { Kbd } from "@/components/ui/kbd";
+import { useEffect } from "react";
+import { useGhXmlClient } from "@/app/providers/GhXmlCacheProvider";
 
 function EmptyState(props: {
 	icon: LucideIcon;
@@ -60,6 +62,10 @@ export default function GHCardDisplay(props: {
 		tags: props.tagFilters,
 		sortOrder: props.sortOrder,
 	});
+	const xmlClient = useGhXmlClient();
+	useEffect(() => {
+		if (ghCards) xmlClient.observe(ghCards);
+	}, [ghCards, xmlClient]);
 
 	const { removeSearchParam } = useTagFilters();
 
