@@ -7,12 +7,25 @@ import {
 } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
 import { LogoMark } from "./logo";
+import { HardDrive } from "lucide-react";
+import { toast } from "sonner";
+import { useGhXmlClient } from "../providers/GhXmlCacheProvider";
 
 const navLinkClass =
 	"rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-white/5 hover:text-white";
 const navLinkActiveClass = "bg-white/[0.07] text-white";
 
 export default function Header() {
+	const xmlClient = useGhXmlClient();
+	const clearLocalCopies = () => {
+		void xmlClient.clear().then(
+			() =>
+				toast.success(
+					"Local copies cleared. Your saved snippets are unchanged."
+				),
+			() => toast.error("Could not clear local copies. Please try again.")
+		);
+	};
 	return (
 		<header className="bg-background/80 sticky top-0 z-40 flex h-12 w-full items-center justify-between backdrop-blur-md">
 			<Link
@@ -64,7 +77,15 @@ export default function Header() {
 						<UserButton
 							userProfileMode="navigation"
 							userProfileUrl="/user-profile"
-						/>
+						>
+							<UserButton.MenuItems>
+								<UserButton.Action
+									label="Clear local copies"
+									labelIcon={<HardDrive className="size-4" />}
+									onClick={clearLocalCopies}
+								/>
+							</UserButton.MenuItems>
+						</UserButton>
 					</div>
 				</SignedIn>
 			</nav>

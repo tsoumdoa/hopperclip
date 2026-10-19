@@ -202,6 +202,19 @@ function PrivacyPolicy() {
 								</li>
 								<li className="mb-2">
 									<strong className="font-semibold">
+										Temporary Local Copies:
+									</strong>{" "}
+									Snippets you open or copy from your library may be cached in
+									this browser to speed up repeat access. The cache has a 25 MiB
+									budget and copies expire after seven days, with cleanup when
+									you next use the app. We check your account and the current
+									file online before reuse. The app clears copies when you sign
+									out or change accounts; you can also choose “Clear local
+									copies” in the account menu or clear your browser’s site data.
+									These copies are not a backup or encrypted local storage.
+								</li>
+								<li className="mb-2">
+									<strong className="font-semibold">
 										Access to Your Data:
 									</strong>{" "}
 									Your data, including your script snippets and associated
