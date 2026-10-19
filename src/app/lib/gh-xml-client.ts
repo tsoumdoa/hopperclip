@@ -1,5 +1,4 @@
 import { MAX_COMPRESSED_GH_XML_BYTES } from "@/types/types";
-import { decompress } from "../utils/gzip";
 import { GhPayloadCache, tryCache } from "./gh-payload-cache";
 
 export type GhXmlTarget = { postId: string; bucketKey: string };
@@ -32,6 +31,7 @@ async function checksum(payload: ArrayBuffer): Promise<string> {
 async function decode(payload: ArrayBuffer): Promise<string> {
 	if (payload.byteLength > MAX_COMPRESSED_GH_XML_BYTES)
 		throw new Error("GhXml download is too large");
+	const { decompress } = await import("../utils/gzip");
 	return new TextDecoder("utf-8", { fatal: true }).decode(
 		await decompress(payload)
 	);
@@ -44,7 +44,6 @@ export class GhXmlClient {
 	private ready: Promise<void> = Promise.resolve();
 	private inflight = new Map<string, Inflight>();
 	private channel: BroadcastChannel | undefined;
-	private observed = new Map<string, string>();
 
 	constructor(
 		private readonly deployment: string,
@@ -73,11 +72,8 @@ export class GhXmlClient {
 				) {
 					this.cancel(message.postId);
 				} else if (message.type === "clear" || message.type === "signout") {
+					// Clerk owns identity. A delayed signout message may arrive after sign-in.
 					this.cancel();
-					if (message.type === "signout") {
-						this.userId = null;
-						this.scope = null;
-					}
 				}
 			};
 		} catch {
@@ -97,7 +93,6 @@ export class GhXmlClient {
 			return;
 		const previous = this.scope;
 		this.cancel();
-		this.observed.clear();
 		this.userId = userId;
 		this.scope = scope;
 		if (previous) this.broadcast("signout", previous);
@@ -136,16 +131,6 @@ export class GhXmlClient {
 		void this.ready
 			.then(() => this.cache.invalidate(scope, postId))
 			.catch(() => {});
-	}
-
-	observe(cards: ReadonlyArray<{ _id: string; bucketUrl: string }>): void {
-		const next = new Map(cards.map((card) => [card._id, card.bucketUrl]));
-		for (const [postId, bucketKey] of next) {
-			const previous = this.observed.get(postId);
-			if (previous && previous !== bucketKey) this.invalidate(postId);
-		}
-		// Missing entries may simply be filtered out. Only the server can confirm deletion.
-		this.observed = next;
 	}
 
 	async clear(): Promise<void> {

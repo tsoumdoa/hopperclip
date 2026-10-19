@@ -268,6 +268,44 @@ describe("verified cache reads", () => {
 		}
 	);
 
+	test("a delayed cross-tab signout cancels pending work without overriding reauthentication", async () => {
+		let deliver!: (data: unknown) => void;
+		vi.stubGlobal(
+			"BroadcastChannel",
+			class {
+				onmessage: ((event: MessageEvent<unknown>) => void) | null = null;
+				constructor() {
+					deliver = (data) =>
+						this.onmessage?.({ data } as MessageEvent<unknown>);
+				}
+				postMessage() {}
+				close() {}
+			}
+		);
+		const { cache } = fixture();
+		const { client, resolve, download } = reader(cache);
+		const disconnect = client.connect();
+		client.setUser(null);
+		client.setUser("alice");
+		const pending = deferred<Response>();
+		download.mockImplementationOnce(() => pending.promise);
+		const cancelled = expect(
+			client.read(target, "alice")
+		).rejects.toMatchObject({ name: "AbortError" });
+		await vi.waitFor(() => expect(download).toHaveBeenCalledTimes(1));
+		deliver({ type: "signout", scope });
+		pending.resolve(new Response(bytes()));
+		await cancelled;
+		expect(await client.read(target, "alice")).toBe(xml);
+		expect(resolve).toHaveBeenCalledTimes(2);
+		await waitForStored(cache);
+		resolve.mockRejectedValueOnce(new Error("Not authenticated"));
+		await expect(client.read(target, "alice")).rejects.toThrow(
+			"Not authenticated"
+		);
+		disconnect();
+	});
+
 	test("an account switch during authorization cannot release the previous user's data", async () => {
 		const { cache } = fixture();
 		const { client, resolve, descriptor, download } = reader(cache);
