@@ -337,6 +337,37 @@ describe("verified cache reads", () => {
 		cache.close();
 	});
 
+	test("corruption recovery cannot repopulate a cache cleared by another tab", async () => {
+		const { cache, makeCache } = fixture();
+		await cache.activate(scope);
+		await cache.write(
+			await lease(cache),
+			target.postId,
+			target.bucketKey,
+			bytes(),
+			"invalid-checksum"
+		);
+		const { client } = reader(cache);
+		const otherCache = makeCache();
+		const other = reader(otherCache);
+		// Messaging is unavailable. The durable fence must be sufficient on its own.
+		const pendingHash = deferred<ArrayBuffer>();
+		const hashing = vi
+			.spyOn(crypto.subtle, "digest")
+			.mockResolvedValue(new ArrayBuffer(32))
+			.mockImplementationOnce(() => pendingHash.promise);
+		const result = client.read(target);
+		await vi.waitFor(() => expect(hashing).toHaveBeenCalledTimes(1));
+		await other.client.clear();
+		pendingHash.resolve(new ArrayBuffer(32));
+		expect(await result).toBe(xml);
+		expect(
+			await cache.read(await lease(cache), target.postId, target.bucketKey)
+		).toBeNull();
+		cache.close();
+		otherCache.close();
+	});
+
 	test("a corrupt persisted payload is evicted and downloaded once", async () => {
 		const { cache, factory } = fixture();
 		const { client, download } = reader(cache);

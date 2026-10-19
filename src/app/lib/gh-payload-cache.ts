@@ -250,10 +250,18 @@ export class GhPayloadCache {
 		});
 	}
 
-	async invalidate(scope: string, postId?: string): Promise<void> {
-		await this.transaction("readwrite", async (files, meta) => {
+	async invalidate(
+		scope: string,
+		postId?: string,
+		expectedEpoch?: number
+	): Promise<CacheLease | null> {
+		return this.transaction("readwrite", async (files, meta) => {
 			const state = await this.state(meta);
-			if (state.scope !== scope) return;
+			if (
+				state.scope !== scope ||
+				(expectedEpoch !== undefined && state.epoch !== expectedEpoch)
+			)
+				return null;
 			state.epoch++;
 			if (postId) {
 				await this.remove(
@@ -265,6 +273,7 @@ export class GhPayloadCache {
 				state.bytes = 0;
 			}
 			await request(meta.put(state));
+			return { scope, epoch: state.epoch };
 		});
 	}
 

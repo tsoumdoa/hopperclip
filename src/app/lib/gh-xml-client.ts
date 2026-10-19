@@ -189,8 +189,10 @@ export class GhXmlClient {
 					} catch {
 						assertCurrent();
 						// A corrupt entry gets one fresh download, never a broken preview.
-						await tryCache(this.cache.invalidate(scope, target.postId));
-						lease = await tryCache(this.cache.lease(scope));
+						// Repair must not acquire a new fence after another tab cleared it.
+						lease = await tryCache(
+							this.cache.invalidate(scope, target.postId, lease.epoch)
+						);
 					}
 				}
 			}
