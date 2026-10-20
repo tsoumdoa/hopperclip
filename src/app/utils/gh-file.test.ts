@@ -3,7 +3,7 @@ import { inflateRawSync } from "node:zlib";
 import { expect, test } from "vitest";
 import { buildGhJson } from "parser/src/parser";
 import { ghFileToGhXml } from "./gh-file";
-import { validateGhXml } from "./gh-xml";
+import { normalizeGhXmlForClipboard, validateGhXml } from "./gh-xml";
 import {
 	GhSizeError,
 	grasshopperBinaryToXml,
@@ -61,3 +61,46 @@ test("bounds decompressed bytes and XML expansion independently", () => {
 		GhSizeError
 	);
 });
+
+test("copying pasted GhXml preserves clipboard contents exactly", () => {
+	const clipboard = readFileSync(
+		"parser/sand/xmls/csharp-component.xml",
+		"utf8"
+	);
+	expect(normalizeGhXmlForClipboard(clipboard)).toBe(clipboard);
+});
+
+test.each(["\n", "\r\n"])(
+	"copies a pasted definition without file-only siblings or changes to embedded XML (%j line endings)",
+	(newline) => {
+		const embeddedXml =
+			'<![CDATA[<chunk name="Definition"></chunk></chunks>]]>';
+		const clipboard = readFileSync(
+			"parser/sand/xmls/csharp-component.xml",
+			"utf8"
+		)
+			.replace(/\r\n?/g, "\n")
+			.replace(/\n/g, newline)
+			.replace("Shaded", embeddedXml)
+			.replace(
+				'<chunk name="DocumentHeader">',
+				`<!-- <chunk name="Definition"> -->${newline}        <chunk name="DocumentHeader">`
+			);
+		const definition = clipboard
+			.replace('<chunks count="1">', '<chunks count="3">')
+			.replace(
+				'<chunk name="Clipboard">',
+				`<chunk name="Thumbnail"><chunks count="0" /></chunk>${newline}    <chunk name="Definition">`
+			)
+			.replace(
+				`  </chunks>${newline}</Archive>`,
+				`    <chunk name="Preview" />${newline}  </chunks>${newline}</Archive>`
+			);
+		const result = normalizeGhXmlForClipboard(definition);
+
+		expect(validateGhXml(result).isValid).toBe(true);
+		expect(result).toBe(clipboard);
+		expect(buildGhJson(result)).toEqual(buildGhJson(definition));
+		expect(normalizeGhXmlForClipboard(result)).toBe(result);
+	}
+);

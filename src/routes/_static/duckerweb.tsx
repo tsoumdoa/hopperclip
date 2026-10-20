@@ -15,6 +15,8 @@ import { GHDiffView } from "@/app/duckerweb/components/GHDiffView";
 import type { ViewMode } from "@/app/duckerweb/types/type";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
+import { toast } from "sonner";
+import { normalizeGhXmlForClipboard } from "@/app/utils/gh-xml";
 import { useNativeGhXmlPaste } from "@/app/hooks/use-native-gh-xml-paste";
 import { resolveDuckerwebPasteTarget } from "@/app/duckerweb/hooks/use-duckerweb-state";
 
@@ -76,6 +78,19 @@ function DuckerWebPage() {
 	useNativeGhXmlPaste({ enabled: true, onPasteText: handleNativePaste });
 
 	const handleLoadSample = () => actions.handleFileSelected(loadSampleFile());
+	const handleCopyGhXml = async () => {
+		if (!state.xmlData || !state.isValidXml) return;
+		try {
+			await navigator.clipboard.writeText(
+				normalizeGhXmlForClipboard(state.xmlData)
+			);
+			toast.success("GhXml copied — paste into Grasshopper");
+		} catch {
+			toast.error(
+				"Failed to copy GhXml. Check clipboard permissions and try again."
+			);
+		}
+	};
 
 	const views: Record<ViewMode, React.ReactNode> = {
 		flow: <GHFlowCanvas nodes={state.nodes} edges={state.edges} />,
@@ -161,6 +176,7 @@ function DuckerWebPage() {
 								viewMode={state.viewMode}
 								isCopied={isCopied}
 								onCopyAll={handleCopyAll}
+								onCopyGhXml={handleCopyGhXml}
 								onSetViewMode={actions.setViewMode}
 							/>
 						</div>

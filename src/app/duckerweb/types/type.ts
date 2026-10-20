@@ -155,6 +155,7 @@ export type ViewControlsProps = {
 	viewMode: ViewMode;
 	isCopied: boolean;
 	onCopyAll: () => void;
+	onCopyGhXml: () => void;
 	onSetViewMode: (mode: ViewMode) => void;
 };
 

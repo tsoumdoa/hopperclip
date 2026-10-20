@@ -1,13 +1,15 @@
 import { GhXml } from "../../types/types";
-import { XMLParser, XMLValidator } from "fast-xml-parser";
+import { XMLParser, XMLValidator, type XMLMetaData } from "fast-xml-parser";
 
-type GhXmlChunk = {
+type XmlNode = { [key: symbol]: XMLMetaData | undefined };
+
+type GhXmlChunk = XmlNode & {
 	name?: string;
 	chunks?: { chunk?: GhXmlChunk[] };
 };
 
 type GhXmlArchive = {
-	chunks?: {
+	chunks?: XmlNode & {
 		count?: string;
 		chunk?: GhXmlChunk[];
 	};
@@ -24,8 +26,8 @@ const xmlParserOptions = {
 	isArray: (name: string) => name === "item" || name === "chunk",
 } as const;
 
-function parseGhXml(xml: string) {
-	return new XMLParser(xmlParserOptions).parse(xml) as {
+function parseGhXml(xml: string, captureMetaData = false) {
+	return new XMLParser({ ...xmlParserOptions, captureMetaData }).parse(xml) as {
 		"?xml"?: unknown;
 		Archive?: GhXmlArchive;
 	};
@@ -39,7 +41,7 @@ function parseGhXml(xml: string) {
 export function normalizeGhXmlForClipboard(xml: string): string {
 	if (XMLValidator.validate(xml) !== true) return xml;
 
-	const parsed = parseGhXml(xml);
+	const parsed = parseGhXml(xml, true);
 	const archive = parsed.Archive;
 	const chunks = archive?.chunks?.chunk;
 	if (!archive?.chunks || !chunks) return xml;
@@ -49,59 +51,50 @@ export function normalizeGhXmlForClipboard(xml: string): string {
 	const definition = chunks.find((chunk) => chunk.name === "Definition");
 	if (!definition) return xml;
 
-	const definitionMatch = /<chunk\b[^>]*\bname=(['"])Definition\1[^>]*>/.exec(
-		xml
-	);
-	if (definitionMatch?.index === undefined) return xml;
+	// Use parser boundaries so comments, CDATA and sibling chunks cannot be
+	// mistaken for the definition. Slice the source to preserve its payload.
+	const definitionRange = sourceRange(xml, definition);
+	const outerRange = sourceRange(xml, archive.chunks);
+	if (!definitionRange || !outerRange) return xml;
 
-	const definitionEnd = findElementEnd(xml, "chunk", definitionMatch.index);
-	const outerChunksStart = xml.lastIndexOf("<chunks", definitionMatch.index);
-	if (definitionEnd === undefined || outerChunksStart < 0) return xml;
-
-	const outerChunksOpenEnd = xml.indexOf(">", outerChunksStart) + 1;
-	const outerChunksEnd = findElementEnd(xml, "chunks", outerChunksStart);
-	if (outerChunksOpenEnd === 0 || outerChunksEnd === undefined) return xml;
-
-	const outerClosingStart = xml.lastIndexOf("</chunks>", outerChunksEnd);
-	if (outerClosingStart < definitionEnd) return xml;
-
-	const outerIndentStart = xml.lastIndexOf("\n", outerChunksStart) + 1;
-	const outerIndent = xml.slice(outerIndentStart, outerChunksStart);
-	const leadingWhitespace = xml.slice(
-		outerChunksOpenEnd,
-		definitionMatch.index
-	);
+	const outerChunksOpenEnd = xml.indexOf(">", outerRange.start) + 1;
+	const outerClosingStart = xml.lastIndexOf("</chunks", outerRange.end);
+	const inner = xml.slice(outerChunksOpenEnd, outerClosingStart);
+	const leadingWhitespace = /^\s*/.exec(inner)?.[0] ?? "";
+	const trailingWhitespace = /\s*$/.exec(inner)?.[0] ?? "";
 	const outerOpening = xml
-		.slice(outerChunksStart, outerChunksOpenEnd)
-		.replace(/\bcount=(['"])[^'"]*\1/, 'count="1"');
+		.slice(outerRange.start, outerChunksOpenEnd)
+		.replace(/\s+count\s*=\s*(['"])[^'"]*\1/, "")
+		.replace(/>$/, ' count="1">');
 	const clipboardChunk = xml
-		.slice(definitionMatch.index, definitionEnd)
-		.replace(/\bname=(['"])Definition\1/, 'name="Clipboard"');
+		.slice(definitionRange.start, definitionRange.end)
+		.replace(/\s+name\s*=\s*(['"])[^'"]*\1/, ' name="Clipboard"');
 
 	return (
-		xml.slice(0, outerChunksStart) +
+		xml.slice(0, outerRange.start) +
 		outerOpening +
 		leadingWhitespace +
 		clipboardChunk +
-		`\n${outerIndent}` +
+		trailingWhitespace +
 		xml.slice(outerClosingStart)
 	);
 }
 
-function findElementEnd(xml: string, tagName: string, start: number) {
-	const tagPattern = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "g");
-	let depth = 0;
-	for (const match of xml.slice(start).matchAll(tagPattern)) {
-		const tag = match[0];
-		const absoluteEnd = start + (match.index ?? 0) + tag.length;
-		if (tag.startsWith(`</${tagName}`)) {
-			depth -= 1;
-			if (depth === 0) return absoluteEnd;
-		} else if (!tag.endsWith("/>")) {
-			depth += 1;
-		}
+function sourceRange(xml: string, node: XmlNode) {
+	const metadata = node[XMLParser.getMetaDataSymbol() as symbol];
+	if (metadata?.startIndex === undefined || metadata.endIndex === undefined)
+		return undefined;
+
+	// fast-xml-parser indexes after normalizing CRLF to LF. Map those offsets
+	// back to the input so Windows line endings and script text stay untouched.
+	let start = metadata.startIndex;
+	let end = metadata.endIndex;
+	for (const match of xml.matchAll(/\r\n/g)) {
+		if (match.index >= end) break;
+		if (match.index < start) start += 1;
+		end += 1;
 	}
-	return undefined;
+	return { start, end };
 }
 
 export function validateGhXml(xml: string) {
