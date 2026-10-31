@@ -9,12 +9,21 @@ import Filter from "./filter";
 import { FileUp, Plus, SearchX, Tags, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { api as convex } from "../../../../convex/_generated/api";
-import { useQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { showEmptyState } from "../hooks/library-pagination";
+import { useInfiniteScroll } from "../hooks/use-infinite-scroll";
 import { SortOrder } from "@/types/types";
 import useTagFilters from "../hooks/use-tag-filters";
-import { cardGridClass, GhCardGridSkeleton } from "./gh-card-skeleton";
+import {
+	cardGridClass,
+	GhCardGridSkeleton,
+	GhCardSkeleton,
+} from "./gh-card-skeleton";
 import { useModifierKeyLabel } from "@/app/hooks/use-modifier-key-label";
 import { Kbd } from "@/components/ui/kbd";
+
+const PAGE_SIZE = 24;
 
 function EmptyState(props: {
 	icon: LucideIcon;
@@ -56,30 +65,65 @@ export default function GHCardDisplay(props: {
 	const { openAddDialog, setSearchOpen } = useGhCardsPageActions();
 	const { searchOpen } = useGhCardsPageState();
 	const mod = useModifierKeyLabel();
-	const ghCards = useQuery(convex.ghCard.getAll, {
-		tags: props.tagFilters,
-		sortOrder: props.sortOrder,
-	});
-
+	const [filterKeyword, setFilterKeyword] = useState("");
+	const [visible, setVisible] = useState(PAGE_SIZE);
+	const hasSearchKeyword = filterKeyword.length > 0;
+	const args = { tags: props.tagFilters, sortOrder: props.sortOrder };
+	const ghCards = useQuery(
+		convex.ghCard.getAll,
+		hasSearchKeyword ? args : "skip"
+	);
+	const page = usePaginatedQuery(
+		convex.ghCard.listPage,
+		hasSearchKeyword ? "skip" : args,
+		{ initialNumItems: PAGE_SIZE }
+	);
 	const { removeSearchParam } = useTagFilters();
-
-	const { filteredCards, handleFilter, filterKeyword, clearFilter } = useFilter(
+	const { filteredCards, handleFilter, clearFilter } = useFilter(
+		filterKeyword,
+		setFilterKeyword,
 		ghCards || [],
 		removeSearchParam,
 		searchOpen,
 		setSearchOpen
 	);
-
-	const isLoading = ghCards === undefined;
-	const hasSearchKeyword = filterKeyword.length > 0;
+	const cards = hasSearchKeyword
+		? filteredCards.slice(0, visible)
+		: page.results;
+	const isLoading = hasSearchKeyword
+		? ghCards === undefined
+		: page.status === "LoadingFirstPage";
+	const canLoadMore = hasSearchKeyword
+		? visible < filteredCards.length
+		: page.status === "CanLoadMore";
+	const exhausted = hasSearchKeyword
+		? ghCards !== undefined
+		: page.status === "Exhausted";
+	const loadMore = useCallback(() => {
+		if (hasSearchKeyword) setVisible((count) => count + PAGE_SIZE);
+		else page.loadMore(PAGE_SIZE);
+	}, [hasSearchKeyword, page.loadMore]);
+	const sentinel = useInfiniteScroll({ canLoadMore, loadMore });
 	const hasTagFilters = (props.tagFilters?.length ?? 0) > 0;
+	const tagKey = JSON.stringify(props.tagFilters ?? []);
+	const firstMount = useRef(true);
+	useEffect(() => {
+		if (firstMount.current) {
+			firstMount.current = false;
+			return;
+		}
+		window.scrollTo(0, 0);
+	}, [props.sortOrder, tagKey]);
+	useEffect(() => {
+		setVisible(PAGE_SIZE);
+	}, [filterKeyword, props.sortOrder, tagKey]);
 
 	const renderCards = () => {
 		if (isLoading) {
 			return <GhCardGridSkeleton />;
 		}
 
-		if (filteredCards.length === 0) {
+		if (showEmptyState(cards.length, exhausted)) {
 			if (hasSearchKeyword) {
 				return (
 					<EmptyState
@@ -121,13 +165,18 @@ export default function GHCardDisplay(props: {
 
 		return (
 			<div className={cardGridClass}>
-				{filteredCards.map((item) => (
+				{cards.map((item) => (
 					<GHCard
 						key={item._id}
 						cardInfo={item}
 						tagFilters={props.tagFilters}
 					/>
 				))}
+				{!hasSearchKeyword &&
+					page.status === "LoadingMore" &&
+					Array.from({ length: 4 }, (_, i) => (
+						<GhCardSkeleton key={`skeleton-${i}`} />
+					))}
 			</div>
 		);
 	};
@@ -162,6 +211,13 @@ export default function GHCardDisplay(props: {
 				</div>
 			)}
 			{renderCards()}
+			<p aria-live="polite">Showing {cards.length} cards</p>
+			<div ref={sentinel} />
+			{canLoadMore && (
+				<Button type="button" variant="outline" onClick={loadMore}>
+					Load more
+				</Button>
+			)}
 		</>
 	);
 }

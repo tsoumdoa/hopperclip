@@ -3,7 +3,6 @@ import {
 	type SetStateAction,
 	useEffect,
 	useMemo,
-	useState,
 	useRef,
 } from "react";
 import Fuse from "fuse.js";
@@ -18,12 +17,13 @@ const cardSearchOptions = {
 };
 
 export default function useFilter(
+	filterKeyword: string,
+	setFilterKeyword: Dispatch<SetStateAction<string>>,
 	ghCards: GhPost[],
 	onClearTagFilters: (() => void) | undefined,
 	showFilterInput: boolean,
 	setShowFilterInput: Dispatch<SetStateAction<boolean>>
 ) {
-	const [filterKeyword, setFilterKeyword] = useState("");
 	const tagFiltersCleared = useRef(false);
 	const onClearTagFiltersRef = useRef(onClearTagFilters);
 	onClearTagFiltersRef.current = onClearTagFilters;

@@ -1,5 +1,7 @@
 import { addEvent, seedHeat, USAGE_DEBOUNCE_MS, weights } from "./ranking";
 import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { SortOrder } from "../src/types/types";
 import { paginationOptsValidator } from "convex/server";
 import { filter } from "convex-helpers/server/filter";
 import { v } from "convex/values";
@@ -155,11 +157,7 @@ export const updatePost = mutation({
 	},
 });
 
-function sortedPosts(
-	ctx: QueryCtx,
-	userId: string,
-	sortOrder: ReturnType<typeof SortOrderZenum.parse>
-) {
+function sortedPosts(ctx: QueryCtx, userId: string, sortOrder: SortOrder) {
 	switch (sortOrder) {
 		case "ascAZ":
 			return ctx.db
@@ -376,6 +374,22 @@ export const createShare = mutation({
 	},
 });
 
+export async function activeShareExpiry(ctx: QueryCtx, postId: Id<"post">) {
+	const shares = await ctx.db
+		.query("shares")
+		.withIndex("by_postId", (q) => q.eq("postId", postId))
+		.collect();
+	const now = Date.now();
+	return shares.reduce<string | undefined>(
+		(latest, share) =>
+			Date.parse(share.expiryDate) > now &&
+			(!latest || share.expiryDate > latest)
+				? share.expiryDate
+				: latest,
+		undefined
+	);
+}
+
 // Revoke (delete) a share by token
 export const revokeShare = mutation({
 	args: {
@@ -402,15 +416,7 @@ export const revokeShare = mutation({
 		}
 
 		await ctx.db.delete(share._id);
-		const remaining = await ctx.db
-			.query("shares")
-			.withIndex("by_postId", (q) => q.eq("postId", share.postId))
-			.collect();
-		const expiry = remaining
-			.filter((s) => Date.parse(s.expiryDate) > Date.now())
-			.map((s) => s.expiryDate)
-			.sort()
-			.reverse()[0];
+		const expiry = await activeShareExpiry(ctx, share.postId);
 		if (await ctx.db.get(share.postId))
 			await ctx.db.patch(share.postId, { activeShareExpiresAt: expiry });
 		return { success: true };
