@@ -21,6 +21,9 @@ export default defineSchema({
 		.index("by_user_storageKey", ["clerkUserId", "bucketUrl"])
 		.index("by_user_dateUpdated", ["clerkUserId", "dateUpdated"])
 		.index("by_user_dateCreated", ["clerkUserId", "dateCreated"])
+		.index("by_user_rankScore", ["clerkUserId", "rankScore"])
+		.index("by_user_usageCount", ["clerkUserId", "usageCount"])
+		.index("by_rankDirty", ["rankDirty"])
 		.index("by_user_name", ["clerkUserId", "name"]),
 
 	shares: defineTable({

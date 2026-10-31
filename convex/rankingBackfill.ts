@@ -45,3 +45,24 @@ export const sharesBackfill = internalMutation({
 			});
 	},
 });
+
+export const settleRankScores = internalMutation({
+	args: {},
+	handler: async (ctx) => {
+		const posts = await ctx.db
+			.query("post")
+			.withIndex("by_rankDirty", (q) => q.eq("rankDirty", true))
+			.take(200);
+		for (const post of posts)
+			await ctx.db.patch(post._id, {
+				rankScore: post.heat ?? seedHeat(post),
+				rankDirty: undefined,
+			});
+		if (posts.length === 200)
+			await ctx.scheduler.runAfter(
+				0,
+				internal.rankingBackfill.settleRankScores,
+				{}
+			);
+	},
+});

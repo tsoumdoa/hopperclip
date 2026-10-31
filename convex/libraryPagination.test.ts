@@ -108,3 +108,48 @@ test("share expiry follows creation, revocation and backfill", async () => {
 	await run();
 	expect(await t.run((ctx) => ctx.db.get(id))).toEqual(first);
 });
+
+test("ranking sorts settle usage and process multiple batches", async () => {
+	vi.useFakeTimers();
+	const t = convexTest(schema, modules);
+	const ids = await t.run(async (ctx) => {
+		const ids = [];
+		for (let i = 0; i < 205; i++)
+			ids.push(
+				await ctx.db.insert("post", {
+					name: `Post ${i}`,
+					bucketUrl: `key-${i}`,
+					dateCreated: new Date().toISOString(),
+					dateUpdated: new Date().toISOString(),
+					clerkUserId: "alice",
+					heat: i / 1000,
+					rankScore: i / 1000,
+					usageCount: 205 - i,
+					rankDirty: true,
+				})
+			);
+		return ids;
+	});
+	const owner = t.withIdentity({ id: "alice" });
+	for (const sortOrder of [undefined, "recommended", "mostUsed"]) {
+		const args = sortOrder ? { sortOrder } : {};
+		const all = await owner.query(api.ghCard.getAll, args);
+		const page = await owner.query(api.ghCard.listPage, {
+			...args,
+			paginationOpts: { numItems: 210, cursor: null },
+		});
+		expect(all[0]._id).toBe(sortOrder === "mostUsed" ? ids[0] : ids[204]);
+		expect(page.page.map((p) => p._id)).toEqual(all.map((p) => p._id));
+	}
+	await owner.mutation(api.ghCard.recordUsage, { postId: ids[0] });
+	expect((await owner.query(api.ghCard.getAll, {}))[0]._id).toBe(ids[204]);
+	await t.mutation(internal.rankingBackfill.settleRankScores, {});
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect((await owner.query(api.ghCard.getAll, {}))[0]._id).toBe(ids[0]);
+	const posts = await t.run((ctx) => ctx.db.query("post").collect());
+	expect(
+		posts.every((p) => p.rankDirty === undefined && p.rankScore === p.heat)
+	).toBe(true);
+	await t.mutation(internal.rankingBackfill.settleRankScores, {});
+	expect(await t.run((ctx) => ctx.db.query("post").collect())).toEqual(posts);
+});
