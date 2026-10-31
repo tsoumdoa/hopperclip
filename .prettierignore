@@ -1,2 +1,4 @@
 src/routeTree.gen.ts
 .tanstack/tmp/
+
+pnpm-lock.yaml

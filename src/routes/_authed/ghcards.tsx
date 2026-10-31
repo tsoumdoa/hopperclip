@@ -80,7 +80,7 @@ function GhcardsPageContent() {
 					}
 				/>
 				<div className="pb-4">
-					<UserTags tagFilters={sanitizedTagFilter} />
+					<UserTags />
 				</div>
 				<Suspense fallback={<GhCardGridSkeleton />}>
 					<GhCardDisplay tagFilters={sanitizedTagFilter} sortOrder={sortKey} />

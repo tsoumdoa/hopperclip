@@ -1,5 +1,9 @@
 import { addEvent, seedHeat, USAGE_DEBOUNCE_MS, weights } from "./ranking";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import type { SortOrder } from "../src/types/types";
+import { paginationOptsValidator } from "convex/server";
+import { filter } from "convex-helpers/server/filter";
 import { v } from "convex/values";
 import {
 	GhCardSchema,
@@ -153,6 +157,51 @@ export const updatePost = mutation({
 	},
 });
 
+function sortedPosts(ctx: QueryCtx, userId: string, sortOrder: SortOrder) {
+	switch (sortOrder) {
+		case "ascAZ":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
+				.order("asc");
+
+		case "descZA":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
+				.order("desc");
+
+		case "lastEditedNewest":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
+				.order("desc");
+
+		case "lastEditedOldest":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
+				.order("asc");
+
+		case "createdNewest":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
+				.order("desc");
+
+		case "createdOldest":
+			return ctx.db
+				.query("post")
+				.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
+				.order("asc");
+
+		default: {
+			const _exhaustive: never = sortOrder;
+			throw new Error(`Unhandled sortOrder: ${_exhaustive}`);
+		}
+	}
+}
+
 export const getAll = query({
 	args: {
 		tags: v.optional(v.array(v.string())),
@@ -170,65 +219,34 @@ export const getAll = query({
 			normalizeSortOrder(args.sortOrder ?? DEFAULT_SORT_ORDER)
 		);
 
-		let posts;
-		switch (sortOrder) {
-			case "ascAZ":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
-					.order("asc")
-					.collect();
-				break;
-
-			case "descZA":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_name", (q) => q.eq("clerkUserId", userId))
-					.order("desc")
-					.collect();
-				break;
-
-			case "lastEditedNewest":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
-					.order("desc")
-					.collect();
-				break;
-
-			case "lastEditedOldest":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
-					.order("asc")
-					.collect();
-				break;
-
-			case "createdNewest":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
-					.order("desc")
-					.collect();
-				break;
-
-			case "createdOldest":
-				posts = await ctx.db
-					.query("post")
-					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
-					.order("asc")
-					.collect();
-				break;
-
-			default: {
-				const _exhaustive: never = sortOrder;
-				throw new Error(`Unhandled sortOrder: ${_exhaustive}`);
-			}
-		}
+		const posts = await sortedPosts(ctx, userId, sortOrder).collect();
 
 		if (tags.length === 0) return posts;
 
 		return posts.filter((post) => tags.some((tag) => post.tags?.includes(tag)));
+	},
+});
+
+export const listPage = query({
+	args: {
+		paginationOpts: paginationOptsValidator,
+		sortOrder: v.optional(v.string()),
+		tags: v.optional(v.array(v.string())),
+	},
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (identity === null || typeof identity.id !== "string")
+			throw new Error("Not authenticated");
+		const sortOrder = SortOrderZenum.parse(
+			normalizeSortOrder(args.sortOrder ?? DEFAULT_SORT_ORDER)
+		);
+		const posts = sortedPosts(ctx, identity.id, sortOrder);
+		const tags = args.tags ?? [];
+		return (
+			tags.length
+				? filter(posts, (post) => tags.some((tag) => post.tags?.includes(tag)))
+				: posts
+		).paginate(args.paginationOpts);
 	},
 });
 
@@ -312,6 +330,9 @@ export const createShare = mutation({
 		);
 
 		if (activeShare) {
+			await ctx.db.patch(args.postId, {
+				activeShareExpiresAt: activeShare.expiryDate,
+			});
 			// Return existing active share
 			return {
 				shareToken: activeShare.shareToken,
@@ -342,6 +363,9 @@ export const createShare = mutation({
 			clerkUserId: identity.id,
 		});
 
+		await ctx.db.patch(args.postId, {
+			activeShareExpiresAt: expiryDate.toISOString(),
+		});
 		return {
 			shareToken,
 			expiryDate: expiryDate.toISOString(),
@@ -349,6 +373,22 @@ export const createShare = mutation({
 		};
 	},
 });
+
+export async function activeShareExpiry(ctx: QueryCtx, postId: Id<"post">) {
+	const shares = await ctx.db
+		.query("shares")
+		.withIndex("by_postId", (q) => q.eq("postId", postId))
+		.collect();
+	const now = Date.now();
+	return shares.reduce<string | undefined>(
+		(latest, share) =>
+			Date.parse(share.expiryDate) > now &&
+			(!latest || share.expiryDate > latest)
+				? share.expiryDate
+				: latest,
+		undefined
+	);
+}
 
 // Revoke (delete) a share by token
 export const revokeShare = mutation({
@@ -376,11 +416,14 @@ export const revokeShare = mutation({
 		}
 
 		await ctx.db.delete(share._id);
+		const expiry = await activeShareExpiry(ctx, share.postId);
+		if (await ctx.db.get(share.postId))
+			await ctx.db.patch(share.postId, { activeShareExpiresAt: expiry });
 		return { success: true };
 	},
 });
 
-// Get active shares for a post
+// Unused since #154; kept for clients deployed before it. Remove in a later release.
 export const getActiveSharesForPost = query({
 	args: {
 		postId: v.id("post"),
