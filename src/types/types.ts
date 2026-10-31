@@ -55,6 +55,8 @@ export const ShareLinkUidSchema = z.string().regex(ShareLinkUidRegex, {
 export type ShareLinkUid = z.infer<typeof ShareLinkUidSchema>;
 
 export const SORT_ORDERS = [
+	{ value: "recommended", label: "Recommended" },
+	{ value: "mostUsed", label: "Most used" },
 	{ value: "ascAZ", label: "A-Z" },
 	{ value: "descZA", label: "Z-A" },
 	{ value: "lastEditedNewest", label: "Last Edited Date (Newest)" },
@@ -64,7 +66,7 @@ export const SORT_ORDERS = [
 ] as const;
 
 export type SortOrder = (typeof SORT_ORDERS)[number]["value"];
-export const DEFAULT_SORT_ORDER: SortOrder = "lastEditedNewest";
+export const DEFAULT_SORT_ORDER: SortOrder = "recommended";
 export type SortOrderValue = (typeof SORT_ORDERS)[number]["label"];
 
 // Derived from SORT_ORDERS so the values live in exactly one place.

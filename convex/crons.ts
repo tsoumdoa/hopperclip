@@ -21,4 +21,10 @@ crons.interval(
 	internal.shareAccess.pruneExpiredLimits
 );
 
+crons.interval(
+	"settle library ranking",
+	{ hours: 12 },
+	internal.rankingBackfill.settleRankScores
+);
+
 export default crons;
