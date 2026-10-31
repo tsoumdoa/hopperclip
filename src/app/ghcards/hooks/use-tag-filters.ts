@@ -3,7 +3,6 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export default function useTagFilters() {
 	const searchParam = "tagFilter";
-
 	const [isPending, startTransition] = useTransition();
 	const search = useSearch({ strict: false }) as Record<
 		string,
@@ -24,10 +23,8 @@ export default function useTagFilters() {
 	const tagFilters = (params.get(searchParam) ?? "").split(",").filter(Boolean);
 
 	const updateSearchParam = (t: string, add: boolean) => {
-		const unique = tagFilters;
-
 		if (add) {
-			const newTagFilters = [...new Set([...unique, t])];
+			const newTagFilters = [...new Set([...tagFilters, t])];
 			startTransition(() => {
 				navigate({
 					to: "/ghcards",
@@ -39,7 +36,7 @@ export default function useTagFilters() {
 				});
 			});
 		} else {
-			const newTagFilters = unique.filter((tf) => tf !== t);
+			const newTagFilters = tagFilters.filter((tf) => tf !== t);
 			if (newTagFilters.length === 0) {
 				removeSearchParam();
 				return;

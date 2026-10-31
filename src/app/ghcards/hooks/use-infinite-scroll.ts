@@ -10,7 +10,8 @@ export function useInfiniteScroll({
 	const ref = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const element = ref.current;
-		if (!element || !canLoadMore) return;
+		if (!element || !canLoadMore || typeof IntersectionObserver === "undefined")
+			return;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (canLoadMore && entries.some((entry) => entry.isIntersecting))
