@@ -7,21 +7,26 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SORT_ORDERS, SortOrder, SortOrderValue } from "@/types/types";
+import {
+	SORT_ORDERS,
+	DEFAULT_SORT_ORDER,
+	SortOrder,
+	SortOrderValue,
+} from "@/types/types";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowDownUp, ChevronDown } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { LoadingSpinner } from "./loading-spinner";
 
 export default function SortDropDown() {
-	const [position, setPosition] = useState<SortOrder>("lastEditedNewest");
+	const [position, setPosition] = useState<SortOrder>(DEFAULT_SORT_ORDER);
 	const [sortBy, setSortBy] = useState<SortOrderValue>();
 	const search = useSearch({ from: "/_authed/ghcards" });
 	const navigate = useNavigate();
 	const [isPending, startTransition] = useTransition();
 
 	useEffect(() => {
-		const sortOrder = search.sort ?? "lastEditedNewest";
+		const sortOrder = search.sort ?? DEFAULT_SORT_ORDER;
 		const sortName = SORT_ORDERS.find(
 			(item) => item.value === sortOrder
 		)?.label;

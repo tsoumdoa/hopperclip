@@ -64,6 +64,7 @@ export const SORT_ORDERS = [
 ] as const;
 
 export type SortOrder = (typeof SORT_ORDERS)[number]["value"];
+export const DEFAULT_SORT_ORDER: SortOrder = "lastEditedNewest";
 export type SortOrderValue = (typeof SORT_ORDERS)[number]["label"];
 
 // Derived from SORT_ORDERS so the values live in exactly one place.
@@ -75,7 +76,15 @@ export type UserTag = {
 	count: number;
 };
 
+const LEGACY_SORT_ORDERS: Record<string, SortOrder> = {
+	ascLastEdited: "lastEditedNewest",
+	descLastEdited: "lastEditedOldest",
+	ascCreated: "createdNewest",
+	descCreated: "createdOldest",
+};
+
 export function normalizeSortOrder(value: unknown) {
-	const legacy: Record<string, SortOrder> = { ascLastEdited: "lastEditedNewest", descLastEdited: "lastEditedOldest", ascCreated: "createdNewest", descCreated: "createdOldest" };
-	return typeof value === "string" ? (legacy[value] ?? value) : value;
+	return typeof value === "string"
+		? (LEGACY_SORT_ORDERS[value] ?? value)
+		: value;
 }

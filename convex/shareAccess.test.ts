@@ -142,5 +142,9 @@ test("partial updates preserve other fields and deduplicate tags", async () => {
 		tags: ["new", "new"],
 	});
 	const post = await t.run((ctx) => ctx.db.get(postId));
-	expect(post).toMatchObject({ name: "Test snippet", description: "Shared content", tags: ["new"] });
+	expect(post).toMatchObject({
+		name: "Test snippet",
+		description: "Shared content",
+		tags: ["new"],
+	});
 });

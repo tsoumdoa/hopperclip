@@ -6,6 +6,7 @@ import {
 	StorageKeySchema,
 	UserTag,
 	SortOrderZenum,
+	DEFAULT_SORT_ORDER,
 	normalizeSortOrder,
 } from "../src/types/types";
 import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
@@ -127,22 +128,18 @@ export const updatePost = mutation({
 			...(args.tags !== undefined && { tags: [...new Set(args.tags)] }),
 			dateUpdated: new Date().toISOString(),
 		};
-		if (args.uid !== undefined && args.uid !== null) {
-			const bucketUrl = validateStorageKey(args.uid);
-			if (bucketUrl !== post.bucketUrl) {
-				await attachUploadedObject(ctx, post.clerkUserId, bucketUrl);
-			}
-			await ctx.db.patch("post", args.id, {
-				...patch,
-				bucketUrl,
-			});
-			if (bucketUrl !== post.bucketUrl) {
-				await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
-			}
-		} else {
-			await ctx.db.patch("post", args.id, {
-				...patch,
-			});
+		const bucketUrl =
+			args.uid == null ? post.bucketUrl : validateStorageKey(args.uid);
+		const replacing = bucketUrl !== post.bucketUrl;
+		if (replacing) {
+			await attachUploadedObject(ctx, post.clerkUserId, bucketUrl);
+		}
+		await ctx.db.patch("post", args.id, {
+			...patch,
+			...(replacing && { bucketUrl }),
+		});
+		if (replacing) {
+			await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
 		}
 	},
 });
@@ -160,7 +157,9 @@ export const getAll = query({
 
 		const userId = identity.id;
 		const tags = args.tags ?? [];
-		const sortOrder = SortOrderZenum.parse(normalizeSortOrder(args.sortOrder ?? "lastEditedNewest"));
+		const sortOrder = SortOrderZenum.parse(
+			normalizeSortOrder(args.sortOrder ?? DEFAULT_SORT_ORDER)
+		);
 
 		let posts;
 		switch (sortOrder) {
@@ -241,35 +240,33 @@ export const getOwnedFile = query({
 export const getUserTags = query({
 	args: {},
 	handler: async (ctx, _) => {
-			const identity = await ctx.auth.getUserIdentity();
-			if (identity === null || typeof identity.id !== "string") {
-				throw new Error("Not authenticated");
-			}
-			const userId = identity.id;
-			const posts = await ctx.db
-				.query("post")
-				.withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", userId))
-				.collect();
+		const identity = await ctx.auth.getUserIdentity();
+		if (identity === null || typeof identity.id !== "string") {
+			throw new Error("Not authenticated");
+		}
+		const userId = identity.id;
+		const posts = await ctx.db
+			.query("post")
+			.withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", userId))
+			.collect();
 
-			const counts = posts
-				.flatMap((p) => p.tags ?? [])
-				.reduce<Record<string, number>>((acc, tag) => {
-					acc[tag] = (acc[tag] ?? 0) + 1;
-					return acc;
-				}, {});
+		const counts = posts
+			.flatMap((p) => p.tags ?? [])
+			.reduce<Record<string, number>>((acc, tag) => {
+				acc[tag] = (acc[tag] ?? 0) + 1;
+				return acc;
+			}, {});
 
-			const userTags: UserTag[] = Object.entries(counts).map(
-				([tag, count]) => ({
-					tag,
-					count,
-				})
-			);
-			userTags.sort((a, b) => {
-				if (a.tag < b.tag) return -1;
-				if (a.tag > b.tag) return 1;
-				return 0;
-			});
-			return userTags;
+		const userTags: UserTag[] = Object.entries(counts).map(([tag, count]) => ({
+			tag,
+			count,
+		}));
+		userTags.sort((a, b) => {
+			if (a.tag < b.tag) return -1;
+			if (a.tag > b.tag) return 1;
+			return 0;
+		});
+		return userTags;
 	},
 });
 
@@ -407,4 +404,3 @@ export const getActiveSharesForPost = query({
 			}));
 	},
 });
-
