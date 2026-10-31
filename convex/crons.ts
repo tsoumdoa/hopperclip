@@ -23,7 +23,7 @@ crons.interval(
 
 crons.interval(
 	"settle library ranking",
-	{ hours: 6 },
+	{ hours: 12 },
 	internal.rankingBackfill.settleRankScores
 );
 
