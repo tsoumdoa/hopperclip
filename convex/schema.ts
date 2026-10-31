@@ -10,6 +10,11 @@ export default defineSchema({
 		bucketUrl: v.string(),
 		clerkUserId: v.optional(v.string()),
 		tags: v.optional(v.array(v.string())),
+		usageCount: v.optional(v.number()),
+		lastUsedAt: v.optional(v.number()),
+		heat: v.optional(v.number()),
+		rankScore: v.optional(v.number()),
+		rankDirty: v.optional(v.boolean()),
 	})
 		.index("by_clerkUserId", ["clerkUserId"])
 		.index("by_user_storageKey", ["clerkUserId", "bucketUrl"])

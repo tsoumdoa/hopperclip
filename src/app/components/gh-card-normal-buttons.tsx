@@ -1,3 +1,5 @@
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Link2, Loader2, Pencil } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -23,6 +25,7 @@ export function NormalButtons(props: {
 	setOpenSharedDialog: (b: boolean) => void;
 	handleShare: () => void;
 }) {
+	const recordUsage = useMutation(api.ghCard.recordUsage);
 	const [isLoading, setIsLoading] = useState(false);
 	const [copied, setCopied] = useState(false);
 	const copiedTimer = useRef<number | undefined>(undefined);
@@ -38,6 +41,7 @@ export function NormalButtons(props: {
 				bucketKey: props.bucketId,
 			});
 			await navigator.clipboard.writeText(normalizeGhXmlForClipboard(decoded));
+			void recordUsage({ postId: props.postId }).catch(() => {});
 			toast.success("Copied — paste into Grasshopper with Ctrl+V");
 			setCopied(true);
 			window.clearTimeout(copiedTimer.current);

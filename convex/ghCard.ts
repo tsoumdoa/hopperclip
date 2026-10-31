@@ -1,3 +1,4 @@
+import { addEvent, seedHeat, USAGE_DEBOUNCE_MS, weights } from "./ranking";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
@@ -53,13 +54,18 @@ export const addPost = mutation({
 		});
 		const bucketUrl = validateStorageKey(args.uid);
 		await attachUploadedObject(ctx, identity.id, bucketUrl);
-		const now = new Date().toISOString();
+		const nowMs = Date.now();
+		const now = new Date(nowMs).toISOString();
+		const heat = addEvent(undefined, weights.created, nowMs);
 		await ctx.db.insert("post", {
 			name: args.name,
 			description: args.description,
 			tags: [...new Set(args.tags)],
 			clerkUserId: identity.id,
 			bucketUrl,
+			usageCount: 0,
+			heat,
+			rankScore: heat,
 			dateCreated: now,
 			dateUpdated: now,
 		});
@@ -122,11 +128,14 @@ export const updatePost = mutation({
 			description: args.description,
 			tags: args.tags,
 		});
+		const nowMs = Date.now();
 		const patch = {
 			...(args.name !== undefined && { name: args.name }),
 			...(args.description !== undefined && { description: args.description }),
 			...(args.tags !== undefined && { tags: [...new Set(args.tags)] }),
-			dateUpdated: new Date().toISOString(),
+			dateUpdated: new Date(nowMs).toISOString(),
+			heat: addEvent(seedHeat(post), weights.modified, nowMs),
+			rankDirty: true,
 		};
 		const bucketUrl =
 			args.uid == null ? post.bucketUrl : validateStorageKey(args.uid);
@@ -402,5 +411,30 @@ export const getActiveSharesForPost = query({
 				expiryDate: share.expiryDate,
 				createdAt: share.createdAt,
 			}));
+	},
+});
+
+export const recordUsage = mutation({
+	args: { postId: v.id("post") },
+	handler: async (ctx, { postId }) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity || typeof identity.id !== "string")
+			throw new Error("Not authenticated");
+		const post = await ctx.db.get(postId);
+		if (!post) throw new Error("Post not found");
+		if (post.clerkUserId !== identity.id)
+			throw new Error("Not authorized to use this post");
+		const now = Date.now();
+		if (
+			post.lastUsedAt !== undefined &&
+			now - post.lastUsedAt < USAGE_DEBOUNCE_MS
+		)
+			return;
+		await ctx.db.patch(postId, {
+			usageCount: (post.usageCount ?? 0) + 1,
+			lastUsedAt: now,
+			heat: addEvent(seedHeat(post), weights.copy, now),
+			rankDirty: true,
+		});
 	},
 });
