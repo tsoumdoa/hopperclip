@@ -1,4 +1,4 @@
-import { internalQuery, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
 	GhCardSchema,
@@ -6,6 +6,8 @@ import {
 	StorageKeySchema,
 	UserTag,
 	SortOrderZenum,
+	DEFAULT_SORT_ORDER,
+	normalizeSortOrder,
 } from "../src/types/types";
 import { generateSharableLinkUid } from "../src/utils/generage-shareable-link-uid";
 import {
@@ -51,14 +53,15 @@ export const addPost = mutation({
 		});
 		const bucketUrl = validateStorageKey(args.uid);
 		await attachUploadedObject(ctx, identity.id, bucketUrl);
+		const now = new Date().toISOString();
 		await ctx.db.insert("post", {
 			name: args.name,
 			description: args.description,
-			tags: args.tags,
+			tags: [...new Set(args.tags)],
 			clerkUserId: identity.id,
 			bucketUrl,
-			dateCreated: new Date().toISOString(),
-			dateUpdated: new Date().toISOString(),
+			dateCreated: now,
+			dateUpdated: now,
 		});
 	},
 });
@@ -119,28 +122,24 @@ export const updatePost = mutation({
 			description: args.description,
 			tags: args.tags,
 		});
-		if (args.uid !== undefined && args.uid !== null) {
-			const bucketUrl = validateStorageKey(args.uid);
-			if (bucketUrl !== post.bucketUrl) {
-				await attachUploadedObject(ctx, post.clerkUserId, bucketUrl);
-			}
-			await ctx.db.patch("post", args.id, {
-				name: args.name,
-				description: args.description,
-				tags: args.tags,
-				dateUpdated: new Date().toISOString(),
-				bucketUrl,
-			});
-			if (bucketUrl !== post.bucketUrl) {
-				await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
-			}
-		} else {
-			await ctx.db.patch("post", args.id, {
-				name: args.name,
-				description: args.description,
-				tags: args.tags,
-				dateUpdated: new Date().toISOString(),
-			});
+		const patch = {
+			...(args.name !== undefined && { name: args.name }),
+			...(args.description !== undefined && { description: args.description }),
+			...(args.tags !== undefined && { tags: [...new Set(args.tags)] }),
+			dateUpdated: new Date().toISOString(),
+		};
+		const bucketUrl =
+			args.uid == null ? post.bucketUrl : validateStorageKey(args.uid);
+		const replacing = bucketUrl !== post.bucketUrl;
+		if (replacing) {
+			await attachUploadedObject(ctx, post.clerkUserId, bucketUrl);
+		}
+		await ctx.db.patch("post", args.id, {
+			...patch,
+			...(replacing && { bucketUrl }),
+		});
+		if (replacing) {
+			await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
 		}
 	},
 });
@@ -158,7 +157,9 @@ export const getAll = query({
 
 		const userId = identity.id;
 		const tags = args.tags ?? [];
-		const sortOrder = SortOrderZenum.parse(args.sortOrder ?? "ascLastEdited");
+		const sortOrder = SortOrderZenum.parse(
+			normalizeSortOrder(args.sortOrder ?? DEFAULT_SORT_ORDER)
+		);
 
 		let posts;
 		switch (sortOrder) {
@@ -178,7 +179,7 @@ export const getAll = query({
 					.collect();
 				break;
 
-			case "ascLastEdited":
+			case "lastEditedNewest":
 				posts = await ctx.db
 					.query("post")
 					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
@@ -186,7 +187,7 @@ export const getAll = query({
 					.collect();
 				break;
 
-			case "descLastEdited":
+			case "lastEditedOldest":
 				posts = await ctx.db
 					.query("post")
 					.withIndex("by_user_dateUpdated", (q) => q.eq("clerkUserId", userId))
@@ -194,7 +195,7 @@ export const getAll = query({
 					.collect();
 				break;
 
-			case "ascCreated":
+			case "createdNewest":
 				posts = await ctx.db
 					.query("post")
 					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
@@ -202,7 +203,7 @@ export const getAll = query({
 					.collect();
 				break;
 
-			case "descCreated":
+			case "createdOldest":
 				posts = await ctx.db
 					.query("post")
 					.withIndex("by_user_dateCreated", (q) => q.eq("clerkUserId", userId))
@@ -218,13 +219,7 @@ export const getAll = query({
 
 		if (tags.length === 0) return posts;
 
-		return posts.filter((post) => {
-			for (const tag of tags) {
-				if (post.tags?.includes(tag)) {
-					return true;
-				}
-			}
-		});
+		return posts.filter((post) => tags.some((tag) => post.tags?.includes(tag)));
 	},
 });
 
@@ -245,40 +240,33 @@ export const getOwnedFile = query({
 export const getUserTags = query({
 	args: {},
 	handler: async (ctx, _) => {
-		try {
-			const identity = await ctx.auth.getUserIdentity();
-			if (identity === null || typeof identity.id !== "string") {
-				throw new Error("Not authenticated");
-			}
-			const userId = identity.id;
-			const posts = await ctx.db
-				.query("post")
-				.withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", userId))
-				.collect();
-
-			const counts = posts
-				.flatMap((p) => p.tags ?? [])
-				.reduce<Record<string, number>>((acc, tag) => {
-					acc[tag] = (acc[tag] ?? 0) + 1;
-					return acc;
-				}, {});
-
-			const userTags: UserTag[] = Object.entries(counts).map(
-				([tag, count]) => ({
-					tag,
-					count,
-				})
-			);
-			userTags.sort((a, b) => {
-				if (a.tag < b.tag) return -1;
-				if (a.tag > b.tag) return 1;
-				return 0;
-			});
-			return userTags;
-		} catch (err) {
-			console.error("getUserTags error:", err);
-			throw err;
+		const identity = await ctx.auth.getUserIdentity();
+		if (identity === null || typeof identity.id !== "string") {
+			throw new Error("Not authenticated");
 		}
+		const userId = identity.id;
+		const posts = await ctx.db
+			.query("post")
+			.withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", userId))
+			.collect();
+
+		const counts = posts
+			.flatMap((p) => p.tags ?? [])
+			.reduce<Record<string, number>>((acc, tag) => {
+				acc[tag] = (acc[tag] ?? 0) + 1;
+				return acc;
+			}, {});
+
+		const userTags: UserTag[] = Object.entries(counts).map(([tag, count]) => ({
+			tag,
+			count,
+		}));
+		userTags.sort((a, b) => {
+			if (a.tag < b.tag) return -1;
+			if (a.tag > b.tag) return 1;
+			return 0;
+		});
+		return userTags;
 	},
 });
 
@@ -414,73 +402,5 @@ export const getActiveSharesForPost = query({
 				expiryDate: share.expiryDate,
 				createdAt: share.createdAt,
 			}));
-	},
-});
-
-// Public reads go through the rate-limited server gateway.
-export const getSharedPost = internalQuery({
-	args: {
-		shareToken: v.string(),
-	},
-	handler: async (ctx, args) => {
-		const shareToken = validateShareToken(args.shareToken);
-		const share = await ctx.db
-			.query("shares")
-			.withIndex("by_shareToken", (q) => q.eq("shareToken", shareToken))
-			.first();
-
-		if (!share) {
-			return null;
-		}
-
-		const now = new Date();
-		if (new Date(share.expiryDate) <= now) {
-			return null;
-		}
-
-		const post = await ctx.db.get(share.postId);
-		if (!post || post.clerkUserId !== share.clerkUserId) {
-			return null;
-		}
-
-		return {
-			post: {
-				name: post.name,
-				description: post.description,
-				tags: post.tags,
-			},
-			sharedToken: share.shareToken,
-			expiryDate: share.expiryDate,
-			shareToken: share.shareToken,
-		};
-	},
-});
-
-// Delete all shares for a post (useful when post is deleted)
-export const deleteSharesByPost = mutation({
-	args: {
-		postId: v.id("post"),
-	},
-	handler: async (ctx, args) => {
-		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null || typeof identity.id !== "string") {
-			throw new Error("Not authenticated");
-		}
-
-		const post = await ctx.db.get(args.postId);
-		if (!post || post.clerkUserId !== identity.id) {
-			throw new Error("Not authorized");
-		}
-
-		const shares = await ctx.db
-			.query("shares")
-			.withIndex("by_postId", (q) => q.eq("postId", args.postId))
-			.collect();
-
-		for (const share of shares) {
-			await ctx.db.delete(share._id);
-		}
-
-		return { deletedCount: shares.length };
 	},
 });

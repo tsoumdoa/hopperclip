@@ -15,7 +15,6 @@ import type {
 } from "convex/server";
 import type * as ghCard from "../ghCard.js";
 import type * as ghInternalMutation from "../ghInternalMutation.js";
-import type * as ghInternalQuery from "../ghInternalQuery.js";
 import type * as ghPublicAction from "../ghPublicAction.js";
 import type * as serverGateway from "../serverGateway.js";
 import type * as shareAccess from "../shareAccess.js";
@@ -35,7 +34,6 @@ import type * as storageR2 from "../storageR2.js";
 declare const fullApi: ApiFromModules<{
 	ghCard: typeof ghCard;
 	ghInternalMutation: typeof ghInternalMutation;
-	ghInternalQuery: typeof ghInternalQuery;
 	ghPublicAction: typeof ghPublicAction;
 	serverGateway: typeof serverGateway;
 	shareAccess: typeof shareAccess;

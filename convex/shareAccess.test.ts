@@ -2,7 +2,6 @@ import { convexTest, type TestConvex } from "convex-test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
-import { getSharedPost } from "./ghCard";
 import { IP_SHARE_CAPACITY, TOKEN_SHARE_CAPACITY } from "./shareAccess";
 import { requireServerGateway } from "./serverGateway";
 
@@ -130,9 +129,22 @@ describe("durable share limits", () => {
 		expect(
 			await t.run((ctx) => ctx.db.query("shareAccessLimits").collect())
 		).toEqual([]);
-		expect(getSharedPost).toHaveProperty("isInternal", true);
-		expect(getSharedPost).not.toHaveProperty("isPublic");
 		vi.stubEnv("SERVER_GATEWAY_SECRET", "short");
 		expect(() => requireServerGateway("short")).toThrow("not configured");
+	});
+});
+
+test("partial updates preserve other fields and deduplicate tags", async () => {
+	const t = convexTest(schema, modules);
+	const { postId } = await seedShare(t);
+	await t.withIdentity({ id: "owner" }).mutation(api.ghCard.updatePost, {
+		id: postId,
+		tags: ["new", "new"],
+	});
+	const post = await t.run((ctx) => ctx.db.get(postId));
+	expect(post).toMatchObject({
+		name: "Test snippet",
+		description: "Shared content",
+		tags: ["new"],
 	});
 });
