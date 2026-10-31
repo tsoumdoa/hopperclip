@@ -24,3 +24,31 @@ export const backfill = internalMutation({
 			});
 	},
 });
+
+export const sharesBackfill = internalMutation({
+	args: { cursor: v.optional(v.string()) },
+	handler: async (ctx, { cursor }) => {
+		const result = await ctx.db
+			.query("shares")
+			.paginate({ cursor: cursor ?? null, numItems: 100 });
+		for (const share of result.page) {
+			const post = await ctx.db.get(share.postId);
+			if (!post) continue;
+			const shares = await ctx.db
+				.query("shares")
+				.withIndex("by_postId", (q) => q.eq("postId", share.postId))
+				.collect();
+			const expiry = shares
+				.filter((s) => Date.parse(s.expiryDate) > Date.now())
+				.map((s) => s.expiryDate)
+				.sort()
+				.reverse()[0];
+			if (post.activeShareExpiresAt !== expiry)
+				await ctx.db.patch(post._id, { activeShareExpiresAt: expiry });
+		}
+		if (!result.isDone)
+			await ctx.scheduler.runAfter(0, internal.rankingBackfill.sharesBackfill, {
+				cursor: result.continueCursor,
+			});
+	},
+});

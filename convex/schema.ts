@@ -15,6 +15,7 @@ export default defineSchema({
 		heat: v.optional(v.number()),
 		rankScore: v.optional(v.number()),
 		rankDirty: v.optional(v.boolean()),
+		activeShareExpiresAt: v.optional(v.string()),
 	})
 		.index("by_clerkUserId", ["clerkUserId"])
 		.index("by_user_storageKey", ["clerkUserId", "bucketUrl"])
