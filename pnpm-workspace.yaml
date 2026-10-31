@@ -2,10 +2,6 @@ allowBuilds:
   '@clerk/shared': false
   core-js: false
   esbuild: true
-  msgpackr-extract: false
-  protobufjs: false
-  sharp: false
-  unrs-resolver: false
 strictDepBuilds: true
 minimumReleaseAge: 1440
 overrides:
