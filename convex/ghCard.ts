@@ -423,40 +423,6 @@ export const revokeShare = mutation({
 	},
 });
 
-// Get active shares for a post
-export const getActiveSharesForPost = query({
-	args: {
-		postId: v.id("post"),
-	},
-	handler: async (ctx, args) => {
-		const identity = await ctx.auth.getUserIdentity();
-		if (identity === null || typeof identity.id !== "string") {
-			throw new Error("Not authenticated");
-		}
-		const post = await ctx.db.get(args.postId);
-		if (!post) {
-			return [];
-		}
-		if (post.clerkUserId !== identity.id) {
-			throw new Error("Not authorized to view shares for this post");
-		}
-
-		const shares = await ctx.db
-			.query("shares")
-			.withIndex("by_postId", (q) => q.eq("postId", args.postId))
-			.collect();
-
-		const now = new Date();
-		return shares
-			.filter((share) => new Date(share.expiryDate) > now)
-			.map((share) => ({
-				shareToken: share.shareToken,
-				expiryDate: share.expiryDate,
-				createdAt: share.createdAt,
-			}));
-	},
-});
-
 export const recordUsage = mutation({
 	args: { postId: v.id("post") },
 	handler: async (ctx, { postId }) => {

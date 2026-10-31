@@ -11,7 +11,6 @@ import type { LucideIcon } from "lucide-react";
 import { api as convex } from "../../../../convex/_generated/api";
 import { usePaginatedQuery, useQuery } from "convex/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { showEmptyState } from "../hooks/library-pagination";
 import { useInfiniteScroll } from "../hooks/use-infinite-scroll";
 import { SortOrder } from "@/types/types";
 import useTagFilters from "../hooks/use-tag-filters";
@@ -123,7 +122,7 @@ export default function GHCardDisplay(props: {
 			return <GhCardGridSkeleton />;
 		}
 
-		if (showEmptyState(cards.length, exhausted)) {
+		if (cards.length === 0 && exhausted) {
 			if (hasSearchKeyword) {
 				return (
 					<EmptyState
@@ -211,12 +210,18 @@ export default function GHCardDisplay(props: {
 				</div>
 			)}
 			{renderCards()}
-			<p aria-live="polite">Showing {cards.length} cards</p>
+			{cards.length > 0 && (
+				<p className="sr-only" aria-live="polite">
+					Showing {cards.length} cards
+				</p>
+			)}
 			<div ref={sentinel} />
 			{canLoadMore && (
-				<Button type="button" variant="outline" onClick={loadMore}>
-					Load more
-				</Button>
+				<div className="flex justify-center pt-6">
+					<Button type="button" variant="outline" onClick={loadMore}>
+						Load more
+					</Button>
+				</div>
 			)}
 		</>
 	);

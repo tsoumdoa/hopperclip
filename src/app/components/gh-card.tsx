@@ -14,8 +14,6 @@ import { useScriptMetrics } from "../hooks/use-script-metrics";
 import { useEffect, useState } from "react";
 import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
 import { GhPost } from "@/types/types";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 
 export default function GHCard(props: {
 	cardInfo: GhPost;
@@ -73,12 +71,18 @@ export default function GHCard(props: {
 		loadMetrics,
 	} = useScriptMetrics();
 
-	// Skip while deleting so Convex refetches don't race with deletePost.
-	const activeShares = useQuery(
-		api.ghCard.getActiveSharesForPost,
-		deleting || deleted ? "skip" : { postId: props.cardInfo._id }
-	);
-	const hasActiveShare = activeShares && activeShares.length > 0;
+	const expiry = Date.parse(props.cardInfo.activeShareExpiresAt ?? "");
+	const [clock, setClock] = useState(0);
+	const hasActiveShare = expiry > Date.now();
+	useEffect(() => {
+		const delay = expiry - Date.now();
+		if (!(delay > 0)) return;
+		const timer = setTimeout(
+			() => setClock((value) => value + 1),
+			Math.min(delay, 2_147_483_647)
+		);
+		return () => clearTimeout(timer);
+	}, [expiry, clock]);
 
 	const handleShare = () => {
 		setOpenSharedDialog(true);

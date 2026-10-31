@@ -1,9 +1,5 @@
 import { useEffect, useRef } from "react";
 
-export function shouldLoadMore(canLoadMore: boolean, intersecting: boolean) {
-	return canLoadMore && intersecting;
-}
-
 export function useInfiniteScroll({
 	canLoadMore,
 	loadMore,
@@ -17,12 +13,7 @@ export function useInfiniteScroll({
 		if (!element || !canLoadMore) return;
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (
-					shouldLoadMore(
-						canLoadMore,
-						entries.some((entry) => entry.isIntersecting)
-					)
-				)
+				if (canLoadMore && entries.some((entry) => entry.isIntersecting))
 					loadMore();
 			},
 			{ rootMargin: "800px" }

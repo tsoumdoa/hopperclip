@@ -1,9 +1,9 @@
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export default function useTagFilters() {
 	const searchParam = "tagFilter";
-	const [tagFilters, setTagFilters] = useState<string[]>([]);
+
 	const [isPending, startTransition] = useTransition();
 	const search = useSearch({ strict: false }) as Record<
 		string,
@@ -21,12 +21,10 @@ export default function useTagFilters() {
 		return urlParams;
 	}, [search]);
 
+	const tagFilters = (params.get(searchParam) ?? "").split(",").filter(Boolean);
+
 	const updateSearchParam = (t: string, add: boolean) => {
-		const currentFilters = params.get(searchParam);
-		const cfArr = currentFilters?.split(",") ?? [];
-		const currentTagFilters = [...cfArr, ...tagFilters];
-		const set = new Set(currentTagFilters);
-		const unique = [...set];
+		const unique = tagFilters;
 
 		if (add) {
 			const newTagFilters = [...new Set([...unique, t])];
@@ -40,7 +38,6 @@ export default function useTagFilters() {
 					replace: true,
 				});
 			});
-			setTagFilters(newTagFilters);
 		} else {
 			const newTagFilters = unique.filter((tf) => tf !== t);
 			if (newTagFilters.length === 0) {
@@ -57,12 +54,10 @@ export default function useTagFilters() {
 					replace: true,
 				});
 			});
-			setTagFilters(newTagFilters);
 		}
 	};
 
 	const removeSearchParam = () => {
-		setTagFilters([]);
 		startTransition(() => {
 			navigate({
 				to: "/ghcards",
@@ -78,7 +73,6 @@ export default function useTagFilters() {
 
 	return {
 		tagFilters,
-		setTagFilters,
 		updateSearchParam,
 		removeSearchParam,
 		params,

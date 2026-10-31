@@ -8,22 +8,17 @@ import { LoadingSpinner } from "./loading-spinner";
 import { useQuery } from "convex/react";
 import { api as convex } from "../../../../convex/_generated/api";
 
-export default function UserTags(props: { tagFilters: string[] }) {
+export default function UserTags() {
 	const navigate = useNavigate();
 
 	const {
 		tagFilters,
-		setTagFilters,
 		updateSearchParam,
 		removeSearchParam,
 		params,
 		isPending,
 		startTransition,
 	} = useTagFilters();
-
-	useEffect(() => {
-		setTagFilters(props.tagFilters);
-	}, [props.tagFilters, setTagFilters]);
 
 	useEffect(() => {
 		const tagFilterIsStale = params.get("tagFilterIsStale");
@@ -40,7 +35,7 @@ export default function UserTags(props: { tagFilters: string[] }) {
 				});
 			});
 		}
-	}, [navigate, params, props.tagFilters, startTransition]);
+	}, [navigate, params, startTransition]);
 
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 
@@ -65,7 +60,6 @@ export default function UserTags(props: { tagFilters: string[] }) {
 					key={`tag-${i}-${t.tag}`}
 					tagFilters={tagFilters}
 					userTag={t}
-					setTagFilters={setTagFilters}
 					updatePath={updateSearchParam}
 				/>
 			))}
