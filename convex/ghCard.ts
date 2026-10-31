@@ -1,4 +1,4 @@
-import { addEvent, weights } from "./ranking";
+import { addEvent, seedHeat, USAGE_DEBOUNCE_MS, weights } from "./ranking";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
@@ -128,12 +128,13 @@ export const updatePost = mutation({
 			description: args.description,
 			tags: args.tags,
 		});
+		const nowMs = Date.now();
 		const patch = {
 			...(args.name !== undefined && { name: args.name }),
 			...(args.description !== undefined && { description: args.description }),
 			...(args.tags !== undefined && { tags: [...new Set(args.tags)] }),
-			dateUpdated: new Date().toISOString(),
-			heat: addEvent(post.heat, weights.modified, Date.now()),
+			dateUpdated: new Date(nowMs).toISOString(),
+			heat: addEvent(seedHeat(post), weights.modified, nowMs),
 			rankDirty: true,
 		};
 		const bucketUrl =
@@ -424,11 +425,15 @@ export const recordUsage = mutation({
 		if (post.clerkUserId !== identity.id)
 			throw new Error("Not authorized to use this post");
 		const now = Date.now();
-		if (post.lastUsedAt !== undefined && now - post.lastUsedAt < 60000) return;
+		if (
+			post.lastUsedAt !== undefined &&
+			now - post.lastUsedAt < USAGE_DEBOUNCE_MS
+		)
+			return;
 		await ctx.db.patch(postId, {
 			usageCount: (post.usageCount ?? 0) + 1,
 			lastUsedAt: now,
-			heat: addEvent(post.heat, weights.copy, now),
+			heat: addEvent(seedHeat(post), weights.copy, now),
 			rankDirty: true,
 		});
 	},

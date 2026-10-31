@@ -94,3 +94,53 @@ test("backfill traverses pages and is idempotent", async () => {
 	await run();
 	expect(await t.run((ctx) => ctx.db.query("post").collect())).toEqual(first);
 });
+
+test("legacy edits and copies retain historical heat through backfill", async () => {
+	vi.useFakeTimers();
+	vi.setSystemTime(now);
+	const t = convexTest(schema, modules);
+	const created = now - 100000;
+	const modified = now - 50000;
+	const ids = await t.run(async (ctx) => {
+		const make = (name: string) =>
+			ctx.db.insert("post", {
+				name,
+				clerkUserId: "alice",
+				bucketUrl: name,
+				dateCreated: new Date(created).toISOString(),
+				dateUpdated: new Date(modified).toISOString(),
+			});
+		return [await make("edited"), await make("copied")];
+	});
+	const owner = t.withIdentity({ id: "alice" });
+	await owner.mutation(api.ghCard.updatePost, { id: ids[0], name: "Updated" });
+	await owner.mutation(api.ghCard.recordUsage, { postId: ids[1] });
+	const base = addEvent(
+		addEvent(undefined, weights.created, created),
+		weights.modified,
+		modified
+	);
+	const before = await Promise.all(
+		ids.map((id) => t.run((ctx) => ctx.db.get(id)))
+	);
+	expect(before[0]?.heat).toBe(addEvent(base, weights.modified, now));
+	expect(before[1]?.heat).toBe(addEvent(base, weights.copy, now));
+	expect(before[0]?.usageCount).toBeUndefined();
+	expect(before[1]?.usageCount).toBe(1);
+	const run = async () => {
+		await t.mutation(internal.rankingBackfill.backfill, {});
+		await t.finishAllScheduledFunctions(vi.runAllTimers);
+	};
+	await run();
+	const after = await Promise.all(
+		ids.map((id) => t.run((ctx) => ctx.db.get(id)))
+	);
+	expect(after[0]?.rankScore).toBe(before[0]?.heat);
+	expect(after[0]?.usageCount).toBe(0);
+	expect(after[1]?.rankScore).toBe(before[1]?.heat);
+	expect(after[1]?.usageCount).toBe(1);
+	await run();
+	expect(
+		await Promise.all(ids.map((id) => t.run((ctx) => ctx.db.get(id))))
+	).toEqual(after);
+});

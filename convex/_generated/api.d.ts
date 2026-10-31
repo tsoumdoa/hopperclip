@@ -4,8 +4,7 @@
  *
  * THIS CODE IS AUTOMATICALLY GENERATED.
  *
- * To regenerate, run 
-px convex dev`.
+ * To regenerate, run `npx convex dev`.
  * @module
  */
 
@@ -14,10 +13,11 @@ import type {
 	FilterApi,
 	FunctionReference,
 } from "convex/server";
-import type * as rankingBackfill from "../rankingBackfill.js";
 import type * as ghCard from "../ghCard.js";
 import type * as ghInternalMutation from "../ghInternalMutation.js";
 import type * as ghPublicAction from "../ghPublicAction.js";
+import type * as ranking from "../ranking.js";
+import type * as rankingBackfill from "../rankingBackfill.js";
 import type * as serverGateway from "../serverGateway.js";
 import type * as shareAccess from "../shareAccess.js";
 import type * as storage from "../storage.js";
@@ -34,10 +34,11 @@ import type * as storageR2 from "../storageR2.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-	rankingBackfill: typeof rankingBackfill;
 	ghCard: typeof ghCard;
 	ghInternalMutation: typeof ghInternalMutation;
 	ghPublicAction: typeof ghPublicAction;
+	ranking: typeof ranking;
+	rankingBackfill: typeof rankingBackfill;
 	serverGateway: typeof serverGateway;
 	shareAccess: typeof shareAccess;
 	storage: typeof storage;

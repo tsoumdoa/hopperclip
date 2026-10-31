@@ -4,17 +4,17 @@ import { v } from "convex/values";
 export default defineSchema({
 	post: defineTable({
 		name: v.string(),
-		usageCount: v.optional(v.number()),
-		lastUsedAt: v.optional(v.number()),
-		heat: v.optional(v.number()),
-		rankScore: v.optional(v.number()),
-		rankDirty: v.optional(v.boolean()),
 		description: v.optional(v.string()),
 		dateCreated: v.string(),
 		dateUpdated: v.string(),
 		bucketUrl: v.string(),
 		clerkUserId: v.optional(v.string()),
 		tags: v.optional(v.array(v.string())),
+		usageCount: v.optional(v.number()),
+		lastUsedAt: v.optional(v.number()),
+		heat: v.optional(v.number()),
+		rankScore: v.optional(v.number()),
+		rankDirty: v.optional(v.boolean()),
 	})
 		.index("by_clerkUserId", ["clerkUserId"])
 		.index("by_user_storageKey", ["clerkUserId", "bucketUrl"])
