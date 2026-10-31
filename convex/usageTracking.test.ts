@@ -63,12 +63,12 @@ test("creation, editing and usage track heat with authorization and debounce", a
 	expect(updated?.lastUsedAt).toBe(now + 60000);
 });
 
-test("backfill traverses pages and is idempotent", async () => {
+test("settle traverses batches and is idempotent", async () => {
 	vi.useFakeTimers();
 	vi.setSystemTime(now);
 	const t = convexTest(schema, modules);
 	await t.run(async (ctx) => {
-		for (let i = 0; i < 105; i++)
+		for (let i = 0; i < 205; i++)
 			await ctx.db.insert("post", {
 				name: `Post ${i}`,
 				bucketUrl: `key-${i}`,
@@ -77,12 +77,12 @@ test("backfill traverses pages and is idempotent", async () => {
 			});
 	});
 	const run = async () => {
-		await t.mutation(internal.rankingBackfill.backfill, {});
+		await t.mutation(internal.rankingBackfill.settleRankScores, {});
 		await t.finishAllScheduledFunctions(vi.runAllTimers);
 	};
 	await run();
 	const first = await t.run((ctx) => ctx.db.query("post").collect());
-	expect(first).toHaveLength(105);
+	expect(first).toHaveLength(205);
 	for (const post of first) {
 		let heat = addEvent(undefined, weights.created, now);
 		if (Date.parse(post.dateUpdated) - now > 1000)
@@ -95,7 +95,7 @@ test("backfill traverses pages and is idempotent", async () => {
 	expect(await t.run((ctx) => ctx.db.query("post").collect())).toEqual(first);
 });
 
-test("legacy edits and copies retain historical heat through backfill", async () => {
+test("legacy edits and copies retain historical heat through initialization", async () => {
 	vi.useFakeTimers();
 	vi.setSystemTime(now);
 	const t = convexTest(schema, modules);
@@ -128,7 +128,7 @@ test("legacy edits and copies retain historical heat through backfill", async ()
 	expect(before[0]?.usageCount).toBeUndefined();
 	expect(before[1]?.usageCount).toBe(1);
 	const run = async () => {
-		await t.mutation(internal.rankingBackfill.backfill, {});
+		await t.mutation(internal.rankingBackfill.settleRankScores, {});
 		await t.finishAllScheduledFunctions(vi.runAllTimers);
 	};
 	await run();

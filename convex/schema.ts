@@ -23,6 +23,7 @@ export default defineSchema({
 		.index("by_user_dateCreated", ["clerkUserId", "dateCreated"])
 		.index("by_user_rankScore", ["clerkUserId", "rankScore"])
 		.index("by_user_usageCount", ["clerkUserId", "usageCount"])
+		.index("by_rankScore", ["rankScore"])
 		.index("by_rankDirty", ["rankDirty"])
 		.index("by_user_name", ["clerkUserId", "name"]),
 

@@ -164,6 +164,7 @@ function sortedPosts(ctx: QueryCtx, userId: string, sortOrder: SortOrder) {
 				.query("post")
 				.withIndex("by_user_rankScore", (q) => q.eq("clerkUserId", userId))
 				.order("desc");
+
 		case "mostUsed":
 			return ctx.db
 				.query("post")

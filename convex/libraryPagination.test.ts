@@ -141,15 +141,68 @@ test("ranking sorts settle usage and process multiple batches", async () => {
 		expect(all[0]._id).toBe(sortOrder === "mostUsed" ? ids[0] : ids[204]);
 		expect(page.page.map((p) => p._id)).toEqual(all.map((p) => p._id));
 	}
+	const readOrder = async () => {
+		const all = await owner.query(api.ghCard.getAll, {
+			sortOrder: "recommended",
+		});
+		const page = await owner.query(api.ghCard.listPage, {
+			sortOrder: "recommended",
+			paginationOpts: { numItems: 210, cursor: null },
+		});
+		return [all.map((p) => p._id), page.page.map((p) => p._id)];
+	};
+	const before = await readOrder();
+	expect(before).toEqual([ids.slice().reverse(), ids.slice().reverse()]);
 	await owner.mutation(api.ghCard.recordUsage, { postId: ids[0] });
-	expect((await owner.query(api.ghCard.getAll, {}))[0]._id).toBe(ids[204]);
+	expect(await readOrder()).toEqual(before);
 	await t.mutation(internal.rankingBackfill.settleRankScores, {});
 	await t.finishAllScheduledFunctions(vi.runAllTimers);
-	expect((await owner.query(api.ghCard.getAll, {}))[0]._id).toBe(ids[0]);
+	expect(await readOrder()).toEqual([
+		[ids[0], ...ids.slice(1).reverse()],
+		[ids[0], ...ids.slice(1).reverse()],
+	]);
 	const posts = await t.run((ctx) => ctx.db.query("post").collect());
 	expect(
 		posts.every((p) => p.rankDirty === undefined && p.rankScore === p.heat)
 	).toBe(true);
 	await t.mutation(internal.rankingBackfill.settleRankScores, {});
 	expect(await t.run((ctx) => ctx.db.query("post").collect())).toEqual(posts);
+	expect(vi.getTimerCount()).toBe(0);
+});
+
+test("settle interleaves legacy and initialized cards", async () => {
+	vi.useFakeTimers();
+	const t = convexTest(schema, modules);
+	const ids = await t.run(async (ctx) => {
+		const create = async (name: string, time: number, score?: number) =>
+			ctx.db.insert("post", {
+				name,
+				bucketUrl: name,
+				clerkUserId: "alice",
+				dateCreated: new Date(time).toISOString(),
+				dateUpdated: new Date(time).toISOString(),
+				...(score === undefined
+					? {}
+					: { heat: score, rankScore: score, usageCount: 0 }),
+			});
+		const now = Date.now();
+		const { addEvent, weights } = await import("./ranking");
+		return [
+			await create("old", now - 100000),
+			await create(
+				"new",
+				now,
+				addEvent(undefined, weights.created, now - 50000)
+			),
+			await create("recent", now),
+		];
+	});
+	const owner = t.withIdentity({ id: "alice" });
+	const order = async () =>
+		(await owner.query(api.ghCard.getAll, {})).map((p) => p._id);
+	expect((await order())[0]).toBe(ids[1]);
+	await t.mutation(internal.rankingBackfill.settleRankScores, {});
+	expect(await order()).toEqual([ids[2], ids[1], ids[0]]);
+	expect((await t.run((ctx) => ctx.db.get(ids[0])))?.usageCount).toBe(0);
+	expect((await t.run((ctx) => ctx.db.get(ids[2])))?.usageCount).toBe(0);
 });
