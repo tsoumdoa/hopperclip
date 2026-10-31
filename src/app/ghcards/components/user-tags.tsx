@@ -1,6 +1,6 @@
 import FilterTagDisplay from "./user-tag-display";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Tag, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useTagFilters from "../hooks/use-tag-filters";
@@ -9,7 +9,6 @@ import { useQuery } from "convex/react";
 import { api as convex } from "../../../../convex/_generated/api";
 
 export default function UserTags(props: { tagFilters: string[] }) {
-	const [hideFilter, setHideFilter] = useState(false);
 	const navigate = useNavigate();
 
 	const {
@@ -26,14 +25,7 @@ export default function UserTags(props: { tagFilters: string[] }) {
 		setTagFilters(props.tagFilters);
 	}, [props.tagFilters, setTagFilters]);
 
-	const filterOn = params.get("searchFilterOn");
 	useEffect(() => {
-		if (filterOn === "true") {
-			setHideFilter(true);
-		} else {
-			setHideFilter(false);
-		}
-
 		const tagFilterIsStale = params.get("tagFilterIsStale");
 		if (tagFilterIsStale === "true") {
 			startTransition(() => {
@@ -52,7 +44,6 @@ export default function UserTags(props: { tagFilters: string[] }) {
 
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 
-	if (hideFilter) return null;
 	if (!userTags)
 		return (
 			<div className="flex gap-2" aria-hidden>

@@ -10,7 +10,6 @@ import { StorageKeySchema } from "@/types/types";
 import { r2Client } from "./bucket";
 import { bucketUrl } from "./bucket-url";
 
-// Additive endpoint: older deployments can continue using generatePresigneDownloadUrl.
 export const resolveOwnedGhDownload = createServerFn({ method: "POST" })
 	.validator((postId: string) => z.string().min(1).max(100).parse(postId))
 	.handler(async ({ data: postId }) => {

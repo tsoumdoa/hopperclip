@@ -123,7 +123,7 @@ export default function GHCardDisplay(props: {
 			<div className={cardGridClass}>
 				{filteredCards.map((item) => (
 					<GHCard
-						key={item.bucketUrl}
+						key={item._id}
 						cardInfo={item}
 						tagFilters={props.tagFilters}
 					/>

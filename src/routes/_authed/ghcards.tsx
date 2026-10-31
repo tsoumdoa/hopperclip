@@ -19,10 +19,10 @@ import { ShortcutHint } from "@/app/ghcards/components/shortcut-hint";
 import SortDropDown from "@/app/ghcards/components/sort-drop-down";
 import UserTags from "@/app/ghcards/components/user-tags";
 import { fetchGhcardsUser } from "@/server/r2-storage";
-import { SortOrderZenum } from "@/types/types";
+import { SortOrderZenum, normalizeSortOrder } from "@/types/types";
 
 const ghcardsSearchSchema = z.object({
-	sort: SortOrderZenum.optional().catch("ascLastEdited"),
+	sort: z.preprocess(normalizeSortOrder, SortOrderZenum.optional().catch("lastEditedNewest")),
 	tagFilter: z.union([z.string(), z.array(z.string())]).optional(),
 	tagFilterIsStale: z.string().optional(),
 });
@@ -49,7 +49,7 @@ function GhcardsPage() {
 function GhcardsPageContent() {
 	const { username } = Route.useLoaderData();
 	const search = Route.useSearch();
-	const sortKey = search.sort ?? "ascLastEdited";
+	const sortKey = search.sort ?? "lastEditedNewest";
 	const sanitizedTagFilter =
 		typeof search.tagFilter === "string"
 			? search.tagFilter.split(",").filter(Boolean)

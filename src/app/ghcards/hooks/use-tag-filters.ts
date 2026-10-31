@@ -29,7 +29,7 @@ export default function useTagFilters() {
 		const unique = [...set];
 
 		if (add) {
-			const newTagFilters = [...unique, t];
+			const newTagFilters = [...new Set([...unique, t])];
 			startTransition(() => {
 				navigate({
 					to: "/ghcards",

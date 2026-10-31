@@ -14,14 +14,14 @@ import { useEffect, useState, useTransition } from "react";
 import { LoadingSpinner } from "./loading-spinner";
 
 export default function SortDropDown() {
-	const [position, setPosition] = useState<SortOrder>("ascLastEdited");
+	const [position, setPosition] = useState<SortOrder>("lastEditedNewest");
 	const [sortBy, setSortBy] = useState<SortOrderValue>();
 	const search = useSearch({ from: "/_authed/ghcards" });
 	const navigate = useNavigate();
 	const [isPending, startTransition] = useTransition();
 
 	useEffect(() => {
-		const sortOrder = search.sort ?? "ascLastEdited";
+		const sortOrder = search.sort ?? "lastEditedNewest";
 		const sortName = SORT_ORDERS.find(
 			(item) => item.value === sortOrder
 		)?.label;

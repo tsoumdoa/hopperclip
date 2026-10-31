@@ -57,10 +57,10 @@ export type ShareLinkUid = z.infer<typeof ShareLinkUidSchema>;
 export const SORT_ORDERS = [
 	{ value: "ascAZ", label: "A-Z" },
 	{ value: "descZA", label: "Z-A" },
-	{ value: "ascLastEdited", label: "Last Edited Date (Newest)" },
-	{ value: "descLastEdited", label: "Last Edited Date (Oldest)" },
-	{ value: "ascCreated", label: "Creation Date (Newest)" },
-	{ value: "descCreated", label: "Creation Date (Oldest)" },
+	{ value: "lastEditedNewest", label: "Last Edited Date (Newest)" },
+	{ value: "lastEditedOldest", label: "Last Edited Date (Oldest)" },
+	{ value: "createdNewest", label: "Creation Date (Newest)" },
+	{ value: "createdOldest", label: "Creation Date (Oldest)" },
 ] as const;
 
 export type SortOrder = (typeof SORT_ORDERS)[number]["value"];
@@ -74,3 +74,8 @@ export type UserTag = {
 	tag: string;
 	count: number;
 };
+
+export function normalizeSortOrder(value: unknown) {
+	const legacy: Record<string, SortOrder> = { ascLastEdited: "lastEditedNewest", descLastEdited: "lastEditedOldest", ascCreated: "createdNewest", descCreated: "createdOldest" };
+	return typeof value === "string" ? (legacy[value] ?? value) : value;
+}
