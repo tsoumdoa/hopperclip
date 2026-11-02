@@ -1,5 +1,7 @@
 import { convexTest } from "convex-test";
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
+import { Workpool } from "@convex-dev/workpool";
+import { register } from "@convex-dev/workpool/test";
 import { internal } from "./_generated/api";
 import schema from "./schema";
 import { PREVIEW_VERSION, type PreviewData } from "../src/types/preview";
@@ -23,8 +25,15 @@ const dates = {
 	dateUpdated: "2026-11-01",
 };
 
-test("missing query filters versions, malformed keys and owners and deduplicates each page", async () => {
+afterEach(() => {
+	vi.clearAllTimers();
+	vi.useRealTimers();
+	vi.restoreAllMocks();
+});
+
+test("driver enqueue filters versions, malformed keys and owners and deduplicates each page", async () => {
 	const t = convexTest(schema, modules);
+	register(t, "previewBackfillPool");
 	await t.run(async (ctx) => {
 		for (const [clerkUserId, bucketUrl] of [
 			["alice", "current"],
@@ -54,49 +63,51 @@ test("missing query filters versions, malformed keys and owners and deduplicates
 				data,
 			});
 	});
-	const page = await t.query(internal.previewBackfill.listMissing, {});
-	expect(page.entries).toEqual([
-		{ clerkUserId: "alice", bucketUrl: "outdated" },
-		{ clerkUserId: "alice", bucketUrl: "missing" },
-		{ clerkUserId: "bob", bucketUrl: "current" },
+	vi.useFakeTimers();
+	const enqueue = vi.spyOn(Workpool.prototype, "enqueueAction");
+	await t.mutation(internal.previewBackfill.start, {});
+	expect(enqueue.mock.calls.map((call) => call[2])).toEqual([
+		{ clerkUserId: "alice", storageKey: "outdated" },
+		{ clerkUserId: "alice", storageKey: "missing" },
+		{ clerkUserId: "bob", storageKey: "current" },
 	]);
-	expect(page.isDone).toBe(true);
+	expect(enqueue).toHaveBeenCalledTimes(3);
 });
 
-test("pagination advances even through a fully filtered page and can resume from a cursor", async () => {
+test("driver schedules through a fully filtered page and paginates to completion", async () => {
+	vi.useFakeTimers();
 	const t = convexTest(schema, modules);
+	register(t, "previewBackfillPool");
+	const enqueue = vi
+		.spyOn(Workpool.prototype, "enqueueAction")
+		.mockResolvedValue(
+			"test-work" as Awaited<ReturnType<Workpool["enqueueAction"]>>
+		);
 	await t.run(async (ctx) => {
-		for (let i = 0; i < 24; i++)
+		for (let i = 0; i < 224; i++)
 			await ctx.db.insert("post", {
 				clerkUserId: "alice",
-				bucketUrl: i < 10 ? "../bad" : `key-${i}`,
+				bucketUrl: i < 100 ? "../bad" : `key-${i}`,
 				...dates,
 			});
 	});
-	const first = await t.query(internal.previewBackfill.listMissing, {});
-	expect(first.entries).toEqual([]);
-	expect(first.isDone).toBe(false);
-	const second = await t.query(internal.previewBackfill.listMissing, {
-		cursor: first.continueCursor,
-	});
-	expect(second.entries).toHaveLength(10);
-	expect(second.isDone).toBe(false);
-	expect(
-		await t.query(internal.previewBackfill.listMissing, {
-			cursor: first.continueCursor,
-		})
-	).toEqual(second);
-	const last = await t.query(internal.previewBackfill.listMissing, {
-		cursor: second.continueCursor,
-	});
-	expect(last.isDone).toBe(true);
-	expect([...second.entries, ...last.entries].map((p) => p.bucketUrl)).toEqual(
-		Array.from({ length: 14 }, (_, i) => `key-${i + 10}`)
+	await t.mutation(internal.previewBackfill.start, {});
+	expect(enqueue).not.toHaveBeenCalled();
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect(enqueue.mock.calls.map((call) => call[2])).toEqual(
+		Array.from({ length: 124 }, (_, i) => ({
+			clerkUserId: "alice",
+			storageKey: `key-${i + 100}`,
+		}))
 	);
+	const scheduled = await t.run((ctx) =>
+		ctx.db.system.query("_scheduled_functions").collect()
+	);
+	expect(scheduled.every((row) => row.state.kind === "success")).toBe(true);
 });
-
 test("internal saves enforce ownership and version, upsert, and remain idempotent", async () => {
 	const t = convexTest(schema, modules);
+	register(t, "previewBackfillPool");
 	const args = {
 		clerkUserId: "alice",
 		storageKey: "file",
@@ -111,7 +122,7 @@ test("internal saves enforce ownership and version, upsert, and remain idempoten
 			...args,
 			clerkUserId: "bob",
 		})
-	).rejects.toThrow("Not authorized");
+	).resolves.toBeNull();
 	await expect(
 		t.mutation(internal.previewBackfill.savePreviewInternal, {
 			...args,
@@ -139,8 +150,11 @@ test("internal saves enforce ownership and version, upsert, and remain idempoten
 		before
 	);
 	expect(
-		(await t.query(internal.previewBackfill.listMissing, {})).entries
-	).toEqual([]);
+		await t.query(internal.previewBackfill.getState, {
+			clerkUserId: "alice",
+			storageKey: "file",
+		})
+	).toBe("current");
 	await t.run((ctx) => ctx.db.patch(before[0]._id, { version: 0 }));
 	expect(
 		await t.mutation(internal.previewBackfill.savePreviewInternal, args)
@@ -152,9 +166,9 @@ test("internal saves enforce ownership and version, upsert, and remain idempoten
 	await t.run((ctx) => ctx.db.patch(id, { bucketUrl: "replacement" }));
 	await expect(
 		t.mutation(internal.previewBackfill.savePreviewInternal, args)
-	).rejects.toThrow("Not authorized");
+	).resolves.toBeNull();
 	await t.run((ctx) => ctx.db.delete(id));
 	await expect(
 		t.mutation(internal.previewBackfill.savePreviewInternal, args)
-	).rejects.toThrow("Not authorized");
+	).resolves.toBeNull();
 });

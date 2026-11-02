@@ -9,13 +9,30 @@ import { StorageKeySchema } from "../src/types/types";
 import { PREVIEW_VERSION, type PreviewData } from "../src/types/preview";
 import { previewDataValidator, validatePreview } from "./previewData";
 
-function findPreview(ctx: QueryCtx, clerkUserId: string, storageKey: string) {
+export function findPreview(
+	ctx: QueryCtx,
+	clerkUserId: string,
+	storageKey: string
+) {
 	return ctx.db
 		.query("postPreviews")
 		.withIndex("by_user_key", (q) =>
 			q.eq("clerkUserId", clerkUserId).eq("storageKey", storageKey)
 		)
 		.unique();
+}
+
+export function findPreviewPost(
+	ctx: QueryCtx,
+	clerkUserId: string,
+	storageKey: string
+) {
+	return ctx.db
+		.query("post")
+		.withIndex("by_user_storageKey", (q) =>
+			q.eq("clerkUserId", clerkUserId).eq("bucketUrl", storageKey)
+		)
+		.first();
 }
 
 export async function deletePreview(
@@ -39,17 +56,16 @@ export async function savePreviewForUser(
 		storageKey: string;
 		version: number;
 		data: PreviewData;
-	}
+	},
+	{ skipMissing = false } = {}
 ) {
 	StorageKeySchema.parse(storageKey);
 
-	const post = await ctx.db
-		.query("post")
-		.withIndex("by_user_storageKey", (q) =>
-			q.eq("clerkUserId", clerkUserId).eq("bucketUrl", storageKey)
-		)
-		.first();
-	if (!post) throw new Error("Not authorized to save this preview");
+	const post = await findPreviewPost(ctx, clerkUserId, storageKey);
+	if (!post) {
+		if (skipMissing) return null;
+		throw new Error("Not authorized to save this preview");
+	}
 	if (version !== PREVIEW_VERSION) throw new Error("Invalid preview version");
 	validatePreview(data);
 	const existing = await findPreview(ctx, clerkUserId, storageKey);

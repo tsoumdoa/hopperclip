@@ -20,6 +20,7 @@
 	},
 	"dependencies": {
 		"@clerk/tanstack-react-start": "^0.29.15",
+		"@convex-dev/workpool": "^0.4.15",
 		"@icons-pack/react-simple-icons": "^13.15.1",
 		"@radix-ui/react-alert-dialog": "^1.1.23",
 		"@radix-ui/react-dialog": "^1.1.23",
