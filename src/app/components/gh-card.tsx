@@ -119,7 +119,7 @@ export default function GHCard(props: {
 				postId: props.cardInfo._id,
 				bucketKey: props.cardInfo.bucketUrl,
 			},
-			!!previewData
+			previewData === undefined ? undefined : previewData !== null
 		);
 	};
 

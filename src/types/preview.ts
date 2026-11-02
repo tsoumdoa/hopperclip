@@ -25,7 +25,9 @@ export type PreviewData = {
 	inputs: { sliders: number; toggles: number; lists: number };
 	keyComponents: string[];
 	scripts: string[];
+	scriptCount: number;
 	plugins: string[];
+	pluginCount: number;
 	// Packed [x, y, width, height, kind] and [source index, target index].
 	nodes: number[];
 	edges: number[];

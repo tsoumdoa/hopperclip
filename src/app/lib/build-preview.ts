@@ -6,10 +6,6 @@ import {
 	type PreviewKind,
 } from "../../types/preview";
 import { getComponentNodeType } from "../duckerweb/lib/node-classifier";
-import {
-	indexDefinition,
-	resolveEndpointComponent,
-} from "../duckerweb/lib/gh-diff/definition-index";
 
 const CANVAS_GROUP_GUID = "c552a431-af5b-46a9-a8a4-0fcbc27ef596";
 
@@ -81,14 +77,10 @@ function groupColor(argb?: string) {
 	);
 }
 
-function names(values: string[], cap: number) {
-	return [
-		...new Set(
-			values
-				.map((s) => s.trim().slice(0, PREVIEW_CAPS.nameLength))
-				.filter(Boolean)
-		),
-	].slice(0, cap);
+function names(values: string[], cap = Infinity) {
+	return [...new Set(values.map((s) => s.trim()).filter(Boolean))]
+		.slice(0, cap)
+		.map((s) => s.slice(0, PREVIEW_CAPS.nameLength));
 }
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
@@ -99,7 +91,9 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		inputs: { sliders: 0, toggles: 0, lists: 0 },
 		keyComponents: [],
 		scripts: [],
+		scriptCount: 0,
 		plugins: [],
+		pluginCount: 0,
 		nodes: [],
 		edges: [],
 		groups: [],
@@ -127,16 +121,19 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		[...frequency].sort((a, b) => b[1] - a[1]).map(([name]) => name),
 		PREVIEW_CAPS.keyComponents
 	);
-	data.scripts = names(scripts, PREVIEW_CAPS.scripts);
-	data.plugins = names(
+	const scriptNames = names(scripts);
+	data.scriptCount = scriptNames.length;
+	data.scripts = scriptNames.slice(0, PREVIEW_CAPS.scripts);
+	const pluginNames = names(
 		[
 			...(parsed.metadata?.libraries ?? []).map((l) => l.name),
 			...components.map((c) => c.library ?? ""),
 		]
 			.map(libraryName)
-			.filter(isPlugin),
-		PREVIEW_CAPS.plugins
+			.filter(isPlugin)
 	);
+	data.pluginCount = pluginNames.length;
+	data.plugins = pluginNames.slice(0, PREVIEW_CAPS.plugins);
 
 	const bounds = new Map<string, NonNullable<Visuals["bounds"]>>();
 	function boundsOf(
@@ -205,10 +202,15 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		indices.set(c.id, i);
 		data.nodes.push(...rect(c), PREVIEW_KINDS.indexOf(kindOf(c)));
 	}
-	const definition = indexDefinition(parsed);
+	const resolve = (endpoint: string) => {
+		for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
+			if (Object.hasOwn(parsed.components, id)) return id;
+			if (!id.includes(".")) return undefined;
+		}
+	};
 	for (const wire of parsed.wires) {
-		const sourceId = resolveEndpointComponent(definition, wire.from);
-		const targetId = resolveEndpointComponent(definition, wire.to);
+		const sourceId = resolve(wire.from);
+		const targetId = resolve(wire.to);
 		const source = sourceId === undefined ? undefined : indices.get(sourceId);
 		const target = targetId === undefined ? undefined : indices.get(targetId);
 		if (source !== undefined && target !== undefined)

@@ -38,7 +38,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 	const { downloadData } = useFetchGhXml();
 
 	const loadMetrics = useCallback(
-		async (target: GhXmlTarget, hasPreview = false) => {
+		async (target: GhXmlTarget, hasPreview?: boolean) => {
 			setLoading(true);
 			setError(null);
 
@@ -46,7 +46,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 				const decoded = await downloadData(target);
 				const parsed = buildGhJson(decoded, { includeVisuals: true });
 				setParsedData(parsed);
-				if (!hasPreview) savePreview(target.bucketKey, parsed);
+				if (!hasPreview) savePreview(target.bucketKey, parsed, hasPreview);
 
 				const componentsCount = Object.keys(parsed.components).length;
 				const ghLibs = parsed.metadata?.libraries;

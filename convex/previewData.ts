@@ -14,7 +14,9 @@ export const previewDataValidator = v.object({
 	}),
 	keyComponents: v.array(v.string()),
 	scripts: v.array(v.string()),
+	scriptCount: v.number(),
 	plugins: v.array(v.string()),
+	pluginCount: v.number(),
 	nodes: v.array(v.number()),
 	edges: v.array(v.number()),
 	groups: v.array(
@@ -33,7 +35,11 @@ export function validatePreview(data: PreviewData) {
 		Number.isSafeInteger(n) && n >= 0 && n <= max;
 	if (
 		!integer(data.count) ||
-		!Object.values(data.inputs).every((n) => integer(n, data.count))
+		!Object.values(data.inputs).every((n) => integer(n, data.count)) ||
+		!integer(data.scriptCount, data.count) ||
+		!integer(data.pluginCount) ||
+		data.scripts.length !== Math.min(data.scriptCount, PREVIEW_CAPS.scripts) ||
+		data.plugins.length !== Math.min(data.pluginCount, PREVIEW_CAPS.plugins)
 	)
 		throw new Error("Invalid preview counts");
 	for (const field of ["keyComponents", "scripts", "plugins"] as const) {

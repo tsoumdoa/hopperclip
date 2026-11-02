@@ -88,7 +88,9 @@ test("counts unbounded components, excludes groups, classifies inputs/scripts/pl
 	expect(data.inputs).toEqual({ sliders: 1, toggles: 1, lists: 1 });
 	expect(data.keyComponents).toEqual(["Move", "Area", "Mesh+"]);
 	expect(data.scripts).toEqual(["Python 3"]);
+	expect(data.scriptCount).toBe(1);
 	expect(data.plugins).toEqual(["Kangaroo"]);
+	expect(data.pluginCount).toBe(1);
 	expect(data.edges).toEqual([0, 1]);
 	expect(data.groups[0].color).toBe("#0c2238");
 	expect(data.nodes[2 * 5 + 4]).toBe(PREVIEW_KINDS.indexOf("input"));
@@ -125,6 +127,8 @@ test("caps all arrays and names, evenly samples nodes including both ends, and k
 	expect(data.keyComponents).toHaveLength(PREVIEW_CAPS.keyComponents);
 	expect(data.scripts).toHaveLength(PREVIEW_CAPS.scripts);
 	expect(data.plugins).toHaveLength(PREVIEW_CAPS.plugins);
+	expect(data.scriptCount).toBe(11);
+	expect(data.pluginCount).toBe(1001);
 	expect(
 		[...data.keyComponents, ...data.scripts, ...data.plugins].every(
 			(s) => s.length <= PREVIEW_CAPS.nameLength
@@ -305,4 +309,38 @@ test("resolves dotted component ids by longest prefix without miswiring A.B to A
 		],
 	});
 	expect(data.edges).toEqual([1, 2, 0, 1]);
+});
+
+test("keeps distinct totals beyond stored name caps and before truncating names", () => {
+	const prefix = "x".repeat(PREVIEW_CAPS.nameLength);
+	const items = [
+		"Alpha",
+		"Beta",
+		"Gamma",
+		`${prefix}A`,
+		`${prefix}B`,
+		"Alpha",
+	].map((name, i) =>
+		component(String(i), {
+			type: `${name} Script`,
+			library: `${name} v1.0`,
+		})
+	);
+	const data = buildPreview({
+		version: "1",
+		components: Object.fromEntries(items.map((c) => [c.id, c])),
+		wires: [],
+		metadata: { libraries: [{ name: "Alpha v2.0", version: "2" }] },
+	});
+	expect(data.scriptCount).toBe(5);
+	expect(data.pluginCount).toBe(5);
+	expect(data.scripts).toEqual(["Alpha Script", "Beta Script", "Gamma Script"]);
+	expect(data.plugins).toEqual(["Alpha", "Beta", "Gamma"]);
+});
+
+test("counts all four non-core libraries from all.xml while storing only three", () => {
+	const data = buildPreview(fixture("all.xml"));
+	expect(data.plugins).toHaveLength(PREVIEW_CAPS.plugins);
+	expect(data.plugins[0]).toBe("LunchBoxML");
+	expect(data.pluginCount).toBe(4);
 });

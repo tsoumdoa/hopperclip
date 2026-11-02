@@ -6,6 +6,7 @@ import {
 	SlidersHorizontal,
 	ToggleLeft,
 } from "lucide-react";
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import {
 	PREVIEW_KINDS,
@@ -36,16 +37,13 @@ function renderDigest(data: PreviewData): RenderDigest {
 	return { ...data, nodes, edges };
 }
 
-const KIND_STYLE: Record<
-	PreviewKind,
-	{ fill: string; opacity: number; label: string }
-> = {
-	component: { fill: "#737373", opacity: 0.75, label: "Component" },
-	param: { fill: "#a3a3a3", opacity: 0.45, label: "Param" },
-	input: { fill: "#86efac", opacity: 0.75, label: "Slider / toggle" },
-	script: { fill: "#e5e5e5", opacity: 0.85, label: "Script" },
-	panel: { fill: "#fde68a", opacity: 0.55, label: "Panel" },
-	plugin: { fill: "#c4b5fd", opacity: 0.75, label: "Plugin" },
+const KIND_STYLE: Record<PreviewKind, { fill: string; opacity: number }> = {
+	component: { fill: "#737373", opacity: 0.75 },
+	param: { fill: "#a3a3a3", opacity: 0.45 },
+	input: { fill: "#86efac", opacity: 0.75 },
+	script: { fill: "#e5e5e5", opacity: 0.85 },
+	panel: { fill: "#fde68a", opacity: 0.55 },
+	plugin: { fill: "#c4b5fd", opacity: 0.75 },
 };
 
 function Silhouette(props: {
@@ -132,13 +130,16 @@ const canvasBg =
 	"bg-black/30 [background-image:radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:10px_10px]";
 
 function Chip(props: {
-	children: React.ReactNode;
+	icon: React.ReactNode;
+	names: string[];
+	count: number;
 	tone?: "default" | "script" | "plugin";
 }) {
 	return (
 		<span
+			title={`${props.names.join(", ")}${props.count > props.names.length ? ` +${props.count - props.names.length} more` : ""}`}
 			className={cn(
-				"inline-flex h-5 max-w-full items-center gap-1 truncate rounded px-1.5 font-mono text-[10.5px]",
+				"inline-flex h-5 max-w-full min-w-0 items-center gap-1 rounded px-1.5 font-mono text-[10.5px]",
 				props.tone === "plugin"
 					? "bg-violet-300/10 text-violet-200/90"
 					: props.tone === "script"
@@ -146,7 +147,9 @@ function Chip(props: {
 						: "bg-white/[0.04] text-neutral-400"
 			)}
 		>
-			{props.children}
+			{props.icon}
+			<span className="min-w-0 truncate">{props.names[0]}</span>
+			{props.count > 1 && <span className="shrink-0">+{props.count - 1}</span>}
 		</span>
 	);
 }
@@ -182,7 +185,7 @@ function CompositionBar(props: { digest: RenderDigest }) {
 	);
 }
 
-export function RecipePreview({
+export const RecipePreview = memo(function RecipePreview({
 	data,
 }: {
 	data: PreviewData | null | undefined;
@@ -196,12 +199,7 @@ export function RecipePreview({
 	].filter((i) => i.n > 0);
 	const ops = [...d.scripts, ...d.keyComponents].slice(0, 2);
 	return (
-		<div
-			className={cn(
-				"flex flex-col gap-2 rounded-lg bg-white/[0.025] px-2.5 py-2 ring-1 ring-white/[0.05] ring-inset",
-				"mt-3"
-			)}
-		>
+		<div className="mt-3 flex flex-col gap-2 rounded-lg bg-white/[0.025] px-2.5 py-2 ring-1 ring-white/[0.05] ring-inset">
 			<div className="flex min-w-0 items-center gap-2 text-[11px] text-neutral-400">
 				{inputs.length > 0 ? (
 					<span className="flex shrink-0 items-center gap-1.5">
@@ -230,9 +228,9 @@ export function RecipePreview({
 			<CompositionBar digest={d} />
 		</div>
 	);
-}
+});
 
-export function ThumbnailPreview({
+export const ThumbnailPreview = memo(function ThumbnailPreview({
 	data,
 }: {
 	data: PreviewData | null | undefined;
@@ -253,26 +251,28 @@ export function ThumbnailPreview({
 					</div>
 					<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
 						<span className="shrink-0 text-neutral-300 tabular-nums">
-							{d.count} components
+							{d.count} {d.count === 1 ? "component" : "components"}
 						</span>
 						<span className="min-w-0 truncate font-mono text-neutral-500">
 							{d.keyComponents.slice(0, 2).join(" · ")}
 						</span>
 						<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
-							{d.scripts.slice(0, 1).map((s) => (
-								<Chip key={s} tone="script">
-									<Code2 className="size-3" aria-hidden />
-									{s}
-									{d.scripts.length > 1 && ` +${d.scripts.length - 1}`}
-								</Chip>
-							))}
-							{d.plugins.slice(0, 1).map((p) => (
-								<Chip key={p} tone="plugin">
-									<Puzzle className="size-3" aria-hidden />
-									{p}
-									{d.plugins.length > 1 && ` +${d.plugins.length - 1}`}
-								</Chip>
-							))}
+							{d.scripts.length > 0 && (
+								<Chip
+									tone="script"
+									icon={<Code2 className="size-3 shrink-0" aria-hidden />}
+									names={d.scripts}
+									count={d.scriptCount}
+								/>
+							)}
+							{d.plugins.length > 0 && (
+								<Chip
+									tone="plugin"
+									icon={<Puzzle className="size-3 shrink-0" aria-hidden />}
+									names={d.plugins}
+									count={d.pluginCount}
+								/>
+							)}
 						</span>
 					</div>
 				</>
@@ -285,4 +285,4 @@ export function ThumbnailPreview({
 			)}
 		</div>
 	);
-}
+});

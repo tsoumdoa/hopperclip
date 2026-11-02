@@ -14,7 +14,9 @@ const data: PreviewData = {
 	inputs: { sliders: 0, toggles: 0, lists: 0 },
 	keyComponents: ["Move"],
 	scripts: [],
+	scriptCount: 0,
 	plugins: [],
+	pluginCount: 0,
 	nodes: [0, 0, 1000, 500, 0],
 	edges: [],
 	groups: [],
@@ -136,6 +138,18 @@ test("enforces array caps, string lengths, packed geometry and valid counts on t
 		{ ...data, edges: [0, 1] },
 		{ ...data, edges: [0] },
 		{ ...data, count: -1 },
+		...([-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1] as const).flatMap(
+			(count) => [
+				{ ...data, scriptCount: count },
+				{ ...data, pluginCount: count },
+			]
+		),
+		{ ...data, scriptCount: 2 },
+		{ ...data, scripts: ["Python"], scriptCount: 0 },
+		{ ...data, scripts: [], scriptCount: 1 },
+		{ ...data, plugins: ["Kangaroo"], pluginCount: 0 },
+		{ ...data, plugins: [], pluginCount: 1 },
+		{ ...data, plugins: ["Kangaroo"], pluginCount: 4 },
 		{ ...data, inputs: { sliders: 2, toggles: 0, lists: 0 } },
 		{ ...data, groups: [{ x: 0, y: 0, w: 1, h: 1, color: "red" }] },
 	];
@@ -227,3 +241,19 @@ test.each(["delete", "replace"])(
 		).toBeNull();
 	}
 );
+
+test("stores full distinct script and plugin totals with capped name lists", async () => {
+	const { owner, args } = await setup();
+	const capped = {
+		...data,
+		count: 4,
+		scripts: ["Python", "C#", "VB"],
+		scriptCount: 4,
+		plugins: ["LunchBoxML", "Kangaroo", "Human"],
+		pluginCount: 5,
+	};
+	await owner.mutation(api.previews.savePreview, { ...args, data: capped });
+	expect(
+		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
+	).toEqual({ version: PREVIEW_VERSION, data: capped });
+});
