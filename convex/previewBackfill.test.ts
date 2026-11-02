@@ -171,6 +171,28 @@ test("real Workpool cancellation prevents pending fetches and retains claims", a
 	).toHaveLength(1);
 });
 
+test("real Workpool cancellation also stops later pages of a running pass", async () => {
+	const { t, fetch } = poolSetup();
+	// A full first page of malformed keys is skipped, so the only valid post
+	// sits on the scheduled second page.
+	await t.run(async (ctx) => {
+		for (let i = 0; i < 100; i++)
+			await ctx.db.insert("post", {
+				clerkUserId: "alice",
+				bucketUrl: `bad key ${i}`,
+				...dates,
+			});
+	});
+	await addPost(t);
+	await t.mutation(internal.previewBackfill.start, {});
+	await t.mutation(internal.previewBackfill.cancel, {});
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect(fetch).not.toHaveBeenCalled();
+	expect(
+		await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+	).toHaveLength(0);
+});
+
 test.each(["too-complex", "invalid-gzip"])(
 	"real Workpool treats %s as a one-attempt permanent skip",
 	async (failure) => {

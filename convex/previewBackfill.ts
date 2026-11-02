@@ -73,6 +73,14 @@ export const start = internalMutation({
 export const cancel = internalMutation({
 	args: {},
 	handler: async (ctx) => {
+		// Stop the paging pass first so no later page enqueues after cancelAll.
+		const pending = await ctx.db.system
+			.query("_scheduled_functions")
+			.filter((q) => q.eq(q.field("state.kind"), "pending"))
+			.collect();
+		for (const job of pending)
+			if (job.name.replace(/\.js:/, ":") === "previewBackfill:start")
+				await ctx.scheduler.cancel(job._id);
 		// Running attempts can finish, but canceled work will not be retried.
 		await pool.cancelAll(ctx);
 	},
