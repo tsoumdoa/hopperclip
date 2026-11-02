@@ -37,7 +37,8 @@ async function withStorageResponse<T>(
 		try {
 			return await read(response);
 		} finally {
-			await response.body?.cancel();
+			// An errored body can reject cancellation; preserve the read result/error.
+			await response.body?.cancel().catch(() => {});
 		}
 	} finally {
 		clearTimeout(timeout);

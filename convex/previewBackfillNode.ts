@@ -12,6 +12,24 @@ import { validatePreview } from "./previewData";
 import { storageGet, StorageConfigurationError } from "./storageR2";
 
 export const MAX_BACKFILL_XML_BYTES = 12 * 1024 * 1024;
+// ~1.1M tiny tags in 11.5 MiB XML reached ~550 MiB RSS; real all.xml's
+// ~305k tags reached ~222 MiB. Bound structure before parsing in a 512 MiB action.
+export const MAX_BACKFILL_XML_TAGS = 400_000;
+
+function isGzipError(error: unknown): boolean {
+	if (typeof error !== "object" || error === null) return false;
+	const hasZlibCode = (value: object) =>
+		"code" in value &&
+		typeof value.code === "string" &&
+		value.code.startsWith("Z_");
+	return (
+		hasZlibCode(error) ||
+		("cause" in error &&
+			typeof error.cause === "object" &&
+			error.cause !== null &&
+			hasZlibCode(error.cause))
+	);
+}
 
 // Sniff bytes rather than headers: Node fetch may already have decoded gzip,
 // while retaining the stored Content-Encoding and Content-Length headers.
@@ -64,8 +82,8 @@ export async function readXmlBytes(
 				if (size > MAX_BACKFILL_XML_BYTES) return "skipped:too-large";
 				chunks.push(value);
 			}
-		} catch {
-			if (sourceFailed) throw new Error("Storage body read failed");
+		} catch (error) {
+			if (sourceFailed && !isGzipError(error)) throw error;
 			return "skipped:invalid-gzip";
 		}
 		const bytes = new Uint8Array(size);
@@ -75,6 +93,9 @@ export async function readXmlBytes(
 			offset += chunk.byteLength;
 		}
 		return bytes;
+	} catch (error) {
+		if (isGzipError(error)) return "skipped:invalid-gzip";
+		throw error;
 	} finally {
 		await output?.cancel().catch(() => {});
 		output?.releaseLock();
@@ -100,6 +121,10 @@ export async function previewFromResponse(
 		return "skipped:not-xml";
 	}
 	if (!xml.trimStart().startsWith("<")) return "skipped:not-xml";
+	let tags = 0;
+	for (let i = xml.indexOf("<"); i !== -1; i = xml.indexOf("<", i + 1)) {
+		if (++tags > MAX_BACKFILL_XML_TAGS) return "skipped:too-complex";
+	}
 	let parsed: ReturnType<typeof buildGhJson>;
 	try {
 		if (XMLValidator.validate(xml) !== true) return "skipped:parse-error";

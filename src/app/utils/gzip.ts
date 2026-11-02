@@ -1,5 +1,5 @@
 import pako from "pako";
-import { MAX_DECOMPRESSED_GH_XML_BYTES } from "../../types/types";
+import { MAX_DECOMPRESSED_GH_XML_BYTES } from "@/types/types";
 
 export const compress = (data: string) => {
 	const gziped = pako.gzip(data);

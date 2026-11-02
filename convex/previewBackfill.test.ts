@@ -1,10 +1,11 @@
-import { convexTest } from "convex-test";
+import { convexTest, type TestConvex } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
-import { Workpool } from "@convex-dev/workpool";
+import { readFileSync } from "node:fs";
 import { register } from "@convex-dev/workpool/test";
 import { internal } from "./_generated/api";
 import schema from "./schema";
 import { PREVIEW_VERSION, type PreviewData } from "../src/types/preview";
+import { MAX_BACKFILL_XML_TAGS } from "./previewBackfillNode";
 
 const modules = import.meta.glob(["./**/*.ts", "!./**/*.test.ts"]);
 const data: PreviewData = {
@@ -29,27 +30,86 @@ afterEach(() => {
 	vi.clearAllTimers();
 	vi.useRealTimers();
 	vi.restoreAllMocks();
+	vi.unstubAllGlobals();
+	vi.unstubAllEnvs();
 });
 
-test("driver enqueue filters versions, malformed keys and owners and deduplicates each page", async () => {
+function poolSetup() {
+	vi.useFakeTimers();
+	vi.stubEnv("R2_URL", "https://example.test/bucket");
+	vi.stubEnv("R2_ACCESS_KEY_ID", "test-key");
+	vi.stubEnv("R2_SECRET_ACCESS_KEY", "test-secret");
 	const t = convexTest(schema, modules);
 	register(t, "previewBackfillPool");
+	const fetch = vi.fn<typeof globalThis.fetch>();
+	vi.stubGlobal("fetch", fetch);
+	const logs = vi.spyOn(console, "log").mockImplementation(() => {});
+	const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+	const terminalFailures = () =>
+		errors.mock.calls.filter(
+			([message]) => message === "Preview backfill terminal failure"
+		);
+	return { t, fetch, logs, terminalFailures };
+}
+
+async function addPost(t: TestConvex<typeof schema>, bucketUrl = "file") {
+	await t.run((ctx) =>
+		ctx.db.insert("post", {
+			clerkUserId: "alice",
+			bucketUrl,
+			...dates,
+		})
+	);
+}
+
+test.each([503, 404])(
+	"real Workpool bounds HTTP %i attempts and never re-enqueues terminal work",
+	async (status) => {
+		const { t, fetch, terminalFailures } = poolSetup();
+		await addPost(t);
+		fetch.mockImplementation(async () => new Response(null, { status }));
+		await t.mutation(internal.previewBackfill.start, {});
+		await t.finishAllScheduledFunctions(vi.runAllTimers);
+		expect(fetch).toHaveBeenCalledTimes(status === 503 ? 3 : 1);
+		expect(terminalFailures()).toHaveLength(status === 503 ? 1 : 0);
+		await t.mutation(internal.previewBackfill.start, {});
+		await t.finishAllScheduledFunctions(vi.runAllTimers);
+		expect(fetch).toHaveBeenCalledTimes(status === 503 ? 3 : 1);
+		expect(terminalFailures()).toHaveLength(status === 503 ? 1 : 0);
+	}
+);
+
+test("real Workpool deduplicates overlapping starts, pages and completed passes while filtering current previews and invalid posts", async () => {
+	const { t, fetch, terminalFailures } = poolSetup();
+	const xml = readFileSync("parser/sand/xmls/three-grouped.xml", "utf8");
+	fetch.mockImplementation(async () => new Response(xml));
 	await t.run(async (ctx) => {
+		// A fully filtered first page must still schedule the rest of the pass.
+		for (let i = 0; i < 100; i++)
+			await ctx.db.insert("post", {
+				clerkUserId: "alice",
+				bucketUrl: "../bad",
+				...dates,
+			});
 		for (const [clerkUserId, bucketUrl] of [
 			["alice", "current"],
 			["alice", "outdated"],
-			["alice", "missing"],
-			["alice", "missing"],
 			["bob", "current"],
 			[undefined, "unowned"],
 			["", "empty-owner"],
-			["alice", "../bad"],
 			["alice", "https://old.example/file"],
 			["alice", ""],
 		])
 			await ctx.db.insert("post", {
 				clerkUserId,
 				bucketUrl: bucketUrl!,
+				...dates,
+			});
+		// Duplicate files span pages and owners remain independent.
+		for (let i = 0; i < 110; i++)
+			await ctx.db.insert("post", {
+				clerkUserId: "alice",
+				bucketUrl: "missing",
 				...dates,
 			});
 		for (const [storageKey, version] of [
@@ -62,49 +122,94 @@ test("driver enqueue filters versions, malformed keys and owners and deduplicate
 				version,
 				data,
 			});
+		// An older version's permanent claim allows a fresh pass.
+		await ctx.db.insert("previewBackfillClaims", {
+			clerkUserId: "alice",
+			storageKey: "outdated",
+			version: PREVIEW_VERSION - 1,
+		});
 	});
-	vi.useFakeTimers();
-	const enqueue = vi.spyOn(Workpool.prototype, "enqueueAction");
 	await t.mutation(internal.previewBackfill.start, {});
-	expect(enqueue.mock.calls.map((call) => call[2])).toEqual([
-		{ clerkUserId: "alice", storageKey: "outdated" },
-		{ clerkUserId: "alice", storageKey: "missing" },
-		{ clerkUserId: "bob", storageKey: "current" },
+	await t.mutation(internal.previewBackfill.start, {});
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect(
+		fetch.mock.calls
+			.map(([request]) => new URL((request as Request).url).pathname)
+			.sort()
+	).toEqual([
+		"/bucket/alice/missing",
+		"/bucket/alice/outdated",
+		"/bucket/bob/current",
 	]);
-	expect(enqueue).toHaveBeenCalledTimes(3);
+	expect(
+		await t.run((ctx) => ctx.db.query("postPreviews").collect())
+	).toHaveLength(4);
+	expect(
+		await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+	).toHaveLength(4);
+	await t.mutation(internal.previewBackfill.start, {});
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect(fetch).toHaveBeenCalledTimes(3);
+	expect(terminalFailures()).toHaveLength(0);
 });
 
-test("driver schedules through a fully filtered page and paginates to completion", async () => {
-	vi.useFakeTimers();
-	const t = convexTest(schema, modules);
-	register(t, "previewBackfillPool");
-	const enqueue = vi
-		.spyOn(Workpool.prototype, "enqueueAction")
-		.mockResolvedValue(
-			"test-work" as Awaited<ReturnType<Workpool["enqueueAction"]>>
-		);
-	await t.run(async (ctx) => {
-		for (let i = 0; i < 224; i++)
-			await ctx.db.insert("post", {
-				clerkUserId: "alice",
-				bucketUrl: i < 100 ? "../bad" : `key-${i}`,
-				...dates,
-			});
-	});
+test("real Workpool cancellation prevents pending fetches and retains claims", async () => {
+	const { t, fetch, terminalFailures } = poolSetup();
+	await addPost(t);
 	await t.mutation(internal.previewBackfill.start, {});
-	expect(enqueue).not.toHaveBeenCalled();
+	// convex-test assigns fractional creation times; advance the cancelAll cutoff
+	// past the enqueue without running any scheduled work.
+	vi.setSystemTime(Date.now() + 1);
+	await t.mutation(internal.previewBackfill.cancel, {});
 	await t.finishAllScheduledFunctions(vi.runAllTimers);
-	expect(enqueue.mock.calls.map((call) => call[2])).toEqual(
-		Array.from({ length: 124 }, (_, i) => ({
-			clerkUserId: "alice",
-			storageKey: `key-${i + 100}`,
-		}))
-	);
-	const scheduled = await t.run((ctx) =>
-		ctx.db.system.query("_scheduled_functions").collect()
-	);
-	expect(scheduled.every((row) => row.state.kind === "success")).toBe(true);
+	await t.mutation(internal.previewBackfill.start, {});
+	await t.finishAllScheduledFunctions(vi.runAllTimers);
+	expect(fetch).not.toHaveBeenCalled();
+	expect(terminalFailures()).toHaveLength(0);
+	expect(
+		await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+	).toHaveLength(1);
 });
+
+test.each(["too-complex", "invalid-gzip"])(
+	"real Workpool treats %s as a one-attempt permanent skip",
+	async (failure) => {
+		const { t, fetch, logs, terminalFailures } = poolSetup();
+		await addPost(t);
+		fetch.mockImplementation(async () =>
+			failure === "too-complex"
+				? new Response(`<root>${"<b/>".repeat(MAX_BACKFILL_XML_TAGS)}</root>`)
+				: new Response(
+						new ReadableStream({
+							start(controller) {
+								controller.error(
+									new TypeError("terminated", {
+										cause: Object.assign(new Error("corrupt gzip"), {
+											code: "Z_DATA_ERROR",
+										}),
+									})
+								);
+							},
+						}),
+						{ headers: { "content-encoding": "gzip" } }
+					)
+		);
+		await t.mutation(internal.previewBackfill.start, {});
+		await t.finishAllScheduledFunctions(vi.runAllTimers);
+		expect(fetch).toHaveBeenCalledOnce();
+		expect(logs).toHaveBeenCalledWith(
+			"Preview backfill",
+			"alice",
+			"file",
+			`skipped:${failure}`
+		);
+		expect(terminalFailures()).toHaveLength(0);
+		await t.mutation(internal.previewBackfill.start, {});
+		await t.finishAllScheduledFunctions(vi.runAllTimers);
+		expect(fetch).toHaveBeenCalledOnce();
+	}
+);
+
 test("internal saves enforce ownership and version, upsert, and remain idempotent", async () => {
 	const t = convexTest(schema, modules);
 	register(t, "previewBackfillPool");

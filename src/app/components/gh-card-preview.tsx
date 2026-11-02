@@ -130,7 +130,7 @@ const canvasBg =
 	"bg-black/30 [background-image:radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:10px_10px]";
 
 function PreviewBand(props: {
-	data: PreviewData | null | undefined;
+	missing?: boolean;
 	className: string;
 	children?: React.ReactNode;
 }) {
@@ -142,13 +142,13 @@ function PreviewBand(props: {
 				props.className
 			)}
 		>
-			{props.data
-				? props.children
-				: props.data === null && (
-						<div className="flex h-full items-center justify-center text-[11px] text-neutral-600">
-							Preview appears after you open this card
-						</div>
-					)}
+			{props.missing ? (
+				<div className="flex h-full items-center justify-center text-[11px] text-neutral-600">
+					Preview appears after you open this card
+				</div>
+			) : (
+				props.children
+			)}
 		</div>
 	);
 }
@@ -215,7 +215,7 @@ export const RecipePreview = memo(function RecipePreview({
 	data: PreviewData | null | undefined;
 }) {
 	const d = data ? renderDigest(data) : null;
-	if (!d) return <PreviewBand data={data} className="h-14" />;
+	if (!d) return <PreviewBand missing={data === null} className="h-14" />;
 	const inputs = [
 		{ n: d.inputs.sliders, Icon: SlidersHorizontal, label: "sliders" },
 		{ n: d.inputs.toggles, Icon: ToggleLeft, label: "toggles" },
@@ -223,10 +223,7 @@ export const RecipePreview = memo(function RecipePreview({
 	].filter((i) => i.n > 0);
 	const ops = [...d.scripts, ...d.keyComponents].slice(0, 2);
 	return (
-		<PreviewBand
-			data={data}
-			className="flex h-14 flex-col justify-center gap-2 px-3"
-		>
+		<PreviewBand className="flex h-14 flex-col justify-center gap-2 px-3">
 			<div className="flex min-w-0 items-center gap-2 text-[11px] text-neutral-400">
 				{inputs.length > 0 ? (
 					<span className="flex shrink-0 items-center gap-1.5">
@@ -263,40 +260,38 @@ export const ThumbnailPreview = memo(function ThumbnailPreview({
 	data: PreviewData | null | undefined;
 }) {
 	const d = data ? renderDigest(data) : null;
-	if (!d) return <PreviewBand data={data} className="h-28" />;
+	if (!d) return <PreviewBand missing={data === null} className="h-28" />;
 	return (
-		<PreviewBand data={data} className="h-28">
-			<>
-				<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
-					<Silhouette digest={d} dense={d.count > 60} />
-				</div>
-				<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
-					<span className="shrink-0 text-neutral-300 tabular-nums">
-						{d.count} {d.count === 1 ? "component" : "components"}
-					</span>
-					<span className="min-w-0 truncate font-mono text-neutral-500">
-						{d.keyComponents.slice(0, 2).join(" · ")}
-					</span>
-					<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
-						{d.scripts.length > 0 && (
-							<Chip
-								tone="script"
-								icon={<Code2 className="size-3 shrink-0" aria-hidden />}
-								names={d.scripts}
-								count={d.scriptCount}
-							/>
-						)}
-						{d.plugins.length > 0 && (
-							<Chip
-								tone="plugin"
-								icon={<Puzzle className="size-3 shrink-0" aria-hidden />}
-								names={d.plugins}
-								count={d.pluginCount}
-							/>
-						)}
-					</span>
-				</div>
-			</>
+		<PreviewBand className="h-28">
+			<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
+				<Silhouette digest={d} dense={d.count > 60} />
+			</div>
+			<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
+				<span className="shrink-0 text-neutral-300 tabular-nums">
+					{d.count} {d.count === 1 ? "component" : "components"}
+				</span>
+				<span className="min-w-0 truncate font-mono text-neutral-500">
+					{d.keyComponents.slice(0, 2).join(" · ")}
+				</span>
+				<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
+					{d.scripts.length > 0 && (
+						<Chip
+							tone="script"
+							icon={<Code2 className="size-3 shrink-0" aria-hidden />}
+							names={d.scripts}
+							count={d.scriptCount}
+						/>
+					)}
+					{d.plugins.length > 0 && (
+						<Chip
+							tone="plugin"
+							icon={<Puzzle className="size-3 shrink-0" aria-hidden />}
+							names={d.plugins}
+							count={d.pluginCount}
+						/>
+					)}
+				</span>
+			</div>
 		</PreviewBand>
 	);
 });

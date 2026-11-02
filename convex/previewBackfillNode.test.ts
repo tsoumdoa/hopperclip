@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
+import { XMLValidator } from "fast-xml-parser";
 import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
 import { buildGhJson } from "../parser/src/parser";
@@ -7,6 +8,7 @@ import * as previewBuilder from "../src/app/lib/build-preview";
 import { validatePreview } from "./previewData";
 import {
 	MAX_BACKFILL_XML_BYTES,
+	MAX_BACKFILL_XML_TAGS,
 	previewFromResponse,
 	readXmlBytes,
 } from "./previewBackfillNode";
@@ -113,6 +115,56 @@ test("build failures return a status", async () => {
 		"skipped:build-error"
 	);
 });
+
+test("structural budget skips tiny-element XML before parsing, with an inclusive tag limit", async () => {
+	const validate = vi.spyOn(XMLValidator, "validate").mockReturnValue({
+		err: { code: "InvalidTag", msg: "test", line: 1, col: 1 },
+	});
+	const atLimit = `<root>${"<b/>".repeat(MAX_BACKFILL_XML_TAGS - 2)}</root>`;
+	expect(atLimit.length).toBeLessThan(MAX_BACKFILL_XML_BYTES);
+	expect(await previewFromResponse(new Response(atLimit))).toBe(
+		"skipped:parse-error"
+	);
+	expect(validate).toHaveBeenCalledOnce();
+	validate.mockClear();
+	for (const body of [
+		atLimit.replace("</root>", "<b/></root>"),
+		gzipSync(atLimit.replace("</root>", "<b/></root>")),
+	]) {
+		expect(await previewFromResponse(new Response(body))).toBe(
+			"skipped:too-complex"
+		);
+	}
+	expect(validate).not.toHaveBeenCalled();
+});
+
+test.each(["prefix", "pull"])(
+	"auto-decoding gzip errors in %s reads return a deterministic skip",
+	async (phase) => {
+		for (const nested of [false, true]) {
+			const zlibError = Object.assign(new Error("corrupt gzip"), {
+				code: "Z_DATA_ERROR",
+			});
+			const error = nested
+				? new TypeError("terminated", { cause: zlibError })
+				: zlibError;
+			let reads = 0;
+			const response = new Response(
+				new ReadableStream({
+					pull(controller) {
+						if (phase === "pull" && reads++ === 0)
+							controller.enqueue(new TextEncoder().encode("<Archive>"));
+						else controller.error(error);
+					},
+				}),
+				{ headers: { "content-encoding": "gzip" } }
+			);
+			await expect(previewFromResponse(response)).resolves.toBe(
+				"skipped:invalid-gzip"
+			);
+		}
+	}
+);
 
 test.each([429, 503])("transient HTTP %i throws", async (status) => {
 	await expect(

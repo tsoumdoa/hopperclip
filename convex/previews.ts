@@ -42,6 +42,13 @@ export async function deletePreview(
 ) {
 	const row = await findPreview(ctx, clerkUserId, storageKey);
 	if (row) await ctx.db.delete(row._id);
+	const claims = await ctx.db
+		.query("previewBackfillClaims")
+		.withIndex("by_user_key_version", (q) =>
+			q.eq("clerkUserId", clerkUserId).eq("storageKey", storageKey)
+		)
+		.collect();
+	for (const claim of claims) await ctx.db.delete(claim._id);
 }
 
 export async function savePreviewForUser(

@@ -176,6 +176,14 @@ test("rename preserves previews; replacement and deletion clean up only the owne
 	await owner.mutation(api.previews.savePreview, args);
 	await t.run(async (ctx) => {
 		await ctx.db.insert("postPreviews", { clerkUserId: "bob", ...args });
+		for (const clerkUserId of ["alice", "bob"])
+			for (const version of [0, PREVIEW_VERSION])
+				for (const storageKey of ["old-file", "new-file"])
+					await ctx.db.insert("previewBackfillClaims", {
+						clerkUserId,
+						storageKey,
+						version,
+					});
 		await ctx.db.insert("storageObjects", {
 			clerkUserId: "alice",
 			key: "new-file",
@@ -188,10 +196,16 @@ test("rename preserves previews; replacement and deletion clean up only the owne
 	expect(
 		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
 	).not.toBeNull();
+	expect(
+		await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+	).toHaveLength(8);
 	await owner.mutation(api.ghCard.updatePost, { id: postId, uid: "new-file" });
 	expect(
 		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
 	).toBeNull();
+	expect(
+		await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+	).toHaveLength(6);
 	await owner.mutation(api.previews.savePreview, {
 		...args,
 		storageKey: "new-file",
@@ -205,6 +219,11 @@ test("rename preserves previews; replacement and deletion clean up only the owne
 	);
 	expect(remaining).toHaveLength(1);
 	expect(remaining[0].clerkUserId).toBe("bob");
+	const claims = await t.run((ctx) =>
+		ctx.db.query("previewBackfillClaims").collect()
+	);
+	expect(claims).toHaveLength(4);
+	expect(claims.every((claim) => claim.clerkUserId === "bob")).toBe(true);
 });
 
 test.each(["delete", "replace"])(
@@ -213,6 +232,11 @@ test.each(["delete", "replace"])(
 		const { t, owner, args, postId } = await setup();
 		await owner.mutation(api.previews.savePreview, args);
 		const sibling = await t.run(async (ctx) => {
+			await ctx.db.insert("previewBackfillClaims", {
+				clerkUserId: "alice",
+				storageKey: args.storageKey,
+				version: PREVIEW_VERSION,
+			});
 			const post = (await ctx.db.get(postId))!;
 			const id = await ctx.db.insert("post", {
 				clerkUserId: post.clerkUserId,
@@ -242,12 +266,18 @@ test.each(["delete", "replace"])(
 				storageKey: args.storageKey,
 			})
 		).toEqual({ version: PREVIEW_VERSION, data });
+		expect(
+			await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+		).toHaveLength(1);
 		await owner.mutation(api.ghCard.deletePost, { id: sibling });
 		expect(
 			await owner.query(api.previews.getPreview, {
 				storageKey: args.storageKey,
 			})
 		).toBeNull();
+		expect(
+			await t.run((ctx) => ctx.db.query("previewBackfillClaims").collect())
+		).toHaveLength(0);
 	}
 );
 
