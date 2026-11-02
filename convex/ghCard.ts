@@ -19,7 +19,6 @@ import {
 	attachUploadedObject,
 	enqueueUnreferencedObject,
 } from "./storageLifecycle";
-import { deletePreview } from "./previews";
 
 const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
 const MAX_SHARE_EXPIRY_HOURS = 24 * 30;
@@ -103,7 +102,6 @@ export const deletePost = mutation({
 			await ctx.db.delete(share._id);
 		}
 
-		await deletePreview(ctx, post.clerkUserId, post.bucketUrl);
 		await ctx.db.delete(args.id);
 		await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
 	},
@@ -154,7 +152,6 @@ export const updatePost = mutation({
 			...(replacing && { bucketUrl }),
 		});
 		if (replacing) {
-			await deletePreview(ctx, post.clerkUserId, post.bucketUrl);
 			await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
 		}
 	},

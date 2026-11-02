@@ -252,17 +252,18 @@ export function ThumbnailPreview({
 						<Silhouette digest={d} dense={d.count > 60} />
 					</div>
 					<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
-						<span className="text-neutral-300 tabular-nums">
+						<span className="shrink-0 text-neutral-300 tabular-nums">
 							{d.count} components
 						</span>
 						<span className="min-w-0 truncate font-mono text-neutral-500">
 							{d.keyComponents.slice(0, 2).join(" · ")}
 						</span>
-						<span className="ml-auto flex shrink-0 gap-1">
-							{d.scripts.map((s) => (
+						<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
+							{d.scripts.slice(0, 1).map((s) => (
 								<Chip key={s} tone="script">
 									<Code2 className="size-3" aria-hidden />
 									{s}
+									{d.scripts.length > 1 && ` +${d.scripts.length - 1}`}
 								</Chip>
 							))}
 							{d.plugins.slice(0, 1).map((p) => (

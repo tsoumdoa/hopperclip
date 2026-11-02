@@ -11,7 +11,7 @@ export function useSavePreview() {
 	return useCallback(
 		(storageKey: string, source: string | ParsedGrasshopper) => {
 			// Defer parsing and never let optional preview work fail the user action.
-			void Promise.resolve()
+			void new Promise<void>((resolve) => setTimeout(resolve, 0))
 				.then(async () => {
 					const parsed =
 						typeof source === "string"

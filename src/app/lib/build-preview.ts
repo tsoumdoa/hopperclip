@@ -6,6 +6,16 @@ import {
 	type PreviewKind,
 } from "../../types/preview";
 import { getComponentNodeType } from "../duckerweb/lib/node-classifier";
+import {
+	indexDefinition,
+	resolveEndpointComponent,
+} from "../duckerweb/lib/gh-diff/definition-index";
+
+const CANVAS_GROUP_GUID = "c552a431-af5b-46a9-a8a4-0fcbc27ef596";
+
+function isCanvasGroup(component: Component) {
+	return component.typeGuid === CANVAS_GROUP_GUID;
+}
 
 function libraryName(name: string) {
 	return name.replace(/\s+v\d.*$/i, "").trim();
@@ -83,7 +93,7 @@ function names(values: string[], cap: number) {
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	const all = Object.values(parsed.components);
-	const components = all.filter((c) => getComponentNodeType(c) !== "group");
+	const components = all.filter((c) => !isCanvasGroup(c));
 	const data: PreviewData = {
 		count: components.length,
 		inputs: { sliders: 0, toggles: 0, lists: 0 },
@@ -128,14 +138,45 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		PREVIEW_CAPS.plugins
 	);
 
-	const bounded = all.filter((c) => validBounds(c.visuals?.bounds));
+	const bounds = new Map<string, NonNullable<Visuals["bounds"]>>();
+	function boundsOf(
+		c: Component,
+		visiting = new Set<string>()
+	): Visuals["bounds"] {
+		if (visiting.has(c.id)) return undefined;
+		if (bounds.has(c.id)) return bounds.get(c.id);
+		let b = c.visuals?.bounds;
+		if (isCanvasGroup(c) && c.members?.length) {
+			visiting.add(c.id);
+			const members = c.members.flatMap((id) => {
+				const member = parsed.components[id];
+				const rect = member && boundsOf(member, visiting);
+				return rect ? [rect] : [];
+			});
+			visiting.delete(c.id);
+			if (members.length) {
+				const x = Math.min(...members.map((b) => b.x)) - 10;
+				const y = Math.min(...members.map((b) => b.y)) - 10;
+				b = {
+					x,
+					y,
+					width: Math.max(...members.map((b) => b.x + b.width)) + 10 - x,
+					height: Math.max(...members.map((b) => b.y + b.height)) + 10 - y,
+				};
+			}
+		}
+		if (!validBounds(b)) return undefined;
+		bounds.set(c.id, b);
+		return b;
+	}
+	const bounded = all.filter((c) => boundsOf(c));
 	if (!bounded.length) return data;
 	let minX = Infinity,
 		minY = Infinity,
 		maxX = -Infinity,
 		maxY = -Infinity;
 	for (const c of bounded) {
-		const b = c.visuals!.bounds!;
+		const b = bounds.get(c.id)!;
 		minX = Math.min(minX, b.x);
 		minY = Math.min(minY, b.y);
 		maxX = Math.max(maxX, b.x + b.width);
@@ -145,7 +186,7 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	if (!Number.isFinite(extent)) return data;
 	const scale = extent > 0 ? 1000 / extent : 1;
 	const rect = (c: Component) => {
-		const b = c.visuals!.bounds!;
+		const b = bounds.get(c.id)!;
 		return [
 			Math.round((b.x - minX) * scale),
 			Math.round((b.y - minY) * scale),
@@ -153,7 +194,7 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 			Math.round(b.height * scale),
 		];
 	};
-	const candidates = bounded.filter((c) => getComponentNodeType(c) !== "group");
+	const candidates = bounded.filter((c) => !isCanvasGroup(c));
 	const kept = Math.min(candidates.length, PREVIEW_CAPS.nodes);
 	const indices = new Map<string, number>();
 	for (let i = 0; i < kept; i++) {
@@ -164,16 +205,17 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		indices.set(c.id, i);
 		data.nodes.push(...rect(c), PREVIEW_KINDS.indexOf(kindOf(c)));
 	}
+	const definition = indexDefinition(parsed);
 	for (const wire of parsed.wires) {
-		const source = indices.get(wire.from.split(".")[0]);
-		const target = indices.get(wire.to.split(".")[0]);
+		const sourceId = resolveEndpointComponent(definition, wire.from);
+		const targetId = resolveEndpointComponent(definition, wire.to);
+		const source = sourceId === undefined ? undefined : indices.get(sourceId);
+		const target = targetId === undefined ? undefined : indices.get(targetId);
 		if (source !== undefined && target !== undefined)
 			data.edges.push(source, target);
 		if (data.edges.length >= PREVIEW_CAPS.edges * 2) break;
 	}
-	for (const c of bounded
-		.filter((c) => getComponentNodeType(c) === "group")
-		.slice(0, PREVIEW_CAPS.groups)) {
+	for (const c of bounded.filter(isCanvasGroup).slice(0, PREVIEW_CAPS.groups)) {
 		const [x, y, w, h] = rect(c);
 		data.groups.push({ x, y, w, h, color: groupColor(c.visuals?.color) });
 	}

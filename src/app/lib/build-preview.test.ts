@@ -6,6 +6,14 @@ import { ghFileToGhXml } from "../utils/gh-file";
 import { PREVIEW_CAPS, PREVIEW_KINDS } from "../../types/preview";
 import { buildPreview } from "./build-preview";
 
+const CANVAS_GROUP_GUID = "c552a431-af5b-46a9-a8a4-0fcbc27ef596";
+
+function fixture(name: string) {
+	return buildGhJson(readFileSync(`parser/sand/xmls/${name}`, "utf8"), {
+		includeVisuals: true,
+	});
+}
+
 function component(id: string, overrides: Partial<Component> = {}): Component {
 	return {
 		id,
@@ -55,6 +63,7 @@ test("counts unbounded components, excludes groups, classifies inputs/scripts/pl
 		component("plugin", { nickName: "Mesh+", library: "Kangaroo v2.0" }),
 		component("group", {
 			type: "Group",
+			typeGuid: CANVAS_GROUP_GUID,
 			visuals: {
 				bounds: { x: -10, y: -30, width: 100, height: 100 },
 				color: "127;12;34;56",
@@ -96,7 +105,7 @@ test("caps all arrays and names, evenly samples nodes including both ends, and k
 		})
 	);
 	const groups = Array.from({ length: 50 }, (_, i) =>
-		component(`g${i}`, { type: "Group" })
+		component(`g${i}`, { type: "Group", typeGuid: CANVAS_GROUP_GUID })
 	);
 	const parsed: ParsedGrasshopper = {
 		version: "1",
@@ -160,4 +169,140 @@ test("normalizes sub-unit bounds and handles a single point without division by 
 		});
 	expect(build(0.5, 0.25).nodes).toEqual([0, 0, 1000, 500, 0]);
 	expect(build(0, 0).nodes).toEqual([0, 0, 0, 0, 0]);
+});
+
+test.each([
+	["three-grouped.xml", 1],
+	["multi-groups.xml", 3],
+	["riley-and-group.xml", 1],
+] as const)("derives enclosing group rectangles from %s", (name, count) => {
+	const parsed = fixture(name);
+	const original = structuredClone(parsed);
+	const preview = buildPreview(parsed);
+	const all = Object.values(parsed.components);
+	const groups = all.filter((c) => c.typeGuid === CANVAS_GROUP_GUID);
+	const nodes = all.filter(
+		(c) => c.typeGuid !== CANVAS_GROUP_GUID && c.visuals?.bounds
+	);
+	expect(nodes.length).toBeLessThanOrEqual(PREVIEW_CAPS.nodes);
+	expect(preview.groups).toHaveLength(count);
+	for (const [i, group] of groups.entries()) {
+		expect(group.visuals?.bounds).toBeUndefined();
+		expect(group.members?.length).toBeGreaterThan(0);
+		const rect = preview.groups[i];
+		for (const id of group.members ?? []) {
+			const memberGroup = groups.findIndex((c) => c.id === id);
+			const node = nodes.findIndex((c) => c.id === id);
+			const nested = preview.groups[memberGroup];
+			const [x, y, w, h] =
+				memberGroup >= 0
+					? [nested.x, nested.y, nested.w, nested.h]
+					: preview.nodes.slice(node * 5, node * 5 + 4);
+			expect(memberGroup >= 0 || node >= 0).toBe(true);
+			expect(rect.x).toBeLessThanOrEqual(x);
+			expect(rect.y).toBeLessThanOrEqual(y);
+			expect(rect.x + rect.w).toBeGreaterThanOrEqual(x + w - 1);
+			expect(rect.y + rect.h).toBeGreaterThanOrEqual(y + h - 1);
+		}
+	}
+	expect(parsed).toEqual(original);
+});
+
+test("recurses into nested groups and terminates on cyclic or missing members", () => {
+	const items = [
+		component("a"),
+		component("inner", {
+			type: "Group",
+			typeGuid: CANVAS_GROUP_GUID,
+			members: ["a", "outer", "missing"],
+			visuals: undefined,
+		}),
+		component("outer", {
+			type: "Group",
+			typeGuid: CANVAS_GROUP_GUID,
+			members: ["inner"],
+			visuals: undefined,
+		}),
+	];
+	const parsed = {
+		version: "1",
+		components: Object.fromEntries(items.map((c) => [c.id, c])),
+		wires: [],
+	};
+	const data = buildPreview(parsed);
+	expect(data.groups).toHaveLength(2);
+	expect(data.groups[1].w).toBeGreaterThan(data.groups[0].w);
+	expect(data.groups[1].h).toBeGreaterThan(data.groups[0].h);
+	expect(data.nodes.every(Number.isFinite)).toBe(true);
+	expect(buildPreview(parsed)).toEqual(data);
+});
+
+test("counts the real Group operation and Grp parameter as nodes and keeps their wires", () => {
+	const parsed = fixture("all.xml");
+	const operation = Object.values(parsed.components).find(
+		(c) => c.typeGuid === "874eebe7-835b-4f4f-9811-97e031c41597"
+	)!;
+	const param = Object.values(parsed.components).find(
+		(c) => c.typeGuid === "b0851fc0-ab55-47d8-bdda-cc6306a40176"
+	)!;
+	expect(operation.type).toBe("Group");
+	expect(param.type).toBe("Group");
+	const data = buildPreview({
+		...parsed,
+		components: { [operation.id]: operation, [param.id]: param },
+		wires: [{ from: `${operation.id}.G`, to: `${param.id}.G` }],
+	});
+	expect(data.count).toBe(2);
+	expect(data.nodes).toHaveLength(10);
+	expect(data.keyComponents).toContain(operation.nickName);
+	expect(data.edges).toEqual([0, 1]);
+	expect(data.groups).toEqual([]);
+});
+
+test("keeps real Group-component wires and the .01ChildCutter edge", () => {
+	const parsed = fixture(
+		"user_2wqbnxvyl1Wpms6P31fLGrwH2c3_w01KJ2ROEV8GrxvrtHv1A.xml"
+	);
+	const components = Object.values(parsed.components).filter(
+		(c) => c.typeGuid !== CANVAS_GROUP_GUID
+	);
+	const operation = components.find(
+		(c) => c.typeGuid === "874eebe7-835b-4f4f-9811-97e031c41597"
+	)!;
+	expect(components.length).toBeLessThan(PREVIEW_CAPS.nodes);
+	expect(parsed.wires).toContainEqual(
+		expect.objectContaining({
+			from: ".01ChildCutter.content",
+			to: "Partition.l",
+		})
+	);
+	const data = buildPreview(parsed);
+	expect(data.count).toBe(components.length);
+	const index = (id: string) => components.findIndex((c) => c.id === id);
+	// Three other wires point outside the copied fixture and are omitted.
+	expect(data.edges).toEqual([
+		index(".01ChildCutter"),
+		index("Partition"),
+		index("TStat"),
+		index("Partition"),
+		index("Path Mapper"),
+		index(operation.id),
+		index(operation.id),
+		index("Trim"),
+		index("Partition"),
+		index("Path Mapper"),
+	]);
+});
+
+test("resolves dotted component ids by longest prefix without miswiring A.B to A", () => {
+	const items = [component("A"), component("A.B"), component("target")];
+	const data = buildPreview({
+		version: "1",
+		components: Object.fromEntries(items.map((c) => [c.id, c])),
+		wires: [
+			{ from: "A.B.out", to: "target.in" },
+			{ from: "A.out", to: "A.B.in" },
+		],
+	});
+	expect(data.edges).toEqual([1, 2, 0, 1]);
 });

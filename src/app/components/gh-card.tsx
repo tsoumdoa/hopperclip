@@ -70,7 +70,7 @@ export default function GHCard(props: {
 	const previewData =
 		preview === undefined
 			? undefined
-			: preview && preview.version >= PREVIEW_VERSION
+			: preview && preview.version === PREVIEW_VERSION
 				? preview.data
 				: null;
 
@@ -114,10 +114,13 @@ export default function GHCard(props: {
 	const handleCardClick = async () => {
 		if (editMode) return;
 		setOpenMetricsDialog(true);
-		await loadMetrics({
-			postId: props.cardInfo._id,
-			bucketKey: props.cardInfo.bucketUrl,
-		});
+		await loadMetrics(
+			{
+				postId: props.cardInfo._id,
+				bucketKey: props.cardInfo.bucketUrl,
+			},
+			!!previewData
+		);
 	};
 
 	if (deleting) {
@@ -229,15 +232,16 @@ export default function GHCard(props: {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<span
-											className="inline-flex items-center gap-1"
-											aria-label={`Copied ${props.cardInfo.usageCount} times`}
+											className="focus-visible:ring-ring inline-flex items-center gap-1 rounded focus-visible:ring-2 focus-visible:outline-none"
+											tabIndex={0}
 										>
 											· <Copy className="size-3" aria-hidden />{" "}
 											{props.cardInfo.usageCount}
 										</span>
 									</TooltipTrigger>
 									<TooltipContent>
-										Copied {props.cardInfo.usageCount} times
+										Copied {props.cardInfo.usageCount}{" "}
+										{props.cardInfo.usageCount === 1 ? "time" : "times"}
 									</TooltipContent>
 								</Tooltip>
 							)}

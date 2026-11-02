@@ -22,7 +22,7 @@ interface ScriptMetricsState {
 	parsedData: ParsedGrasshopper | null;
 	loading: boolean;
 	error: string | null;
-	loadMetrics: (target: GhXmlTarget) => Promise<void>;
+	loadMetrics: (target: GhXmlTarget, hasPreview?: boolean) => Promise<void>;
 	reset: () => void;
 }
 
@@ -38,7 +38,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 	const { downloadData } = useFetchGhXml();
 
 	const loadMetrics = useCallback(
-		async (target: GhXmlTarget) => {
+		async (target: GhXmlTarget, hasPreview = false) => {
 			setLoading(true);
 			setError(null);
 
@@ -46,7 +46,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 				const decoded = await downloadData(target);
 				const parsed = buildGhJson(decoded, { includeVisuals: true });
 				setParsedData(parsed);
-				savePreview(target.bucketKey, parsed);
+				if (!hasPreview) savePreview(target.bucketKey, parsed);
 
 				const componentsCount = Object.keys(parsed.components).length;
 				const ghLibs = parsed.metadata?.libraries;

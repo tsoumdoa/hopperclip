@@ -8,14 +8,14 @@ function preference(value: string | null): CardPreviewPreference {
 }
 
 export function useCardPreviewPreference() {
-	const [cardPreview, setCardPreview] =
-		useState<CardPreviewPreference>("thumbnail");
-	useEffect(() => {
+	const [cardPreview, setCardPreview] = useState<CardPreviewPreference>(() => {
 		try {
-			setCardPreview(preference(localStorage.getItem(STORAGE_KEY)));
+			return preference(localStorage.getItem(STORAGE_KEY));
 		} catch {
-			/* Storage may be unavailable. */
+			return "thumbnail";
 		}
+	});
+	useEffect(() => {
 		const onStorage = (event: StorageEvent) => {
 			if (event.key === STORAGE_KEY || event.key === null)
 				setCardPreview(preference(event.newValue));

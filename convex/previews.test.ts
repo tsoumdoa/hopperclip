@@ -2,7 +2,11 @@ import { convexTest } from "convex-test";
 import { expect, test } from "vitest";
 import { api } from "./_generated/api";
 import schema from "./schema";
-import { PREVIEW_CAPS, type PreviewData } from "../src/types/preview";
+import {
+	PREVIEW_CAPS,
+	PREVIEW_VERSION,
+	type PreviewData,
+} from "../src/types/preview";
 
 const modules = import.meta.glob(["./**/*.ts", "!./**/*.test.ts"]);
 const data: PreviewData = {
@@ -66,23 +70,52 @@ test("previews require authentication and ownership of the storage key", async (
 	).toEqual({ version: 1, data });
 });
 
-test("same or older versions are no-ops and a newer version replaces the digest", async () => {
+test("current previews are no-ops and only the current version can be saved", async () => {
 	const { t, owner, args } = await setup();
-	await owner.mutation(api.previews.savePreview, { ...args, version: 2 });
+	await owner.mutation(api.previews.savePreview, args);
 	const before = await t.run((ctx) => ctx.db.query("postPreviews").collect());
-	for (const version of [1, 2])
-		await owner.mutation(api.previews.savePreview, {
-			...args,
-			version,
-			data: { ...data, keyComponents: ["Changed"] },
-		});
+	await owner.mutation(api.previews.savePreview, {
+		...args,
+		data: { ...data, keyComponents: ["Changed"] },
+	});
+	for (const version of [-1, 0, 0.5, PREVIEW_VERSION + 1, 100])
+		await expect(
+			owner.mutation(api.previews.savePreview, { ...args, version })
+		).rejects.toThrow("Invalid preview version");
 	expect(await t.run((ctx) => ctx.db.query("postPreviews").collect())).toEqual(
 		before
 	);
-	await owner.mutation(api.previews.savePreview, { ...args, version: 3 });
-	expect(
-		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
-	).toEqual({ version: 3, data });
+});
+
+test.each([0, PREVIEW_VERSION + 1])(
+	"replaces an incompatible stored version %s",
+	async (version) => {
+		const { t, owner, args } = await setup();
+		await t.run((ctx) =>
+			ctx.db.insert("postPreviews", {
+				clerkUserId: "alice",
+				...args,
+				version,
+				data: { ...data, keyComponents: ["Old"] },
+			})
+		);
+		await owner.mutation(api.previews.savePreview, args);
+		expect(
+			await owner.query(api.previews.getPreview, {
+				storageKey: args.storageKey,
+			})
+		).toEqual({ version: PREVIEW_VERSION, data });
+	}
+);
+
+test("malformed legacy keys return no preview instead of throwing", async () => {
+	const { t, owner, postId } = await setup();
+	for (const storageKey of ["../invalid", "https://old.example/file", ""]) {
+		await t.run((ctx) => ctx.db.patch(postId, { bucketUrl: storageKey }));
+		expect(
+			await owner.query(api.previews.getPreview, { storageKey })
+		).toBeNull();
+	}
 });
 
 test("enforces array caps, string lengths, packed geometry and valid counts on the server", async () => {
@@ -150,3 +183,47 @@ test("rename preserves previews; replacement and deletion clean up only the owne
 	expect(remaining).toHaveLength(1);
 	expect(remaining[0].clerkUserId).toBe("bob");
 });
+
+test.each(["delete", "replace"])(
+	"%s keeps a shared legacy preview until the last post reference is removed",
+	async (action) => {
+		const { t, owner, args, postId } = await setup();
+		await owner.mutation(api.previews.savePreview, args);
+		const sibling = await t.run(async (ctx) => {
+			const post = (await ctx.db.get(postId))!;
+			const id = await ctx.db.insert("post", {
+				clerkUserId: post.clerkUserId,
+				name: "Sibling",
+				bucketUrl: post.bucketUrl,
+				dateCreated: post.dateCreated,
+				dateUpdated: post.dateUpdated,
+			});
+			await ctx.db.insert("storageObjects", {
+				clerkUserId: "alice",
+				key: "new-file",
+				state: "uploaded",
+				expiresAt: Date.now() + 60000,
+				attempts: 0,
+			});
+			return id;
+		});
+		if (action === "delete")
+			await owner.mutation(api.ghCard.deletePost, { id: postId });
+		else
+			await owner.mutation(api.ghCard.updatePost, {
+				id: postId,
+				uid: "new-file",
+			});
+		expect(
+			await owner.query(api.previews.getPreview, {
+				storageKey: args.storageKey,
+			})
+		).toEqual({ version: PREVIEW_VERSION, data });
+		await owner.mutation(api.ghCard.deletePost, { id: sibling });
+		expect(
+			await owner.query(api.previews.getPreview, {
+				storageKey: args.storageKey,
+			})
+		).toBeNull();
+	}
+);
