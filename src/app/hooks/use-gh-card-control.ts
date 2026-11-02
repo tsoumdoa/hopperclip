@@ -7,8 +7,10 @@ import { uploadCompressedXml } from "../utils/upload";
 import { compress } from "../utils/gzip";
 import { useXmlPasteHandler } from "../components/gh-card-xml-paste";
 import { useGhXmlClient } from "../providers/GhXmlCacheProvider";
+import { useSavePreview } from "./use-save-preview";
 
 export default function useGhCardControl(cardInfo: GhPost) {
+	const savePreview = useSavePreview();
 	const xmlClient = useGhXmlClient();
 	const deletePostConvex = useMutation(convex.ghCard.deletePost);
 	const updatePost = useMutation(convex.ghCard.updatePost);
@@ -131,6 +133,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 					tags: newTags.current,
 					uid: newBucketUrl,
 				});
+				savePreview(newBucketUrl, newXmlData);
 				xmlClient.invalidate(cardInfo._id);
 			} catch (error) {
 				setXmlError("Failed to update XML: " + String(error));

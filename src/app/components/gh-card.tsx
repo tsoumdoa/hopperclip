@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Copy, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InvalidValueDialog } from "./gh-card-dialog";
 import { DateDisplay } from "./gh-card-date-display";
@@ -12,8 +12,20 @@ import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
 import { useEffect, useState } from "react";
-import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
+import {
+	useGhCardsPageActions,
+	useGhCardsPageState,
+} from "@/app/ghcards/contexts/gh-cards-page-context";
 import { GhPost } from "@/types/types";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { PREVIEW_VERSION } from "@/types/preview";
+import { RecipePreview, ThumbnailPreview } from "./gh-card-preview";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function GHCard(props: {
 	cardInfo: GhPost;
@@ -50,6 +62,17 @@ export default function GHCard(props: {
 		editMode
 	);
 	const { setCardEditing } = useGhCardsPageActions();
+	const { cardPreview } = useGhCardsPageState();
+	const preview = useQuery(
+		api.previews.getPreview,
+		cardPreview === "off" ? "skip" : { storageKey: props.cardInfo.bucketUrl }
+	);
+	const previewData =
+		preview === undefined
+			? undefined
+			: preview && preview.version >= PREVIEW_VERSION
+				? preview.data
+				: null;
 
 	useEffect(() => {
 		const cardId = props.cardInfo._id;
@@ -145,6 +168,9 @@ export default function GHCard(props: {
 					setOpen={() => setInvalidInput(false)}
 				/>
 
+				{!isEditing && cardPreview === "thumbnail" && (
+					<ThumbnailPreview data={previewData} />
+				)}
 				<NameDescriptionAndTags
 					editMode={editMode}
 					setGhInfo={setGhInfo}
@@ -163,6 +189,10 @@ export default function GHCard(props: {
 								Shared
 							</button>
 						)
+					}
+					previewSlot={
+						!isEditing &&
+						cardPreview === "recipe" && <RecipePreview data={previewData} />
 					}
 					tagsSlot={
 						ghInfo.tags.length > 0 && (
@@ -190,10 +220,28 @@ export default function GHCard(props: {
 					onClick={(e) => e.stopPropagation()}
 				>
 					{!editMode && (
-						<DateDisplay
-							createdDate={props.cardInfo.dateCreated}
-							lastModDate={props.cardInfo.dateUpdated}
-						/>
+						<div className="flex items-center gap-1 text-xs text-neutral-500">
+							<DateDisplay
+								createdDate={props.cardInfo.dateCreated}
+								lastModDate={props.cardInfo.dateUpdated}
+							/>
+							{(props.cardInfo.usageCount ?? 0) > 0 && (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<span
+											className="inline-flex items-center gap-1"
+											aria-label={`Copied ${props.cardInfo.usageCount} times`}
+										>
+											· <Copy className="size-3" aria-hidden />{" "}
+											{props.cardInfo.usageCount}
+										</span>
+									</TooltipTrigger>
+									<TooltipContent>
+										Copied {props.cardInfo.usageCount} times
+									</TooltipContent>
+								</Tooltip>
+							)}
+						</div>
 					)}
 					{editMode ? (
 						<EditButtons

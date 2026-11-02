@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { previewDataValidator } from "./previewData";
 
 export default defineSchema({
 	post: defineTable({
@@ -26,6 +27,13 @@ export default defineSchema({
 		.index("by_rankScore", ["rankScore"])
 		.index("by_rankDirty", ["rankDirty"])
 		.index("by_user_name", ["clerkUserId", "name"]),
+
+	postPreviews: defineTable({
+		clerkUserId: v.string(),
+		storageKey: v.string(),
+		version: v.number(),
+		data: previewDataValidator,
+	}).index("by_user_key", ["clerkUserId", "storageKey"]),
 
 	shares: defineTable({
 		postId: v.id("post"),
