@@ -16,6 +16,9 @@ import type {
 import type * as ghCard from "../ghCard.js";
 import type * as ghInternalMutation from "../ghInternalMutation.js";
 import type * as ghPublicAction from "../ghPublicAction.js";
+import type * as previewBackfill from "../previewBackfill.js";
+import type * as previewBackfillData from "../previewBackfillData.js";
+import type * as previewBackfillNode from "../previewBackfillNode.js";
 import type * as previewData from "../previewData.js";
 import type * as previews from "../previews.js";
 import type * as ranking from "../ranking.js";
@@ -39,6 +42,9 @@ declare const fullApi: ApiFromModules<{
 	ghCard: typeof ghCard;
 	ghInternalMutation: typeof ghInternalMutation;
 	ghPublicAction: typeof ghPublicAction;
+	previewBackfill: typeof previewBackfill;
+	previewBackfillData: typeof previewBackfillData;
+	previewBackfillNode: typeof previewBackfillNode;
 	previewData: typeof previewData;
 	previews: typeof previews;
 	ranking: typeof ranking;
