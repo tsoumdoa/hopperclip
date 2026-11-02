@@ -9,6 +9,10 @@ import {
 	useState,
 } from "react";
 import { updateEditingCardIds } from "@/app/utils/gh-card-edit-state";
+import {
+	useCardPreviewPreference,
+	type CardPreviewPreference,
+} from "../hooks/use-card-preview-preference";
 
 export type PendingGhCardImportState = {
 	pendingFile: File | null;
@@ -24,6 +28,7 @@ export function pendingGhCardXmlImport(xml: string): PendingGhCardImportState {
 }
 
 type GhCardsPageState = {
+	cardPreview: CardPreviewPreference;
 	addDialogOpen: boolean;
 	searchOpen: boolean;
 	pendingFile: File | null;
@@ -32,6 +37,7 @@ type GhCardsPageState = {
 };
 
 type GhCardsPageActions = {
+	setCardPreviewPreference: (value: CardPreviewPreference) => void;
 	setAddDialogOpen: Dispatch<SetStateAction<boolean>>;
 	setSearchOpen: Dispatch<SetStateAction<boolean>>;
 	openAddDialog: (file?: File) => void;
@@ -47,6 +53,7 @@ const GhCardsPageActionsContext = createContext<GhCardsPageActions | null>(
 );
 
 export function GhCardsPageProvider({ children }: { children: ReactNode }) {
+	const { cardPreview, setCardPreviewPreference } = useCardPreviewPreference();
 	const [addDialogOpen, setAddDialogOpen] = useState(false);
 	const [searchOpen, setSearchOpen] = useState(false);
 	const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -83,16 +90,25 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 
 	const state = useMemo(
 		() => ({
+			cardPreview,
 			addDialogOpen,
 			searchOpen,
 			pendingFile,
 			pendingXml,
 			hasEditingCards: editingCardIds.size > 0,
 		}),
-		[addDialogOpen, searchOpen, pendingFile, pendingXml, editingCardIds]
+		[
+			cardPreview,
+			addDialogOpen,
+			searchOpen,
+			pendingFile,
+			pendingXml,
+			editingCardIds,
+		]
 	);
 	const actions = useMemo(
 		() => ({
+			setCardPreviewPreference,
 			setAddDialogOpen,
 			setSearchOpen,
 			openAddDialog,
@@ -102,6 +118,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			setCardEditing,
 		}),
 		[
+			setCardPreviewPreference,
 			openAddDialog,
 			openAddDialogFromPaste,
 			consumePendingFile,

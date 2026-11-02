@@ -16,6 +16,7 @@ import { Kbd } from "@/components/ui/kbd";
 import GhCardDisplay from "@/app/ghcards/components/gh-card-display";
 import { GhCardGridSkeleton } from "@/app/ghcards/components/gh-card-skeleton";
 import { ShortcutHint } from "@/app/ghcards/components/shortcut-hint";
+import { CardPreviewDropDown } from "@/app/ghcards/components/card-preview-drop-down";
 import SortDropDown from "@/app/ghcards/components/sort-drop-down";
 import UserTags from "@/app/ghcards/components/user-tags";
 import { fetchGhcardsUser } from "@/server/r2-storage";
@@ -75,6 +76,7 @@ function GhcardsPageContent() {
 						<>
 							<SearchButton />
 							<SortDropDown />
+							<CardPreviewDropDown />
 							<AddGHCard />
 						</>
 					}

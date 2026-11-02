@@ -6,6 +6,7 @@ import { generateFlowData } from "../duckerweb/gh-flow-generator";
 import type { ParsedGrasshopper } from "parser/src/types";
 import type { GHNode } from "../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
+import { useSavePreview } from "./use-save-preview";
 
 export interface ScriptMetrics {
 	GhVersion: string;
@@ -21,7 +22,7 @@ interface ScriptMetricsState {
 	parsedData: ParsedGrasshopper | null;
 	loading: boolean;
 	error: string | null;
-	loadMetrics: (target: GhXmlTarget) => Promise<void>;
+	loadMetrics: (target: GhXmlTarget, hasPreview?: boolean) => Promise<void>;
 	reset: () => void;
 }
 
@@ -33,10 +34,11 @@ export function useScriptMetrics(): ScriptMetricsState {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	const savePreview = useSavePreview();
 	const { downloadData } = useFetchGhXml();
 
 	const loadMetrics = useCallback(
-		async (target: GhXmlTarget) => {
+		async (target: GhXmlTarget, hasPreview?: boolean) => {
 			setLoading(true);
 			setError(null);
 
@@ -44,6 +46,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 				const decoded = await downloadData(target);
 				const parsed = buildGhJson(decoded, { includeVisuals: true });
 				setParsedData(parsed);
+				if (!hasPreview) savePreview(target.bucketKey, parsed, hasPreview);
 
 				const componentsCount = Object.keys(parsed.components).length;
 				const ghLibs = parsed.metadata?.libraries;
@@ -73,7 +76,7 @@ export function useScriptMetrics(): ScriptMetricsState {
 				setLoading(false);
 			}
 		},
-		[downloadData]
+		[downloadData, savePreview]
 	);
 
 	const reset = useCallback(() => {

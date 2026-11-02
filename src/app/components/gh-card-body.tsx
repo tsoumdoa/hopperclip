@@ -15,6 +15,7 @@ type CardBodyProps = {
 	ghInfo: GhCard;
 	titleAdornment?: React.ReactNode;
 	tagsSlot?: React.ReactNode;
+	previewSlot?: React.ReactNode;
 	addTag: (tag: string) => void;
 	tag: string;
 	setTag: (t: string) => void;
@@ -47,6 +48,7 @@ export function NameDescriptionAndTags(props: CardBodyProps) {
 			>
 				{hasDescription ? props.ghInfo.description : "No description"}
 			</p>
+			{props.previewSlot}
 			{props.tagsSlot && <div className="mt-3">{props.tagsSlot}</div>}
 		</div>
 	);

@@ -1,6 +1,7 @@
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { StorageKeySchema } from "../src/types/types";
+import { deletePreview } from "./previews";
 
 export const UPLOAD_EXPIRY_MS = 24 * 60 * 60 * 1000;
 // Actions are bounded below this lease. A crashed action is retried by sweep.
@@ -67,6 +68,7 @@ export async function enqueueUnreferencedObject(
 	key: string
 ) {
 	if (await hasStorageReference(ctx, clerkUserId, key)) return;
+	await deletePreview(ctx, clerkUserId, key);
 	// Never turn a malformed historical key into an arbitrary object URL.
 	if (!StorageKeySchema.safeParse(key).success) {
 		console.error("Storage cleanup skipped an invalid legacy key");

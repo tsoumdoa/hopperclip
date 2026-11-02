@@ -32,11 +32,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFlowPreview } from "../duckerweb/gh-flow-generator";
 import { GhFlowView } from "./gh-flow-view";
 import { useNativeGhXmlPaste } from "../hooks/use-native-gh-xml-paste";
+import { useSavePreview } from "../hooks/use-save-preview";
 
 type AddDialogTab = "details" | "flow";
 
 export function AddGhDialog(props: AddGhDialogProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
+	const savePreview = useSavePreview();
 	const addGhCard = useMutation(convex.ghCard.addPost);
 	const [addError, setAddError] = useState("");
 	const [xmlData, setXmlData] = useState<string>();
@@ -177,6 +179,8 @@ export function AddGhDialog(props: AddGhDialogProps) {
 					uid: storageKey,
 				});
 
+				// New storage key: no preview can exist yet.
+				savePreview(storageKey, xmlData, false);
 				props.setAdding(false);
 				props.setOpen(false);
 
