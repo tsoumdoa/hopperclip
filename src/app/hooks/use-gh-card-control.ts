@@ -133,7 +133,7 @@ export default function useGhCardControl(cardInfo: GhPost) {
 					tags: newTags.current,
 					uid: newBucketUrl,
 				});
-				savePreview(newBucketUrl, newXmlData);
+				savePreview(newBucketUrl, newXmlData, false);
 				xmlClient.invalidate(cardInfo._id);
 			} catch (error) {
 				setXmlError("Failed to update XML: " + String(error));

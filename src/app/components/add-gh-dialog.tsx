@@ -179,7 +179,8 @@ export function AddGhDialog(props: AddGhDialogProps) {
 					uid: storageKey,
 				});
 
-				savePreview(storageKey, xmlData);
+				// New storage key: no preview can exist yet.
+				savePreview(storageKey, xmlData, false);
 				props.setAdding(false);
 				props.setOpen(false);
 
