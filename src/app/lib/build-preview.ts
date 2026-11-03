@@ -78,10 +78,14 @@ function groupColor(argb?: string) {
 	);
 }
 
+// Cap UTF-16 length without leaving half of a surrogate pair at the end.
+function clip(s: string) {
+	const cut = s.slice(0, PREVIEW_CAPS.nameLength);
+	return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut;
+}
+
 function portNames(nicks: string[]) {
-	const all = nicks
-		.map((s) => s.trim().slice(0, PREVIEW_CAPS.nameLength))
-		.filter(Boolean);
+	const all = nicks.map((s) => clip(s.trim())).filter(Boolean);
 	return {
 		names: all.slice(0, PREVIEW_CAPS.signaturePorts),
 		count: all.length,
@@ -97,9 +101,7 @@ function signatureOf(component: Component): PreviewSignature {
 			.filter((nick, i) => i > 0 || nick.trim().toLowerCase() !== "out")
 	);
 	return {
-		language:
-			scriptName(component).trim().slice(0, PREVIEW_CAPS.nameLength) ||
-			"Script",
+		language: clip(scriptName(component).trim()) || "Script",
 		inputs: inputs.names,
 		inputCount: inputs.count,
 		outputs: outputs.names,
@@ -110,7 +112,7 @@ function signatureOf(component: Component): PreviewSignature {
 function names(values: string[], cap = Infinity) {
 	return [...new Set(values.map((s) => s.trim()).filter(Boolean))]
 		.slice(0, cap)
-		.map((s) => s.slice(0, PREVIEW_CAPS.nameLength));
+		.map(clip);
 }
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
@@ -131,6 +133,9 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	const frequency = new Map<string, number>();
 	const scripts: string[] = [];
 	const scriptComponents: Component[] = [];
+	// Anything that computes (has input ports) or comes from a plugin rules out
+	// a script signature. Kept separate from kindOf, whose panel check matches
+	// any type containing "panel" and which treats relays and Get * as operations.
 	let operations = 0;
 	for (const component of components) {
 		const type = getComponentNodeType(component);
@@ -142,14 +147,16 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 			scripts.push(scriptName(component));
 			scriptComponents.push(component);
 		}
+		if (
+			kind !== "script" &&
+			(Object.keys(component.inputs).length > 0 ||
+				isPlugin(libraryName(component.library ?? "")))
+		)
+			operations++;
 		// Most frequent operation nicknames first; ties keep definition order.
 		// Inputs, parameters, panels, relays, scribbles and scripts are excluded.
 		if (kind === "component" || kind === "plugin") {
-			operations++;
-			const name = (component.nickName.trim() || component.type).slice(
-				0,
-				PREVIEW_CAPS.nameLength
-			);
+			const name = clip(component.nickName.trim() || component.type);
 			frequency.set(name, (frequency.get(name) ?? 0) + 1);
 		}
 	}

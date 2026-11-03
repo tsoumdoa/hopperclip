@@ -392,12 +392,68 @@ test("script-only clips with inputs, params and panels keep a signature", () => 
 	const data = buildPreview(
 		parsedOf([
 			script("s"),
-			component("slider", { value: { type: "slider" } }),
-			component("panel", { type: "Panel" }),
+			component("slider", { value: { type: "slider" }, inputs: {} }),
+			component("panel", { type: "Panel", inputs: {} }),
 			component("param", { type: "Number", inputs: {} }),
 		])
 	);
 	expect(data.signature?.language).toBe("C#");
+});
+
+function allXmlComponent(type: string) {
+	const found = Object.values(fixture("all.xml").components).find(
+		(c) => c.type === type
+	);
+	if (!found) throw new Error(`all.xml has no ${type}`);
+	return { ...found, id: type };
+}
+
+test.each([
+	"Relay",
+	"MD Slider",
+	"Get Number",
+	"Panel",
+	"Number Slider",
+	"Jump",
+])("a real native %s next to a script keeps the signature", (type) => {
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type)])).signature
+	).toBeDefined();
+});
+
+test.each([
+	"Triangle Panels C",
+	"Panel Connections",
+	"Diamond Panels",
+	"Cull Pattern",
+])("a real %s operation next to a script rules the signature out", (type) => {
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type)])).signature
+	).toBeUndefined();
+});
+
+test("truncation never splits a surrogate pair, so names stay well-formed", () => {
+	const nick = "x".repeat(PREVIEW_CAPS.nameLength - 1) + "😀";
+	const data = buildPreview(
+		parsedOf([
+			script("s", {
+				nickName: nick,
+				inputs: { a: { nick, instanceGuid: "a" } },
+				outputs: { b: { nick, instanceGuid: "b" } },
+			}),
+			component("m", { nickName: nick, inputs: {} }),
+		])
+	);
+	const strings = [
+		...data.keyComponents,
+		...data.signature!.inputs,
+		...data.signature!.outputs,
+	];
+	expect(strings.length).toBeGreaterThan(0);
+	for (const s of strings) {
+		expect(s).toBe("x".repeat(PREVIEW_CAPS.nameLength - 1));
+		expect(encodeURIComponent(s)).toBeTypeOf("string");
+	}
 });
 
 test("clips with any operation or plugin component, or too many scripts, get no signature", () => {
@@ -426,7 +482,10 @@ test("picks the most-wired script, keeping definition order on ties", () => {
 	const main = script("m", {
 		inputs: { q: { nick: "mainIn", instanceGuid: "m-q" } },
 	});
-	const slider = component("slider", { value: { type: "slider" } });
+	const slider = component("slider", {
+		value: { type: "slider" },
+		inputs: {},
+	});
 	expect(
 		buildPreview(
 			parsedOf(
