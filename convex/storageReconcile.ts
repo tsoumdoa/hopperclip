@@ -24,6 +24,7 @@ const checkedPostValidator = v.object({
 	bucketUrl: v.string(),
 	clerkUserId: v.string(),
 	status: v.union(v.literal("present"), v.literal("missing")),
+	// Only run sets this immediately after a fresh 404 HEAD for this card.
 	deleteVerified: v.optional(v.boolean()),
 });
 type CheckedPost = Infer<typeof checkedPostValidator>;
@@ -50,8 +51,9 @@ type Summary = {
 	// re-verification. Duplicates and IDs absent from the missing set do not count.
 	confirmed: number;
 	reverifyUnknown: number;
+	// Failed transactions in either phase, including per-card deletion attempts.
 	failedBatches: number;
-	aborted?: "time_budget";
+	aborted?: "time_budget" | "time_budget_during_apply";
 };
 
 async function forEachConcurrent<T>(
@@ -100,6 +102,10 @@ export const listPage = internalQuery({
 	},
 });
 
+/**
+ * Called only by run: deleteVerified must immediately follow this card's fresh
+ * 404 HEAD. Do not invoke this mutation by hand from the dashboard.
+ */
 export const applyBatch = internalMutation({
 	args: { entries: v.array(checkedPostValidator) },
 	handler: async (ctx, { entries }) => {
@@ -231,15 +237,19 @@ export const run = internalAction({
 		summary.breakerTripped =
 			(summary.missing > 0 && summary.missing / summary.checked > 0.2) ||
 			(attempted > 0 && (summary.missing + summary.unknown) / attempted > 0.2);
-		const abort = () => {
+		const abort = (duringApply = false) => {
 			console.error(
-				"Storage reconciliation exceeded scan time budget; no writes performed",
+				duringApply
+					? "Storage reconciliation exceeded time budget during apply; returning committed counts"
+					: "Storage reconciliation exceeded scan time budget; no writes performed",
 				{
 					elapsedMs: Date.now() - startedAt,
 					checked: summary.checked,
 				}
 			);
-			summary.aborted = "time_budget";
+			summary.aborted = duringApply
+				? "time_budget_during_apply"
+				: "time_budget";
 			return summary;
 		};
 		if (budgetExceeded()) return abort();
@@ -269,47 +279,32 @@ export const run = internalAction({
 		}
 		if (mode === "report" || refuseMissing) return summary;
 		const confirmedIds = new Set(confirmPostIds);
-		let eligible = entries.filter((entry) => {
+		const eligible = entries.filter((entry) => {
 			if (entry.status === "present" || !summary.breakerTripped) return true;
 			if (!confirmedIds.has(entry.postId)) return false;
 			summary.confirmed++;
 			return true;
 		});
 		const cutoff = Date.now() - MISSING_GRACE_MS;
-		const candidates = eligible.filter(
-			(entry) =>
+		const candidates: CheckedPost[] = [];
+		const nonDeletion: CheckedPost[] = [];
+		for (const { missingSince, ...entry } of eligible) {
+			if (
 				entry.status === "missing" &&
-				entry.missingSince !== undefined &&
-				entry.missingSince <= cutoff
-		);
-		const unverified = new Set<Id<"post">>();
-		await forEachConcurrent(
-			candidates,
-			async (entry) => {
-				const status = await headStatus(entry.clerkUserId, entry.bucketUrl);
-				if (status === "unknown") {
-					summary.reverifyUnknown++;
-					unverified.add(entry.postId);
-				} else {
-					entry.status = status;
-					// A mark that matures later during apply must wait for a future
-					// verified run, rather than delete on its original scan result.
-					entry.deleteVerified = status === "missing";
-				}
-			},
-			budgetExceeded
-		);
-		if (budgetExceeded()) return abort();
-		eligible = eligible.filter((entry) => !unverified.has(entry.postId));
-		for (let i = 0; i < eligible.length; i += PAGE_SIZE) {
+				missingSince !== undefined &&
+				missingSince <= cutoff
+			)
+				candidates.push(entry);
+			else nonDeletion.push(entry);
+		}
+		const applyEntries = async (
+			batch: CheckedPost[],
+			context: { batch?: number; postId?: Id<"post"> }
+		) => {
 			try {
 				const counts = await ctx.runMutation(
 					internal.storageReconcile.applyBatch,
-					{
-						entries: eligible
-							.slice(i, i + PAGE_SIZE)
-							.map(({ missingSince: _missingSince, ...entry }) => entry),
-					}
+					{ entries: batch }
 				);
 				summary.marked += counts.marked;
 				summary.cleared += counts.cleared;
@@ -318,10 +313,39 @@ export const run = internalAction({
 				summary.failedBatches++;
 				console.error(
 					"Storage reconciliation batch failed; continuing with later batches",
-					{ batch: i / PAGE_SIZE, error }
+					{ ...context, error }
 				);
 			}
+		};
+		if (budgetExceeded()) return abort();
+		// Phase 1 cannot delete. Marks that mature during batching still require
+		// a fresh per-card HEAD in a later run before deletion is permitted.
+		for (let i = 0; i < nonDeletion.length; i += PAGE_SIZE) {
+			if (budgetExceeded()) return abort(true);
+			await applyEntries(nonDeletion.slice(i, i + PAGE_SIZE), {
+				batch: i / PAGE_SIZE,
+			});
 		}
+		if (budgetExceeded()) return abort(true);
+		// Phase 2 keeps each HEAD adjacent to its own mutation. Neither another
+		// card's slow HEAD nor another card's mutation delays this pair.
+		await forEachConcurrent(
+			candidates,
+			async (entry) => {
+				const status = await headStatus(entry.clerkUserId, entry.bucketUrl);
+				if (status === "unknown") {
+					summary.reverifyUnknown++;
+					return;
+				}
+				if (budgetExceeded()) return;
+				await applyEntries(
+					[{ ...entry, status, deleteVerified: status === "missing" }],
+					{ postId: entry.postId }
+				);
+			},
+			budgetExceeded
+		);
+		if (budgetExceeded()) return abort(true);
 		return summary;
 	},
 });

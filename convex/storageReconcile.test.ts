@@ -67,6 +67,14 @@ function snapshot(t: Backend) {
 	}));
 }
 
+function deferred<T>() {
+	let resolve!: (value: T) => void;
+	const promise = new Promise<T>((done) => {
+		resolve = done;
+	});
+	return { promise, resolve };
+}
+
 beforeEach(() => {
 	vi.useFakeTimers();
 	vi.setSystemTime(new Date("2026-11-01T03:17:00Z"));
@@ -735,11 +743,11 @@ describe("storage reconciliation", () => {
 	});
 
 	it.each(["initial", "reverification"])(
-		"aborts without any writes when the %s scan exceeds eight minutes",
+		"returns the appropriate abort marker and committed counts when %s exceeds eight minutes",
 		async (phase) => {
 			const t = convexTest(schema, modules);
 			const id = await seedPost(t, "candidate", { storageMissingSince: 0 });
-			await seedPost(t, "healthy", { storageMissingSince: 0 });
+			const healthy = await seedPost(t, "healthy", { storageMissingSince: 0 });
 			const start = Date.now();
 			let candidateChecks = 0;
 			vi.mocked(storageRequest).mockImplementation(
@@ -753,13 +761,24 @@ describe("storage reconciliation", () => {
 			);
 			const before = await snapshot(t);
 			expect(await apply(t, [id])).toMatchObject({
-				aborted: "time_budget",
+				aborted:
+					phase === "initial" ? "time_budget" : "time_budget_during_apply",
 				marked: 0,
-				cleared: 0,
+				cleared: phase === "initial" ? 0 : 1,
 				deleted: 0,
 				failedBatches: 0,
 			});
-			expect(await snapshot(t)).toEqual(before);
+			if (phase === "initial") expect(await snapshot(t)).toEqual(before);
+			else {
+				expect(await t.run((ctx) => ctx.db.get(healthy))).not.toHaveProperty(
+					"storageMissingSince"
+				);
+				expect(await t.run((ctx) => ctx.db.get(id))).toHaveProperty(
+					"storageMissingSince",
+					0
+				);
+				expect((await snapshot(t)).objects).toEqual([]);
+			}
 			expect(console.error).toHaveBeenCalledWith(
 				expect.stringContaining("time budget"),
 				expect.any(Object)
@@ -769,9 +788,10 @@ describe("storage reconciliation", () => {
 		}
 	);
 
-	it("isolates a failing deletion batch and continues clearing later batches", async () => {
+	it("isolates a per-card deletion failure while other cards and batched clears commit", async () => {
 		const t = convexTest(schema, modules);
 		const bad = await seedPost(t, "bad", { storageMissingSince: 0 });
+		const good = await seedPost(t, "good", { storageMissingSince: 0 });
 		await t.run(async (ctx) => {
 			// Historical duplicate ledger rows make cleanup's .unique() fail.
 			for (let i = 0; i < 2; i++) {
@@ -795,27 +815,30 @@ describe("storage reconciliation", () => {
 		});
 		vi.mocked(storageRequest).mockImplementation(
 			async (_method, _owner, key) =>
-				new Response(null, { status: key === "bad" ? 404 : 200 })
+				new Response(null, {
+					status: key === "bad" || key === "good" ? 404 : 200,
+				})
 		);
 		expect(await apply(t)).toMatchObject({
 			failedBatches: 1,
-			deleted: 0,
+			deleted: 1,
 			marked: 0,
-			cleared: 5,
+			cleared: 104,
 			breakerTripped: false,
 		});
 		const state = await snapshot(t);
 		expect(state.posts).toHaveLength(105);
+		expect(await t.run((ctx) => ctx.db.get(good))).toBeNull();
 		expect(await t.run((ctx) => ctx.db.get(bad))).toHaveProperty(
 			"storageMissingSince",
 			0
 		);
 		expect(
 			state.posts.filter((post) => post.storageMissingSince === undefined)
-		).toHaveLength(5);
+		).toHaveLength(104);
 		expect(console.error).toHaveBeenCalledWith(
 			expect.stringContaining("batch failed"),
-			expect.objectContaining({ batch: 0 })
+			expect.objectContaining({ postId: bad })
 		);
 	});
 
@@ -913,5 +936,146 @@ describe("storage reconciliation", () => {
 			})
 		).toEqual({ marked: 0, cleared: 0, deleted: 0 });
 		expect(await snapshot(t)).toEqual(before);
+	});
+
+	it("commits A's deletion while B's final HEAD is still pending, then processes B independently", async () => {
+		const t = convexTest(schema, modules);
+		const a = await seedPost(t, "card_a", { storageMissingSince: 0 });
+		const b = await seedPost(t, "card_b", { storageMissingSince: 0 });
+		await seedPost(t, "healthy");
+		const bPending = deferred<void>();
+		const bHead = deferred<Response>();
+		const calls = new Map<string, number>();
+		let restoredA = false;
+		vi.mocked(storageRequest).mockImplementation(
+			async (_method, _owner, key) => {
+				const count = (calls.get(key) ?? 0) + 1;
+				calls.set(key, count);
+				if (key === "healthy" || (key === "card_a" && restoredA))
+					return new Response(null, { status: 200 });
+				if (key === "card_b" && count === 2) {
+					bPending.resolve();
+					return bHead.promise;
+				}
+				return new Response(null, { status: 404 });
+			}
+		);
+		const running = apply(t, [a, b]);
+		try {
+			await bPending.promise;
+			// Observe committed database state, not the mutation's pre-commit log.
+			// B remains blocked throughout this assertion; the old bulk HEAD pass
+			// would leave A undeleted until B was released.
+			await vi.waitFor(async () =>
+				expect(await t.run((ctx) => ctx.db.get(a))).toBeNull()
+			);
+			restoredA = true;
+			expect(await t.run((ctx) => ctx.db.get(b))).not.toBeNull();
+			expect(calls.get("card_a")).toBe(2);
+			bHead.resolve(new Response(null, { status: 404 }));
+			expect(await running).toMatchObject({
+				deleted: 2,
+				failedBatches: 0,
+				reverifyUnknown: 0,
+			});
+			expect(await t.run((ctx) => ctx.db.get(b))).toBeNull();
+		} finally {
+			bHead.resolve(new Response(null, { status: 404 }));
+			await running;
+		}
+	});
+
+	it("stops starting deletion HEADs on budget expiry and returns earlier committed counts", async () => {
+		const t = convexTest(schema, modules);
+		const ids: Id<"post">[] = [];
+		for (let i = 0; i < 12; i++)
+			ids.push(await seedPost(t, `missing_${i}`, { storageMissingSince: 0 }));
+		await seedPost(t, "healthy", { storageMissingSince: 0 });
+		const start = Date.now();
+		const heldHeads = deferred<Response>();
+		const sixthStarted = deferred<void>();
+		const calls = new Map<string, number>();
+		const secondHeads: string[] = [];
+		vi.mocked(storageRequest).mockImplementation(
+			async (_method, _owner, key) => {
+				const count = (calls.get(key) ?? 0) + 1;
+				calls.set(key, count);
+				if (key === "healthy") return new Response(null, { status: 200 });
+				if (count === 2) {
+					secondHeads.push(key);
+					if (secondHeads.length === 6) sixthStarted.resolve();
+					if (key !== "missing_0") return heldHeads.promise;
+				}
+				return new Response(null, { status: 404 });
+			}
+		);
+		const running = apply(t, ids);
+		try {
+			// Five workers start; only A finishes, commits, and starts a sixth
+			// HEAD. All other HEADs are held so no further mutation can start.
+			await sixthStarted.promise;
+			expect(await t.run((ctx) => ctx.db.get(ids[0]))).toBeNull();
+			vi.setSystemTime(start + SCAN_BUDGET_MS + 1);
+			heldHeads.resolve(new Response(null, { status: 404 }));
+			expect(await running).toMatchObject({
+				aborted: "time_budget_during_apply",
+				deleted: 1,
+				cleared: 1,
+				marked: 0,
+				failedBatches: 0,
+			});
+			expect(secondHeads).toHaveLength(6);
+			const state = await snapshot(t);
+			expect(state.posts).toHaveLength(12);
+			expect(
+				state.posts.filter((post) => post.storageMissingSince === 0)
+			).toHaveLength(11);
+			expect(state.objects).toMatchObject([
+				{ key: "missing_0", state: "deleting" },
+			]);
+			expect(console.error).toHaveBeenCalledWith(
+				expect.stringContaining("during apply"),
+				expect.any(Object)
+			);
+		} finally {
+			heldHeads.resolve(new Response(null, { status: 404 }));
+			await running;
+		}
+	});
+
+	it("stops between non-deletion batches when the budget expires before phase 2", async () => {
+		const t = convexTest(schema, modules);
+		await seedPost(t, "healthy", { storageMissingSince: 0 });
+		const missing = [];
+		for (let i = 0; i < 205; i++)
+			missing.push(await seedPost(t, `missing_${i}`));
+		const candidate = await seedPost(t, "matured", { storageMissingSince: 0 });
+		const start = Date.now();
+		vi.mocked(storageRequest).mockImplementation(
+			async (_method, _owner, key) =>
+				new Response(null, { status: key === "healthy" ? 200 : 404 })
+		);
+		// The first transaction still commits atomically. Expiry prevents the
+		// next batch and the deletion phase from starting.
+		vi.mocked(console.warn).mockImplementationOnce(() =>
+			vi.setSystemTime(start + SCAN_BUDGET_MS + 1)
+		);
+		expect(await apply(t, [...missing, candidate])).toMatchObject({
+			aborted: "time_budget_during_apply",
+			marked: 99,
+			cleared: 1,
+			deleted: 0,
+			failedBatches: 0,
+		});
+		const state = await snapshot(t);
+		expect(
+			state.posts.filter((post) => post.storageMissingSince === start)
+		).toHaveLength(99);
+		expect(state.objects).toEqual([]);
+		expect(
+			vi
+				.mocked(storageRequest)
+				.mock.calls.filter((call) => call[2] === "matured")
+		).toHaveLength(1);
 	});
 });
