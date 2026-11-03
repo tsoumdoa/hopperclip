@@ -90,29 +90,38 @@ function signatureOf(
 	parsed: ParsedGrasshopper
 ): PreviewSignature {
 	const ports = (output: boolean) => {
+		// Script components lead with a console "out" port that carries no result.
 		const entries = Object.entries(
 			output ? component.outputs : component.inputs
-		).filter(
-			([, p], i) =>
-				p.nick.trim() &&
-				(!output || i > 0 || p.nick.trim().toLowerCase() !== "out")
-		);
+		)
+			.map(([key, p]) => [key, clip(p.nick.trim())] as const)
+			.filter(
+				([, nick], i) =>
+					nick && (!output || i > 0 || nick.toLowerCase() !== "out")
+			);
 		const shown = entries.slice(0, PREVIEW_CAPS.signaturePorts);
 		return {
-			names: shown.map(([, p]) => clip(p.nick.trim())),
+			names: shown.map(([, nick]) => nick),
 			count: entries.length,
 			kinds: shown.map(([key]) => {
-				const wire = parsed.wires.find(
-					(w) => (output ? w.from : w.to) === `${component.id}.${key}`
+				const handle = `${component.id}.${key}`;
+				const wired = parsed.wires
+					.filter((w) => (output ? w.from : w.to) === handle)
+					.map((w) => {
+						const id = resolveComponent(parsed, output ? w.to : w.from);
+						const kind = id && kindOf(parsed.components[id]);
+						return !kind || kind === "script"
+							? null
+							: kind === "input" || kind === "panel"
+								? kind
+								: "param";
+					});
+				// The most specific source wins when a port has several wires.
+				return GRIP_KINDS.indexOf(
+					(["input", "panel", "param"] as const).find((k) =>
+						wired.includes(k)
+					) ?? null
 				);
-				const id =
-					wire && resolveComponent(parsed, output ? wire.to : wire.from);
-				const c = id ? parsed.components[id] : undefined;
-				if (!c || kindOf(c) === "script") return GRIP_KINDS.indexOf(null);
-				const kind = kindOf(c);
-				if (kind === "input" || kind === "panel")
-					return GRIP_KINDS.indexOf(kind);
-				return GRIP_KINDS.indexOf("param");
 			}),
 		};
 	};
@@ -135,9 +144,20 @@ function names(values: string[], cap = Infinity) {
 		.map(clip);
 }
 
+// Standalone objects that transform data even though, like plain params,
+// they only have the parser's synthetic container-level ports.
+const COMPUTING_PARAMS = new Set([
+	"Path Mapper",
+	"Graph Mapper",
+	"Data Recorder",
+	"Image Sampler",
+]);
+
 // Container-level synthetic ports share the component instance GUID. Real
 // parameter chunks have their own GUIDs, even when their key is "value".
-function hasOperationInputs(c: Component) {
+function isOperation(c: Component) {
+	if (c.expression || c.internalExpression || COMPUTING_PARAMS.has(c.type))
+		return true;
 	const entries = Object.entries(c.inputs);
 	return (
 		entries.length > 0 &&
@@ -163,10 +183,13 @@ export function getSignatureScript(
 		(c) => !isCanvasGroup(c)
 	);
 	const scriptComponents = components.filter((c) => kindOf(c) === "script");
+	// Anything that computes or comes from a plugin rules out a signature. Kept
+	// separate from kindOf, whose panel check matches any type containing
+	// "panel" and which treats relays and Get * as operations.
 	const operations = components.some(
 		(c) =>
 			kindOf(c) !== "script" &&
-			(hasOperationInputs(c) || isPlugin(libraryName(c.library ?? "")))
+			(isOperation(c) || isPlugin(libraryName(c.library ?? "")))
 	);
 	if (
 		operations ||

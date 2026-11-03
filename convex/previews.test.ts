@@ -300,8 +300,10 @@ const signature = {
 	language: "C#",
 	inputs: ["srf", "u", "v", "gap"],
 	inputCount: 7,
+	inputKinds: [1, 2, 3, 0],
 	outputs: ["panels"],
 	outputCount: 1,
+	outputKinds: [0],
 };
 
 test("stores a script signature with capped port names and full totals", async () => {

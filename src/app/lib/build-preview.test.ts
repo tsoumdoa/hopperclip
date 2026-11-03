@@ -627,3 +627,54 @@ test("script with wired Panel and Curve auto-names from the main script", () => 
 		)
 	).toBe("MyScript");
 });
+
+test("computing standalone objects and expression params still rule out a signature", () => {
+	const all = Object.values(fixture("all.xml").components);
+	const computing = [
+		...["Path Mapper", "Graph Mapper", "Data Recorder", "Image Sampler"].map(
+			(type) => all.find((c) => c.type === type)!
+		),
+		Object.values(fixture("flatten-internal-expression.xml").components).find(
+			(c) => c.internalExpression
+		)!,
+	];
+	for (const c of computing) {
+		expect(c).toBeDefined();
+		const wires = [{ from: "s.a", to: `${c.id}.value` }];
+		expect(
+			buildPreview(parsedOf([script("s"), c], wires)).signature
+		).toBeUndefined();
+	}
+});
+
+test("a port wired to several components takes the most specific grip", () => {
+	const panel = component("p", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "p" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [
+		{ from: "s.a", to: "s2.x" },
+		{ from: "s.a", to: "p.value" },
+		{ from: "s.a", to: "s2.y" },
+	];
+	expect(
+		buildPreview(parsedOf([script("s"), script("s2"), panel], wires)).signature
+			?.outputKinds
+	).toEqual([2]);
+});
+
+test("drops a port name that clips to nothing instead of storing it blank", () => {
+	const sig = buildPreview(
+		parsedOf([
+			script("s", {
+				inputs: {
+					x: { nick: "\uD83D", instanceGuid: "s-x" },
+					y: { nick: "y", instanceGuid: "s-y" },
+				},
+			}),
+		])
+	).signature!;
+	expect(sig.inputs).toEqual(["y"]);
+	expect(sig.inputKinds).toEqual([0]);
+});
