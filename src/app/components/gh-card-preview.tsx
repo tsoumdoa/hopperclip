@@ -230,10 +230,72 @@ function PortColumn(props: {
 	names: string[];
 	count: number;
 	className: string;
+	kinds?: number[];
+	output?: boolean;
 }) {
 	const { shown, more } = visiblePorts(props.names, props.count);
 	return (
-		<div className={cn("flex min-w-0 flex-1 flex-col gap-1", props.className)}>
+		<div
+			className={cn(
+				"relative flex min-w-0 flex-1 flex-col gap-1",
+				props.className
+			)}
+		>
+			<svg
+				width="30"
+				height="68"
+				className={cn(
+					"absolute top-1/2 -translate-y-1/2 overflow-visible",
+					props.output ? "right-full" : "left-full"
+				)}
+				aria-hidden
+			>
+				<g transform={props.output ? "translate(30 0) scale(-1 1)" : undefined}>
+					{[...shown, ...(more ? [""] : [])].map((_, i, rows) => {
+						const y = 34 + (i - (rows.length - 1) / 2) * 17;
+						const dy = 34 - y,
+							r = Math.min(4, Math.abs(dy) / 2),
+							sign = Math.sign(dy);
+						const kind = i < shown.length ? props.kinds?.[i] : 0;
+						const style =
+							kind === 1
+								? KIND_STYLE.input
+								: kind === 2
+									? KIND_STYLE.panel
+									: kind === 3
+										? KIND_STYLE.param
+										: undefined;
+						return (
+							<g key={i} opacity={i >= shown.length ? 0.45 : 1}>
+								<path
+									d={
+										dy === 0
+											? `M5 ${y} H30`
+											: `M5 ${y} H${20 - r} Q20 ${y} 20 ${y + sign * r} V${34 - sign * r} Q20 34 ${20 + r} 34 H30`
+									}
+									fill="none"
+									stroke="white"
+									strokeWidth="1.15"
+									strokeDasharray={i >= shown.length ? "2 2" : undefined}
+									className="stroke-white/24 group-hover:stroke-white/42"
+								/>
+								<circle
+									cx="5"
+									cy={y}
+									r={style ? 2.7 : 1.9}
+									fill={style?.fill ?? "#737373"}
+								>
+									{style && (
+										<title>
+											{kind === 1 ? "Input" : kind === 2 ? "Panel" : "Param"}
+										</title>
+									)}
+								</circle>
+							</g>
+						);
+					})}
+				</g>
+			</svg>
 			{shown.length === 0 && <span className="text-neutral-600">—</span>}
 			{shown.map((name, i) => (
 				<span key={i} className="truncate" title={name}>
@@ -247,8 +309,9 @@ function PortColumn(props: {
 
 function ScriptSignature({ signature }: { signature: PreviewSignature }) {
 	return (
-		<div className="absolute inset-x-0 top-0 bottom-6 flex items-center gap-4 px-4 font-mono text-[10.5px] leading-[13px] opacity-85 transition-opacity group-hover:opacity-100">
+		<div className="absolute inset-x-0 top-0 bottom-6 flex items-center gap-[30px] px-4 font-mono text-[10.5px] leading-[13px] opacity-85 transition-opacity group-hover:opacity-100">
 			<PortColumn
+				kinds={signature.inputKinds}
 				names={signature.inputs}
 				count={signature.inputCount}
 				className="text-right text-neutral-400"
@@ -260,6 +323,8 @@ function ScriptSignature({ signature }: { signature: PreviewSignature }) {
 				{monogram(signature.language)}
 			</span>
 			<PortColumn
+				output
+				kinds={signature.outputKinds}
 				names={signature.outputs}
 				count={signature.outputCount}
 				className="text-left text-neutral-300"

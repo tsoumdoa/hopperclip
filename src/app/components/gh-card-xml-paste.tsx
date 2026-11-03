@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { buildGhJson } from "parser/src/parser";
 import type { ParsedGrasshopper } from "parser/src/types";
+import { getSignatureScript } from "../lib/build-preview";
 import { validateGhXml } from "../utils/gh-xml";
 import { GhFileError, ghFileToGhXml } from "../utils/gh-file";
 import { useModifierKeyLabel } from "../hooks/use-modifier-key-label";
@@ -38,11 +39,9 @@ export function shouldAutoFillGhCardName(
 export function getSingleScriptNickName(
 	parsed: ParsedGrasshopper
 ): string | undefined {
-	const components = Object.values(parsed.components);
-	if (components.length !== 1 || !components[0]?.script) {
-		return undefined;
-	}
-	const sanitized = sanitizeGhCardName(components[0].nickName);
+	const main = getSignatureScript(parsed);
+	if (!main) return undefined;
+	const sanitized = sanitizeGhCardName(main.nickName);
 	return sanitized.length > 0 ? sanitized : undefined;
 }
 

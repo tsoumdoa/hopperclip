@@ -31,6 +31,8 @@ export const previewDataValidator = v.object({
 	signature: v.optional(
 		v.object({
 			language: v.string(),
+			inputKinds: v.optional(v.array(v.number())),
+			outputKinds: v.optional(v.array(v.number())),
 			inputs: v.array(v.string()),
 			inputCount: v.number(),
 			outputs: v.array(v.string()),
@@ -88,6 +90,15 @@ export function validatePreview(data: PreviewData) {
 	if (
 		sig &&
 		(!validName(sig.language) ||
+			[
+				[sig.inputKinds, sig.inputs],
+				[sig.outputKinds, sig.outputs],
+			].some(
+				([kinds, names]) =>
+					kinds !== undefined &&
+					(kinds.length !== names!.length ||
+						!(kinds as number[]).every((n) => integer(n, 3)))
+			) ||
 			!integer(sig.inputCount) ||
 			!integer(sig.outputCount) ||
 			sig.inputs.length !==

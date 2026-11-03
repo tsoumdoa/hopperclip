@@ -4,7 +4,7 @@ import { buildGhJson } from "parser/src/parser";
 import type { Component, ParsedGrasshopper } from "parser/src/types";
 import { ghFileToGhXml } from "../utils/gh-file";
 import { PREVIEW_CAPS, PREVIEW_KINDS } from "../../types/preview";
-import { buildPreview } from "./build-preview";
+import { buildPreview, getSignatureScript } from "./build-preview";
 
 const CANVAS_GROUP_GUID = "c552a431-af5b-46a9-a8a4-0fcbc27ef596";
 
@@ -373,6 +373,8 @@ function parsedOf(items: Component[], wires: ParsedGrasshopper["wires"] = []) {
 test("real C# and VB script fixtures get a signature without the console out port", () => {
 	expect(buildPreview(fixture("csharp-component.xml")).signature).toEqual({
 		language: "C#",
+		inputKinds: [0, 0],
+		outputKinds: [0],
 		inputs: ["x", "y"],
 		inputCount: 2,
 		outputs: ["a"],
@@ -381,6 +383,8 @@ test("real C# and VB script fixtures get a signature without the console out por
 	// VB and IronPython scripts with no wires: the first one wins the tie.
 	expect(buildPreview(fixture("python3.xml")).signature).toEqual({
 		language: "VB",
+		inputKinds: [0, 0],
+		outputKinds: [0],
 		inputs: ["x", "y"],
 		inputCount: 2,
 		outputs: ["A"],
@@ -550,4 +554,43 @@ test("caps port names but keeps totals, skips blank nicks, and only drops a lead
 			])
 		).signature!.inputs[0]
 	).toHaveLength(PREVIEW_CAPS.nameLength);
+});
+
+test.each(["Curve", "Panel"])(
+	"wired standalone %s keeps the signature and colours the grip",
+	(type) => {
+		const param = component("p", {
+			type,
+			inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
+			outputs: { value: { nick: "V", instanceGuid: "p" } },
+		});
+		const wires =
+			type === "Curve"
+				? [{ from: "s.a", to: "p.value" }]
+				: [{ from: "p.value", to: "s.x" }];
+		const sig = buildPreview(parsedOf([script("s"), param], wires)).signature;
+		expect(sig).toBeDefined();
+		expect(type === "Curve" ? sig?.outputKinds : sig?.inputKinds).toEqual(
+			type === "Curve" ? [3] : [2, 0]
+		);
+		expect(
+			buildPreview(parsedOf([script("s"), param, component("native")], wires))
+				.signature
+		).toBeUndefined();
+	}
+);
+
+test("signature naming shares eligibility and the most-wired main script", () => {
+	const first = script("first", { nickName: "First" });
+	const main = script("main", { nickName: "Main" });
+	const parsed = parsedOf(
+		[first, main],
+		[
+			{ from: "first.a", to: "main.x" },
+			{ from: "main.a", to: "main.y" },
+		]
+	);
+	expect(getSignatureScript(parsed)).toBe(main);
+	expect(getSignatureScript(parsedOf([first, main]))).toBe(first);
+	expect(getSignatureScript(parsedOf([main, component("op")]))).toBeUndefined();
 });
