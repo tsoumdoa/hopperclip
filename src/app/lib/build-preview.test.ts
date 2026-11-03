@@ -721,3 +721,12 @@ test("drops a port name that clips to nothing instead of storing it blank", () =
 	expect(sig.inputs).toEqual(["y"]);
 	expect(sig.inputKinds).toEqual([0]);
 });
+
+test("a script wired to Combine Data gets no signature", () => {
+	const combine = allXmlComponent("Combine Data");
+	expect(
+		buildPreview(
+			parsedOf([script("s"), combine], [{ from: "s.a", to: `${combine.id}.0` }])
+		).signature
+	).toBeUndefined();
+});
