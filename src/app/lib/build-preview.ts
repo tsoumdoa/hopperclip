@@ -144,8 +144,9 @@ function names(values: string[], cap = Infinity) {
 		.map(clip);
 }
 
-// Node types that only hold or pass data. "relay" covers every native param
-// ("Contains a collection of ..."), from Number to Curve.
+// Objects that only hold, pass or supply data: native params ("Contains a
+// collection of ..."), sliders and other inputs, panels, contextual Get *
+// inputs, and a few named widgets and data sources.
 const DATA_NODE_TYPES = new Set([
 	"slider",
 	"toggle",
@@ -155,15 +156,19 @@ const DATA_NODE_TYPES = new Set([
 	"panel",
 	"scribble",
 	"value",
-	"relay",
 ]);
-const INPUT_WIDGETS = new Set([
+const DATA_SOURCES = new Set([
 	"Relay",
 	"MD Slider",
 	"Digit Scroller",
 	"Control Knob",
 	"Colour Picker",
+	"Calendar",
+	"Clock",
 	"Jump",
+	"Cluster Input",
+	"Cluster Output",
+	"Geometry Pipeline",
 ]);
 
 function isOperation(c: Component) {
@@ -171,15 +176,14 @@ function isOperation(c: Component) {
 	// Real parameter chunks have their own GUIDs; the parser's synthetic
 	// container-level ports share the component's instance GUID.
 	const ports = [...Object.values(c.inputs), ...Object.values(c.outputs)];
-	if (!ports.length) return false;
 	if (ports.some((p) => p.instanceGuid !== c.instanceGuid))
 		return Object.keys(c.inputs).length > 0;
-	// Objects with only synthetic ports are params, sliders and the like, but
-	// also Path Mapper, Cherry Picker, Data Recorder... so allow known ones.
+	// Objects with only synthetic ports (or none) include params and sliders,
+	// but also Path Mapper, Cherry Picker, Data Recorder... so allow known ones.
 	return !(
 		DATA_NODE_TYPES.has(getComponentNodeType(c)) ||
-		INPUT_WIDGETS.has(c.type) ||
-		/^Contextual /.test(c.description ?? "")
+		DATA_SOURCES.has(c.type) ||
+		/^(Contains a collection of|Contextual) /.test(c.description ?? "")
 	);
 }
 function resolveComponent(parsed: ParsedGrasshopper, endpoint: string) {

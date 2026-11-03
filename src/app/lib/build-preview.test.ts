@@ -405,9 +405,13 @@ test("script-only clips with inputs, params and panels keep a signature", () => 
 	expect(data.signature?.language).toBe("C#");
 });
 
-function allXmlComponent(type: string) {
+// Some names are shared, e.g. the Group component and the Group param.
+function allXmlComponent(type: string, param = false) {
 	const found = Object.values(fixture("all.xml").components).find(
-		(c) => c.type === type
+		(c) =>
+			c.type === type &&
+			(!param ||
+				!Object.values(c.inputs).some((p) => p.instanceGuid !== c.instanceGuid))
 	);
 	if (!found) throw new Error(`all.xml has no ${type}`);
 	return { ...found, id: type };
@@ -446,7 +450,11 @@ test("truncation never splits a surrogate pair, so names stay well-formed", () =
 				inputs: { a: { nick, instanceGuid: "a" } },
 				outputs: { b: { nick, instanceGuid: "b" } },
 			}),
-			component("m", { nickName: nick, inputs: {} }),
+			component("m", {
+				nickName: nick,
+				inputs: {},
+				outputs: { o: { nick: "o", instanceGuid: "m-o" } },
+			}),
 		])
 	);
 	const strings = [
@@ -649,16 +657,23 @@ test.each([
 	).toBeUndefined();
 });
 
-test.each(["Curve", "Number", "Data", "Relay", "Get Number", "Value List"])(
-	"a wired native %s keeps the signature",
-	(type) => {
-		const wires = [{ from: "s.a", to: `${type}.value` }];
-		expect(
-			buildPreview(parsedOf([script("s"), allXmlComponent(type)], wires))
-				.signature?.outputKinds
-		).toEqual([type === "Value List" ? 1 : 3]);
-	}
-);
+test.each([
+	"Curve",
+	"Number",
+	"Data",
+	"Group",
+	"Relay",
+	"Get Number",
+	"Value List",
+	"Cluster Input",
+	"Geometry Pipeline",
+])("a wired native %s keeps the signature", (type) => {
+	const wires = [{ from: "s.a", to: `${type}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type, true)], wires))
+			.signature?.outputKinds
+	).toEqual([type === "Value List" ? 1 : 3]);
+});
 
 test("a Number param with an expression computes", () => {
 	const num = Object.values(
