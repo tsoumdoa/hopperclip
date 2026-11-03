@@ -7,17 +7,30 @@ import {
 } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { MotionConfig, motion, useScroll, useTransform } from "motion/react";
 import { AuthLoadingScreen } from "@/app/components/auth-loading-screen";
 import { PageShell } from "@/app/components/page-shell";
-import { ClipLibraryDemo } from "@/app/components/landing/clip-library-demo";
+import {
+	ClipCardDemo,
+	ClipLibraryGrid,
+} from "@/app/components/landing/clip-library-demo";
 import { InspectDiffVisual } from "@/app/components/landing/inspect-diff-visual";
 import { Reveal } from "@/app/components/landing/reveal";
 import { fetchClerkAuth } from "./__root";
 
+const TITLE = "Hopper Clip — Grasshopper snippets, ready";
+const DESCRIPTION =
+	"A personal clip library for Grasshopper definitions. See each graph at a glance, copy it back in one click, share a link, and inspect it in the browser.";
+
 export const Route = createFileRoute("/")({
 	head: () => ({
-		meta: [{ title: "Hopper Clip — Grasshopper snippets, ready" }],
+		meta: [
+			{ title: TITLE },
+			{ property: "og:title", content: TITLE },
+			{ property: "og:description", content: DESCRIPTION },
+			{ property: "og:type", content: "website" },
+			{ name: "twitter:card", content: "summary" },
+		],
 	}),
 	beforeLoad: async () => {
 		const { userId } = await fetchClerkAuth();
@@ -74,7 +87,7 @@ function SignedInLandingContent() {
 
 function LandingPageContent() {
 	return (
-		<>
+		<MotionConfig reducedMotion="user">
 			<div className="mx-auto flex w-full max-w-6xl flex-1 flex-col min-[2200px]:max-w-[140rem] 2xl:max-w-[100rem]">
 				<Hero />
 				<PersonalBeat />
@@ -83,13 +96,13 @@ function LandingPageContent() {
 				<Closing />
 			</div>
 			<BottomFade />
-		</>
+		</MotionConfig>
 	);
 }
 
 function Hero() {
 	return (
-		<section className="grid w-full grid-cols-1 items-end gap-8 pt-8 pb-12 md:pt-12 md:pb-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12 xl:gap-14 2xl:pt-16 2xl:pb-20">
+		<section className="grid w-full grid-cols-1 items-end gap-8 pt-8 pb-12 md:pt-12 md:pb-16 lg:grid-cols-2 lg:gap-12 xl:gap-14 2xl:pt-16 2xl:pb-20">
 			<div className="flex flex-col gap-4">
 				<Reveal>
 					<h1 className="max-w-2xl text-4xl leading-[1.05] font-semibold tracking-tight md:text-6xl 2xl:text-7xl">
@@ -99,8 +112,8 @@ function Hero() {
 				</Reveal>
 				<Reveal delay={0.05}>
 					<p className="max-w-lg text-base text-neutral-400 md:text-lg">
-						Keep the definitions you paste over and over. Find them in seconds —
-						then share or inspect without hunting folders.
+						Keep the definitions you paste over and over. Spot the right one at
+						a glance — then copy, share, or inspect without hunting folders.
 					</p>
 				</Reveal>
 				<Reveal delay={0.1}>
@@ -132,7 +145,7 @@ function Hero() {
 					<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 						your library
 					</p>
-					<ClipLibraryDemo mode="preview" />
+					<ClipLibraryGrid />
 				</div>
 			</Reveal>
 		</section>
@@ -152,9 +165,9 @@ function PersonalBeat() {
 							A personal clip library for the scripts you reuse.
 						</h2>
 						<p className="mt-3 text-sm leading-relaxed text-neutral-400 md:text-base">
-							Paste or drop a definition, tag it, find it later. One click
-							copies it back into Grasshopper — no digging through project
-							folders.
+							Paste or drop a definition and its card shows the shape of the
+							graph — inputs, scripts, plugins. One click copies it back into
+							Grasshopper, and the clips you reach for most rise to the top.
 						</p>
 					</div>
 				</Reveal>
@@ -163,7 +176,7 @@ function PersonalBeat() {
 						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 							try copy
 						</p>
-						<ClipLibraryDemo mode="copy" featuredId="curve" />
+						<ClipCardDemo mode="copy" clipId="voronoi" />
 					</div>
 				</Reveal>
 			</div>
@@ -180,7 +193,7 @@ function ShareBeat() {
 						<p className="mb-4 font-mono text-[10px] tracking-[0.18em] text-green-300/70 uppercase">
 							try share
 						</p>
-						<ClipLibraryDemo mode="share" featuredId="facade" />
+						<ClipCardDemo mode="share" clipId="solar" />
 					</div>
 				</Reveal>
 				<Reveal delay={0.08} className="order-1 md:order-2">
