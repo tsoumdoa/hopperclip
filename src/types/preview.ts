@@ -1,4 +1,4 @@
-export const PREVIEW_VERSION = 1;
+export const PREVIEW_VERSION = 2;
 export const PREVIEW_CAPS = {
 	nodes: 400,
 	edges: 800,
@@ -7,6 +7,8 @@ export const PREVIEW_CAPS = {
 	scripts: 3,
 	plugins: 3,
 	nameLength: 40,
+	signatureScripts: 3,
+	signaturePorts: 4,
 } as const;
 
 // Stored node kind indices are part of the versioned digest format.
@@ -32,4 +34,14 @@ export type PreviewData = {
 	nodes: number[];
 	edges: number[];
 	groups: Array<{ x: number; y: number; w: number; h: number; color: string }>;
+	// Port names of the main script when the clip is essentially just scripts.
+	signature?: PreviewSignature;
+};
+
+export type PreviewSignature = {
+	language: string;
+	inputs: string[];
+	inputCount: number;
+	outputs: string[];
+	outputCount: number;
 };

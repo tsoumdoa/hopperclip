@@ -4,6 +4,7 @@ import {
 	PREVIEW_KINDS,
 	type PreviewData,
 	type PreviewKind,
+	type PreviewSignature,
 } from "../../types/preview";
 import { getComponentNodeType } from "../duckerweb/lib/node-classifier";
 
@@ -77,10 +78,41 @@ function groupColor(argb?: string) {
 	);
 }
 
+// Cap UTF-16 length without leaving half of a surrogate pair at the end.
+function clip(s: string) {
+	const cut = s.slice(0, PREVIEW_CAPS.nameLength);
+	return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut;
+}
+
+function portNames(nicks: string[]) {
+	const all = nicks.map((s) => clip(s.trim())).filter(Boolean);
+	return {
+		names: all.slice(0, PREVIEW_CAPS.signaturePorts),
+		count: all.length,
+	};
+}
+
+function signatureOf(component: Component): PreviewSignature {
+	const inputs = portNames(Object.values(component.inputs).map((p) => p.nick));
+	// Script components lead with a console "out" port that carries no result.
+	const outputs = portNames(
+		Object.values(component.outputs)
+			.map((p) => p.nick)
+			.filter((nick, i) => i > 0 || nick.trim().toLowerCase() !== "out")
+	);
+	return {
+		language: clip(scriptName(component).trim()) || "Script",
+		inputs: inputs.names,
+		inputCount: inputs.count,
+		outputs: outputs.names,
+		outputCount: outputs.count,
+	};
+}
+
 function names(values: string[], cap = Infinity) {
 	return [...new Set(values.map((s) => s.trim()).filter(Boolean))]
 		.slice(0, cap)
-		.map((s) => s.slice(0, PREVIEW_CAPS.nameLength));
+		.map(clip);
 }
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
@@ -100,20 +132,31 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	};
 	const frequency = new Map<string, number>();
 	const scripts: string[] = [];
+	const scriptComponents: Component[] = [];
+	// Anything that computes (has input ports) or comes from a plugin rules out
+	// a script signature. Kept separate from kindOf, whose panel check matches
+	// any type containing "panel" and which treats relays and Get * as operations.
+	let operations = 0;
 	for (const component of components) {
 		const type = getComponentNodeType(component);
 		if (type === "slider") data.inputs.sliders++;
 		if (type === "toggle") data.inputs.toggles++;
 		if (type === "valueList") data.inputs.lists++;
 		const kind = kindOf(component);
-		if (kind === "script") scripts.push(scriptName(component));
+		if (kind === "script") {
+			scripts.push(scriptName(component));
+			scriptComponents.push(component);
+		}
+		if (
+			kind !== "script" &&
+			(Object.keys(component.inputs).length > 0 ||
+				isPlugin(libraryName(component.library ?? "")))
+		)
+			operations++;
 		// Most frequent operation nicknames first; ties keep definition order.
 		// Inputs, parameters, panels, relays, scribbles and scripts are excluded.
 		if (kind === "component" || kind === "plugin") {
-			const name = (component.nickName.trim() || component.type).slice(
-				0,
-				PREVIEW_CAPS.nameLength
-			);
+			const name = clip(component.nickName.trim() || component.type);
 			frequency.set(name, (frequency.get(name) ?? 0) + 1);
 		}
 	}
@@ -134,6 +177,31 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	);
 	data.pluginCount = pluginNames.length;
 	data.plugins = pluginNames.slice(0, PREVIEW_CAPS.plugins);
+
+	const resolve = (endpoint: string) => {
+		for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
+			if (Object.prototype.hasOwnProperty.call(parsed.components, id))
+				return id;
+			if (!id.includes(".")) return undefined;
+		}
+	};
+	// Script-only clips (scripts plus inputs, params and panels) have no
+	// operations to name, so show the main script's ports instead.
+	if (
+		operations === 0 &&
+		scriptComponents.length > 0 &&
+		scriptComponents.length <= PREVIEW_CAPS.signatureScripts
+	) {
+		const wires = new Map<string, number>();
+		for (const wire of parsed.wires)
+			for (const id of new Set([resolve(wire.from), resolve(wire.to)]))
+				if (id !== undefined) wires.set(id, (wires.get(id) ?? 0) + 1);
+		// Most connected script wins; ties keep definition order.
+		const main = scriptComponents.reduce((best, c) =>
+			(wires.get(c.id) ?? 0) > (wires.get(best.id) ?? 0) ? c : best
+		);
+		data.signature = signatureOf(main);
+	}
 
 	const bounds = new Map<string, NonNullable<Visuals["bounds"]>>();
 	function boundsOf(
@@ -202,13 +270,6 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		indices.set(c.id, i);
 		data.nodes.push(...rect(c), PREVIEW_KINDS.indexOf(kindOf(c)));
 	}
-	const resolve = (endpoint: string) => {
-		for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
-			if (Object.prototype.hasOwnProperty.call(parsed.components, id))
-				return id;
-			if (!id.includes(".")) return undefined;
-		}
-	};
 	for (const wire of parsed.wires) {
 		const sourceId = resolve(wire.from);
 		const targetId = resolve(wire.to);

@@ -67,12 +67,19 @@ export default function GHCard(props: {
 		api.previews.getPreview,
 		cardPreview === "off" ? "skip" : { storageKey: props.cardInfo.bucketUrl }
 	);
+	// Older digests are a subset of the current shape, so keep showing them
+	// until the card is reopened or backfilled instead of going blank.
 	const previewData =
 		preview === undefined
 			? undefined
-			: preview && preview.version === PREVIEW_VERSION
+			: preview &&
+				  Number.isSafeInteger(preview.version) &&
+				  preview.version >= 1 &&
+				  preview.version <= PREVIEW_VERSION
 				? preview.data
 				: null;
+	const hasCurrentPreview =
+		preview === undefined ? undefined : preview?.version === PREVIEW_VERSION;
 
 	useEffect(() => {
 		const cardId = props.cardInfo._id;
@@ -119,7 +126,7 @@ export default function GHCard(props: {
 				postId: props.cardInfo._id,
 				bucketKey: props.cardInfo.bucketUrl,
 			},
-			previewData === undefined ? undefined : previewData !== null
+			hasCurrentPreview
 		);
 	};
 
