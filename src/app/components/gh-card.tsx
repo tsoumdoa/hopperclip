@@ -174,6 +174,9 @@ export default function GHCard(props: {
 				{!isEditing && cardPreview === "thumbnail" && (
 					<ThumbnailPreview data={previewData} />
 				)}
+				{!isEditing && cardPreview === "recipe" && (
+					<RecipePreview data={previewData} />
+				)}
 				<NameDescriptionAndTags
 					editMode={editMode}
 					setGhInfo={setGhInfo}
@@ -192,10 +195,6 @@ export default function GHCard(props: {
 								Shared
 							</button>
 						)
-					}
-					previewSlot={
-						!isEditing &&
-						cardPreview === "recipe" && <RecipePreview data={previewData} />
 					}
 					tagsSlot={
 						ghInfo.tags.length > 0 && (

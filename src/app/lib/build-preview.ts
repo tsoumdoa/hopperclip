@@ -204,7 +204,8 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	}
 	const resolve = (endpoint: string) => {
 		for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
-			if (Object.hasOwn(parsed.components, id)) return id;
+			if (Object.prototype.hasOwnProperty.call(parsed.components, id))
+				return id;
 			if (!id.includes(".")) return undefined;
 		}
 	};

@@ -129,6 +129,30 @@ function Silhouette(props: {
 const canvasBg =
 	"bg-black/30 [background-image:radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:10px_10px]";
 
+function PreviewBand(props: {
+	missing?: boolean;
+	className: string;
+	children?: React.ReactNode;
+}) {
+	return (
+		<div
+			className={cn(
+				"relative -mx-4 -mt-4 mb-4 overflow-hidden rounded-t-xl border-b border-white/[0.06]",
+				canvasBg,
+				props.className
+			)}
+		>
+			{props.missing ? (
+				<div className="flex h-full items-center justify-center text-[11px] text-neutral-600">
+					Preview appears after you open this card
+				</div>
+			) : (
+				props.children
+			)}
+		</div>
+	);
+}
+
 function Chip(props: {
 	icon: React.ReactNode;
 	names: string[];
@@ -191,7 +215,7 @@ export const RecipePreview = memo(function RecipePreview({
 	data: PreviewData | null | undefined;
 }) {
 	const d = data ? renderDigest(data) : null;
-	if (!d) return null;
+	if (!d) return <PreviewBand missing={data === null} className="h-14" />;
 	const inputs = [
 		{ n: d.inputs.sliders, Icon: SlidersHorizontal, label: "sliders" },
 		{ n: d.inputs.toggles, Icon: ToggleLeft, label: "toggles" },
@@ -199,7 +223,7 @@ export const RecipePreview = memo(function RecipePreview({
 	].filter((i) => i.n > 0);
 	const ops = [...d.scripts, ...d.keyComponents].slice(0, 2);
 	return (
-		<div className="mt-3 flex flex-col gap-2 rounded-lg bg-white/[0.025] px-2.5 py-2 ring-1 ring-white/[0.05] ring-inset">
+		<PreviewBand className="flex h-14 flex-col justify-center gap-2 px-3">
 			<div className="flex min-w-0 items-center gap-2 text-[11px] text-neutral-400">
 				{inputs.length > 0 ? (
 					<span className="flex shrink-0 items-center gap-1.5">
@@ -226,7 +250,7 @@ export const RecipePreview = memo(function RecipePreview({
 				</span>
 			</div>
 			<CompositionBar digest={d} />
-		</div>
+		</PreviewBand>
 	);
 });
 
@@ -236,53 +260,38 @@ export const ThumbnailPreview = memo(function ThumbnailPreview({
 	data: PreviewData | null | undefined;
 }) {
 	const d = data ? renderDigest(data) : null;
+	if (!d) return <PreviewBand missing={data === null} className="h-28" />;
 	return (
-		<div
-			className={cn(
-				"relative overflow-hidden",
-				canvasBg,
-				"-mx-4 -mt-4 mb-4 h-28 rounded-t-xl border-b border-white/[0.06]"
-			)}
-		>
-			{d ? (
-				<>
-					<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
-						<Silhouette digest={d} dense={d.count > 60} />
-					</div>
-					<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
-						<span className="shrink-0 text-neutral-300 tabular-nums">
-							{d.count} {d.count === 1 ? "component" : "components"}
-						</span>
-						<span className="min-w-0 truncate font-mono text-neutral-500">
-							{d.keyComponents.slice(0, 2).join(" · ")}
-						</span>
-						<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
-							{d.scripts.length > 0 && (
-								<Chip
-									tone="script"
-									icon={<Code2 className="size-3 shrink-0" aria-hidden />}
-									names={d.scripts}
-									count={d.scriptCount}
-								/>
-							)}
-							{d.plugins.length > 0 && (
-								<Chip
-									tone="plugin"
-									icon={<Puzzle className="size-3 shrink-0" aria-hidden />}
-									names={d.plugins}
-									count={d.pluginCount}
-								/>
-							)}
-						</span>
-					</div>
-				</>
-			) : (
-				data === null && (
-					<div className="flex h-full items-center justify-center text-[11px] text-neutral-600">
-						Preview appears after you open this card
-					</div>
-				)
-			)}
-		</div>
+		<PreviewBand className="h-28">
+			<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
+				<Silhouette digest={d} dense={d.count > 60} />
+			</div>
+			<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
+				<span className="shrink-0 text-neutral-300 tabular-nums">
+					{d.count} {d.count === 1 ? "component" : "components"}
+				</span>
+				<span className="min-w-0 truncate font-mono text-neutral-500">
+					{d.keyComponents.slice(0, 2).join(" · ")}
+				</span>
+				<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
+					{d.scripts.length > 0 && (
+						<Chip
+							tone="script"
+							icon={<Code2 className="size-3 shrink-0" aria-hidden />}
+							names={d.scripts}
+							count={d.scriptCount}
+						/>
+					)}
+					{d.plugins.length > 0 && (
+						<Chip
+							tone="plugin"
+							icon={<Puzzle className="size-3 shrink-0" aria-hidden />}
+							names={d.plugins}
+							count={d.pluginCount}
+						/>
+					)}
+				</span>
+			</div>
+		</PreviewBand>
 	);
 });

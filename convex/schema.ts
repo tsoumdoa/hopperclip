@@ -35,6 +35,12 @@ export default defineSchema({
 		data: previewDataValidator,
 	}).index("by_user_key", ["clerkUserId", "storageKey"]),
 
+	previewBackfillClaims: defineTable({
+		clerkUserId: v.string(),
+		storageKey: v.string(),
+		version: v.number(),
+	}).index("by_user_key_version", ["clerkUserId", "storageKey", "version"]),
+
 	shares: defineTable({
 		postId: v.id("post"),
 		shareToken: v.string(),
