@@ -560,6 +560,7 @@ test("caps port names but keeps totals, skips blank nicks, and only drops a lead
 test("wired standalone Curve keeps the signature and colours the grip", () => {
 	const param = component("p", {
 		type: "Curve",
+		description: "Contains a collection of generic curves",
 		inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
 		outputs: { value: { nick: "V", instanceGuid: "p" } },
 	});
@@ -612,6 +613,7 @@ test("script with wired Panel and Curve auto-names from the main script", () => 
 	});
 	const curve = component("curve", {
 		type: "Curve",
+		description: "Contains a collection of generic curves",
 		inputs: { value: { nick: "V", instanceGuid: "curve" } },
 		outputs: { value: { nick: "V", instanceGuid: "curve" } },
 	});
@@ -628,23 +630,44 @@ test("script with wired Panel and Curve auto-names from the main script", () => 
 	).toBe("MyScript");
 });
 
-test("computing standalone objects and expression params still rule out a signature", () => {
-	const all = Object.values(fixture("all.xml").components);
-	const computing = [
-		...["Path Mapper", "Graph Mapper", "Data Recorder", "Image Sampler"].map(
-			(type) => all.find((c) => c.type === type)!
-		),
-		Object.values(fixture("flatten-internal-expression.xml").components).find(
-			(c) => c.internalExpression
-		)!,
-	];
-	for (const c of computing) {
-		expect(c).toBeDefined();
-		const wires = [{ from: "s.a", to: `${c.id}.value` }];
+test.each([
+	"Path Mapper",
+	"Graph Mapper",
+	"Data Recorder",
+	"Image Sampler",
+	"Cherry Picker",
+	"Suirify",
+	"Point On Curve",
+	"Value Tracker",
+	"Geometry Cache",
+	"Galapagos",
+])("a wired %s computes, so it rules the signature out", (type) => {
+	const wires = [{ from: "s.a", to: `${type}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type)], wires))
+			.signature
+	).toBeUndefined();
+});
+
+test.each(["Curve", "Number", "Data", "Relay", "Get Number", "Value List"])(
+	"a wired native %s keeps the signature",
+	(type) => {
+		const wires = [{ from: "s.a", to: `${type}.value` }];
 		expect(
-			buildPreview(parsedOf([script("s"), c], wires)).signature
-		).toBeUndefined();
+			buildPreview(parsedOf([script("s"), allXmlComponent(type)], wires))
+				.signature?.outputKinds
+		).toEqual([type === "Value List" ? 1 : 3]);
 	}
+);
+
+test("a Number param with an expression computes", () => {
+	const num = Object.values(
+		fixture("flatten-internal-expression.xml").components
+	).find((c) => c.internalExpression)!;
+	const wires = [{ from: "s.a", to: `${num.id}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), num], wires)).signature
+	).toBeUndefined();
 });
 
 test("a port wired to several components takes the most specific grip", () => {

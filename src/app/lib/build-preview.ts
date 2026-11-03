@@ -144,29 +144,42 @@ function names(values: string[], cap = Infinity) {
 		.map(clip);
 }
 
-// Standalone objects that transform data even though, like plain params,
-// they only have the parser's synthetic container-level ports.
-const COMPUTING_PARAMS = new Set([
-	"Path Mapper",
-	"Graph Mapper",
-	"Data Recorder",
-	"Image Sampler",
+// Node types that only hold or pass data. "relay" covers every native param
+// ("Contains a collection of ..."), from Number to Curve.
+const DATA_NODE_TYPES = new Set([
+	"slider",
+	"toggle",
+	"valueList",
+	"button",
+	"swatch",
+	"panel",
+	"scribble",
+	"value",
+	"relay",
+]);
+const INPUT_WIDGETS = new Set([
+	"Relay",
+	"MD Slider",
+	"Digit Scroller",
+	"Control Knob",
+	"Colour Picker",
+	"Jump",
 ]);
 
-// Container-level synthetic ports share the component instance GUID. Real
-// parameter chunks have their own GUIDs, even when their key is "value".
 function isOperation(c: Component) {
-	if (c.expression || c.internalExpression || COMPUTING_PARAMS.has(c.type))
-		return true;
-	const entries = Object.entries(c.inputs);
-	return (
-		entries.length > 0 &&
-		!(
-			entries.length === 1 &&
-			entries[0][0] === "value" &&
-			entries[0][1].instanceGuid === c.instanceGuid &&
-			Object.values(c.outputs).some((p) => p.instanceGuid === c.instanceGuid)
-		)
+	if (c.expression || c.internalExpression) return true;
+	// Real parameter chunks have their own GUIDs; the parser's synthetic
+	// container-level ports share the component's instance GUID.
+	const ports = [...Object.values(c.inputs), ...Object.values(c.outputs)];
+	if (!ports.length) return false;
+	if (ports.some((p) => p.instanceGuid !== c.instanceGuid))
+		return Object.keys(c.inputs).length > 0;
+	// Objects with only synthetic ports are params, sliders and the like, but
+	// also Path Mapper, Cherry Picker, Data Recorder... so allow known ones.
+	return !(
+		DATA_NODE_TYPES.has(getComponentNodeType(c)) ||
+		INPUT_WIDGETS.has(c.type) ||
+		/^Contextual /.test(c.description ?? "")
 	);
 }
 function resolveComponent(parsed: ParsedGrasshopper, endpoint: string) {
