@@ -3,6 +3,12 @@ import { StorageKeySchema } from "../src/types/types";
 
 export class StorageConfigurationError extends Error {}
 
+export function isValidStorageOwner(
+	owner: string | undefined
+): owner is string {
+	return typeof owner === "string" && /^[A-Za-z0-9_-]+$/.test(owner);
+}
+
 async function withStorageResponse<T>(
 	method: "HEAD" | "DELETE" | "GET",
 	clerkUserId: string,
@@ -15,7 +21,7 @@ async function withStorageResponse<T>(
 	if (!baseUrl || !accessKeyId || !secretAccessKey) {
 		throw new StorageConfigurationError("Storage is not configured");
 	}
-	if (!/^[A-Za-z0-9_-]+$/.test(clerkUserId)) {
+	if (!isValidStorageOwner(clerkUserId)) {
 		throw new Error("Invalid storage owner");
 	}
 	StorageKeySchema.parse(key);
