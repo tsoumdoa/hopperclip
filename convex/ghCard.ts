@@ -19,6 +19,7 @@ import {
 	attachUploadedObject,
 	enqueueUnreferencedObject,
 } from "./storageLifecycle";
+import { deletePostAndReferences } from "./postLifecycle";
 
 const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
 const MAX_SHARE_EXPIRY_HOURS = 24 * 30;
@@ -93,17 +94,7 @@ export const deletePost = mutation({
 			throw new Error("Not authorized to delete this post");
 		}
 
-		const shares = await ctx.db
-			.query("shares")
-			.withIndex("by_postId", (q) => q.eq("postId", args.id))
-			.collect();
-
-		for (const share of shares) {
-			await ctx.db.delete(share._id);
-		}
-
-		await ctx.db.delete(args.id);
-		await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);
+		await deletePostAndReferences(ctx, post);
 	},
 });
 
@@ -149,7 +140,7 @@ export const updatePost = mutation({
 		}
 		await ctx.db.patch("post", args.id, {
 			...patch,
-			...(replacing && { bucketUrl }),
+			...(replacing && { bucketUrl, storageMissingSince: undefined }),
 		});
 		if (replacing) {
 			await enqueueUnreferencedObject(ctx, post.clerkUserId, post.bucketUrl);

@@ -9,6 +9,7 @@ export default defineSchema({
 		dateCreated: v.string(),
 		dateUpdated: v.string(),
 		bucketUrl: v.string(),
+		storageMissingSince: v.optional(v.number()),
 		clerkUserId: v.optional(v.string()),
 		tags: v.optional(v.array(v.string())),
 		usageCount: v.optional(v.number()),
