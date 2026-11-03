@@ -1,3 +1,4 @@
+import { getMainScriptNickName } from "../components/gh-card-xml-paste";
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import { buildGhJson } from "parser/src/parser";
@@ -556,29 +557,36 @@ test("caps port names but keeps totals, skips blank nicks, and only drops a lead
 	).toHaveLength(PREVIEW_CAPS.nameLength);
 });
 
-test.each(["Curve", "Panel"])(
-	"wired standalone %s keeps the signature and colours the grip",
-	(type) => {
-		const param = component("p", {
-			type,
-			inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
-			outputs: { value: { nick: "V", instanceGuid: "p" } },
-		});
-		const wires =
-			type === "Curve"
-				? [{ from: "s.a", to: "p.value" }]
-				: [{ from: "p.value", to: "s.x" }];
-		const sig = buildPreview(parsedOf([script("s"), param], wires)).signature;
-		expect(sig).toBeDefined();
-		expect(type === "Curve" ? sig?.outputKinds : sig?.inputKinds).toEqual(
-			type === "Curve" ? [3] : [2, 0]
-		);
-		expect(
-			buildPreview(parsedOf([script("s"), param, component("native")], wires))
-				.signature
-		).toBeUndefined();
-	}
-);
+test("wired standalone Curve keeps the signature and colours the grip", () => {
+	const param = component("p", {
+		type: "Curve",
+		inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [{ from: "s.a", to: "p.value" }];
+	expect(
+		buildPreview(parsedOf([script("s"), param], wires)).signature?.outputKinds
+	).toEqual([3]);
+	expect(
+		buildPreview(parsedOf([script("s"), param, component("native")], wires))
+			.signature
+	).toBeUndefined();
+});
+test("wired standalone Panel keeps the signature and colours the grip", () => {
+	const param = component("p", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [{ from: "p.value", to: "s.x" }];
+	expect(
+		buildPreview(parsedOf([script("s"), param], wires)).signature?.inputKinds
+	).toEqual([2, 0]);
+	expect(
+		buildPreview(parsedOf([script("s"), param, component("native")], wires))
+			.signature
+	).toBeUndefined();
+});
 
 test("signature naming shares eligibility and the most-wired main script", () => {
 	const first = script("first", { nickName: "First" });
@@ -593,4 +601,29 @@ test("signature naming shares eligibility and the most-wired main script", () =>
 	expect(getSignatureScript(parsed)).toBe(main);
 	expect(getSignatureScript(parsedOf([first, main]))).toBe(first);
 	expect(getSignatureScript(parsedOf([main, component("op")]))).toBeUndefined();
+});
+
+test("script with wired Panel and Curve auto-names from the main script", () => {
+	const main = script("s", { nickName: "My Script" });
+	const panel = component("panel", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "panel" } },
+		outputs: { value: { nick: "V", instanceGuid: "panel" } },
+	});
+	const curve = component("curve", {
+		type: "Curve",
+		inputs: { value: { nick: "V", instanceGuid: "curve" } },
+		outputs: { value: { nick: "V", instanceGuid: "curve" } },
+	});
+	expect(
+		getMainScriptNickName(
+			parsedOf(
+				[main, panel, curve],
+				[
+					{ from: "panel.value", to: "s.x" },
+					{ from: "s.a", to: "curve.value" },
+				]
+			)
+		)
+	).toBe("MyScript");
 });

@@ -1,3 +1,4 @@
+export const GRIP_KINDS = [null, "input", "panel", "param"] as const;
 export const PREVIEW_VERSION = 3;
 export const PREVIEW_CAPS = {
 	nodes: 400,
@@ -39,7 +40,7 @@ export type PreviewData = {
 };
 
 export type PreviewSignature = {
-	// 0 plain, 1 input, 2 panel, 3 param; optional for older digests.
+	// Stored codes index GRIP_KINDS; optional for older digests.
 	inputKinds?: number[];
 	outputKinds?: number[];
 	language: string;

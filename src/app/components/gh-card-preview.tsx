@@ -9,6 +9,7 @@ import {
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 import {
+	GRIP_KINDS,
 	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
@@ -226,6 +227,13 @@ function visiblePorts(names: string[], count: number) {
 	return { shown, more: count - shown.length };
 }
 
+const WIRE_GAP = 30,
+	WIRE_HEIGHT = 68,
+	CENTER_Y = 34,
+	TRUNK_X = 20,
+	ROW_PITCH = 17,
+	GRIP_X = 5;
+
 function PortColumn(props: {
 	names: string[];
 	count: number;
@@ -242,36 +250,34 @@ function PortColumn(props: {
 			)}
 		>
 			<svg
-				width="30"
-				height="68"
+				width={WIRE_GAP}
+				height={WIRE_HEIGHT}
 				className={cn(
 					"absolute top-1/2 -translate-y-1/2 overflow-visible",
 					props.output ? "right-full" : "left-full"
 				)}
 				aria-hidden
 			>
-				<g transform={props.output ? "translate(30 0) scale(-1 1)" : undefined}>
+				<g
+					transform={
+						props.output ? `translate(${WIRE_GAP} 0) scale(-1 1)` : undefined
+					}
+				>
 					{[...shown, ...(more ? [""] : [])].map((_, i, rows) => {
-						const y = 34 + (i - (rows.length - 1) / 2) * 17;
-						const dy = 34 - y,
+						const y = CENTER_Y + (i - (rows.length - 1) / 2) * ROW_PITCH;
+						const dy = CENTER_Y - y,
 							r = Math.min(4, Math.abs(dy) / 2),
 							sign = Math.sign(dy);
 						const kind = i < shown.length ? props.kinds?.[i] : 0;
-						const style =
-							kind === 1
-								? KIND_STYLE.input
-								: kind === 2
-									? KIND_STYLE.panel
-									: kind === 3
-										? KIND_STYLE.param
-										: undefined;
+						const gripKind = GRIP_KINDS[kind ?? 0];
+						const style = gripKind ? KIND_STYLE[gripKind] : undefined;
 						return (
 							<g key={i} opacity={i >= shown.length ? 0.45 : 1}>
 								<path
 									d={
 										dy === 0
-											? `M5 ${y} H30`
-											: `M5 ${y} H${20 - r} Q20 ${y} 20 ${y + sign * r} V${34 - sign * r} Q20 34 ${20 + r} 34 H30`
+											? `M${GRIP_X} ${y} H${WIRE_GAP}`
+											: `M${GRIP_X} ${y} H${TRUNK_X - r} Q${TRUNK_X} ${y} ${TRUNK_X} ${y + sign * r} V${CENTER_Y - sign * r} Q${TRUNK_X} ${CENTER_Y} ${TRUNK_X + r} ${CENTER_Y} H${WIRE_GAP}`
 									}
 									fill="none"
 									stroke="white"
@@ -280,14 +286,15 @@ function PortColumn(props: {
 									className="stroke-white/24 group-hover:stroke-white/42"
 								/>
 								<circle
-									cx="5"
+									cx={GRIP_X}
 									cy={y}
 									r={style ? 2.7 : 1.9}
 									fill={style?.fill ?? "#737373"}
 								>
 									{style && (
 										<title>
-											{kind === 1 ? "Input" : kind === 2 ? "Panel" : "Param"}
+											{gripKind &&
+												gripKind[0].toUpperCase() + gripKind.slice(1)}
 										</title>
 									)}
 								</circle>

@@ -88,7 +88,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 		handleFileSelected,
 		invalidatePendingImport,
 	} = useXmlPasteHandler(setXmlData, setIsValidXml, setAddError, {
-		onSingleScriptComponent: autoFillName,
+		onScriptNickName: autoFillName,
 		onFilePicked: autoFillName,
 	});
 	useNativeGhXmlPaste({

@@ -1,5 +1,6 @@
 import type { Component, ParsedGrasshopper, Visuals } from "parser/src/types";
 import {
+	GRIP_KINDS,
 	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
@@ -84,28 +85,47 @@ function clip(s: string) {
 	return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut;
 }
 
-function portNames(nicks: string[]) {
-	const all = nicks.map((s) => clip(s.trim())).filter(Boolean);
-	return {
-		names: all.slice(0, PREVIEW_CAPS.signaturePorts),
-		count: all.length,
+function signatureOf(
+	component: Component,
+	parsed: ParsedGrasshopper
+): PreviewSignature {
+	const ports = (output: boolean) => {
+		const entries = Object.entries(
+			output ? component.outputs : component.inputs
+		).filter(
+			([, p], i) =>
+				p.nick.trim() &&
+				(!output || i > 0 || p.nick.trim().toLowerCase() !== "out")
+		);
+		const shown = entries.slice(0, PREVIEW_CAPS.signaturePorts);
+		return {
+			names: shown.map(([, p]) => clip(p.nick.trim())),
+			count: entries.length,
+			kinds: shown.map(([key]) => {
+				const wire = parsed.wires.find(
+					(w) => (output ? w.from : w.to) === `${component.id}.${key}`
+				);
+				const id =
+					wire && resolveComponent(parsed, output ? wire.to : wire.from);
+				const c = id ? parsed.components[id] : undefined;
+				if (!c || kindOf(c) === "script") return GRIP_KINDS.indexOf(null);
+				const kind = kindOf(c);
+				if (kind === "input" || kind === "panel")
+					return GRIP_KINDS.indexOf(kind);
+				return GRIP_KINDS.indexOf("param");
+			}),
+		};
 	};
-}
-
-function signatureOf(component: Component): PreviewSignature {
-	const inputs = portNames(Object.values(component.inputs).map((p) => p.nick));
-	// Script components lead with a console "out" port that carries no result.
-	const outputs = portNames(
-		Object.values(component.outputs)
-			.map((p) => p.nick)
-			.filter((nick, i) => i > 0 || nick.trim().toLowerCase() !== "out")
-	);
+	const inputs = ports(false),
+		outputs = ports(true);
 	return {
 		language: clip(scriptName(component).trim()) || "Script",
 		inputs: inputs.names,
 		inputCount: inputs.count,
+		inputKinds: inputs.kinds,
 		outputs: outputs.names,
 		outputCount: outputs.count,
+		outputKinds: outputs.kinds,
 	};
 }
 
@@ -143,27 +163,28 @@ export function getSignatureScript(
 		(c) => !isCanvasGroup(c)
 	);
 	const scriptComponents = components.filter((c) => kindOf(c) === "script");
-	const operations = components.filter(
+	const operations = components.some(
 		(c) =>
 			kindOf(c) !== "script" &&
 			(hasOperationInputs(c) || isPlugin(libraryName(c.library ?? "")))
-	).length;
-	const resolve = (endpoint: string) => resolveComponent(parsed, endpoint);
+	);
 	if (
-		operations === 0 &&
-		scriptComponents.length > 0 &&
-		scriptComponents.length <= PREVIEW_CAPS.signatureScripts
-	) {
-		const wires = new Map<string, number>();
-		for (const wire of parsed.wires)
-			for (const id of new Set([resolve(wire.from), resolve(wire.to)]))
-				if (id !== undefined) wires.set(id, (wires.get(id) ?? 0) + 1);
-		// Most connected script wins; ties keep definition order.
-		const main = scriptComponents.reduce((best, c) =>
-			(wires.get(c.id) ?? 0) > (wires.get(best.id) ?? 0) ? c : best
-		);
-		return main;
-	}
+		operations ||
+		scriptComponents.length === 0 ||
+		scriptComponents.length > PREVIEW_CAPS.signatureScripts
+	)
+		return undefined;
+	const wires = new Map<string, number>();
+	for (const wire of parsed.wires)
+		for (const id of new Set([
+			resolveComponent(parsed, wire.from),
+			resolveComponent(parsed, wire.to),
+		]))
+			if (id !== undefined) wires.set(id, (wires.get(id) ?? 0) + 1);
+	// Most connected script wins; ties keep definition order.
+	return scriptComponents.reduce((best, c) =>
+		(wires.get(c.id) ?? 0) > (wires.get(best.id) ?? 0) ? c : best
+	);
 }
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
@@ -219,36 +240,7 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 
 	const resolve = (endpoint: string) => resolveComponent(parsed, endpoint);
 	const main = getSignatureScript(parsed);
-	if (main) data.signature = signatureOf(main);
-	if (main && data.signature) {
-		const kinds = (output: boolean) =>
-			Object.entries(output ? main.outputs : main.inputs)
-				.filter(
-					([, p], i) =>
-						p.nick.trim() &&
-						(!output || i > 0 || p.nick.trim().toLowerCase() !== "out")
-				)
-				.slice(0, PREVIEW_CAPS.signaturePorts)
-				.map(([key]) => {
-					const candidates = parsed.wires
-						.filter((w) => (output ? w.from : w.to) === `${main.id}.${key}`)
-						.map((w) => resolve(output ? w.to : w.from))
-						.filter((id): id is string => !!id)
-						.sort();
-					const c = parsed.components[candidates[0]];
-					const kind = c && kindOf(c);
-					return kind === "input"
-						? 1
-						: kind === "panel"
-							? 2
-							: kind === "param" ||
-								  (c && !hasOperationInputs(c) && kind !== "script")
-								? 3
-								: 0;
-				});
-		data.signature.inputKinds = kinds(false);
-		data.signature.outputKinds = kinds(true);
-	}
+	if (main) data.signature = signatureOf(main, parsed);
 
 	const bounds = new Map<string, NonNullable<Visuals["bounds"]>>();
 	function boundsOf(

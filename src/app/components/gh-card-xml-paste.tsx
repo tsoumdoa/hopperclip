@@ -36,7 +36,7 @@ export function shouldAutoFillGhCardName(
 	);
 }
 
-export function getSingleScriptNickName(
+export function getMainScriptNickName(
 	parsed: ParsedGrasshopper
 ): string | undefined {
 	const main = getSignatureScript(parsed);
@@ -46,23 +46,23 @@ export function getSingleScriptNickName(
 }
 
 /**
- * Validate GhXml and, if valid, also extract the single-script-component
+ * Validate GhXml and, if valid, also extract the main script
  * nickname. Pure function — no React state, no I/O. The hook layer wires
  * this to its setters; tests exercise this directly.
  */
 export function ingestGhXml(
 	xml: string,
 	source: "clipboard" | "file",
-	options?: { onSingleScriptComponent?: (nickName: string) => void }
+	options?: { onScriptNickName?: (nickName: string) => void }
 ): IngestResult {
 	const { isValid, errorMsg } = validateGhXml(xml);
 
 	if (isValid) {
 		try {
 			const parsed = buildGhJson(xml);
-			const nickName = getSingleScriptNickName(parsed);
+			const nickName = getMainScriptNickName(parsed);
 			if (nickName) {
-				options?.onSingleScriptComponent?.(nickName);
+				options?.onScriptNickName?.(nickName);
 			}
 		} catch {
 			// Parse failure should not block a valid XML paste.
@@ -269,7 +269,7 @@ export function useXmlPasteHandler(
 				...options,
 				// A valid file import uses its filename; script nicknames remain the
 				// clipboard-paste fallback.
-				onSingleScriptComponent: undefined,
+				onScriptNickName: undefined,
 			});
 			if (result.isValid) {
 				const fileName = getGhCardNameFromFileName(file.name);
