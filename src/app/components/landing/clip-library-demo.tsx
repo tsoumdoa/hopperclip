@@ -16,12 +16,21 @@ const SAMPLE_CLIPS = [
 		shared: true,
 	},
 	{
+		id: "curve",
+		name: "DisplayCurveLength",
+		description: "C# script that labels curves with formatted lengths",
+		tags: ["analysis"],
+		edited: "Created 3w ago",
+		copies: 19,
+		shared: false,
+	},
+	{
 		id: "solar",
 		name: "SolarRadiationGrid",
 		description: "Annual radiation mapped onto a roof mesh",
 		tags: ["analysis", "ladybug"],
 		edited: "Edited 5d ago",
-		copies: 17,
+		copies: 12,
 		shared: false,
 	},
 	{
@@ -31,15 +40,6 @@ const SAMPLE_CLIPS = [
 		tags: ["geometry"],
 		edited: "Created 1w ago",
 		copies: 9,
-		shared: false,
-	},
-	{
-		id: "curve",
-		name: "DisplayCurveLength",
-		description: "Curve length labels with unit formatting",
-		tags: ["analysis"],
-		edited: "Created 3w ago",
-		copies: 6,
 		shared: false,
 	},
 ] as const;

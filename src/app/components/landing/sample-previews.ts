@@ -188,30 +188,32 @@ const voronoi = sketch({
 	],
 });
 
+// Script-only clip: the card shows the script's ports instead of a graph.
 const curve = sketch({
 	inputs: { sliders: 0, toggles: 1, lists: 0 },
-	keyComponents: ["Length", "Text Tag 3D"],
+	keyComponents: [],
 	scripts: ["C#"],
 	scriptCount: 1,
 	plugins: [],
 	pluginCount: 0,
+	signature: {
+		language: "C#",
+		inputs: ["Curves", "Unit", "Decimals"],
+		inputCount: 3,
+		outputs: ["Labels", "Total"],
+		outputCount: 2,
+	},
 	nodes: [
-		[0, 0.6, "param"],
-		[1, 0.4, "component"],
-		[0.6, 1.6, "input"],
-		[2, 0.6, "script"],
-		[3.1, 0.1, "component"],
-		[3.1, 1.2, "panel"],
+		[0, 0.4, "param"],
+		[0, 1.2, "input"],
+		[1, 0.5, "script"],
+		[2.1, 0.6, "panel"],
 	],
 	edges: [
-		[0, 1],
-		[1, 3],
+		[0, 2],
+		[1, 2],
 		[2, 3],
-		[0, 4],
-		[3, 4],
-		[3, 5],
 	],
-	groups: [{ members: [3, 4, 5], color: "#77a06e" }],
 });
 
 export const SAMPLE_PREVIEWS = { facade, solar, voronoi, curve } as const;
