@@ -146,7 +146,7 @@ function names(values: string[], cap = Infinity) {
 
 // Objects that only hold, pass or supply data: native params ("Contains a
 // collection of ..."), sliders and other inputs, panels, contextual Get *
-// inputs, and a few named widgets and data sources.
+// inputs, and a few named widgets, data sources and viewers.
 const DATA_NODE_TYPES = new Set([
 	"slider",
 	"toggle",
@@ -169,6 +169,14 @@ const DATA_SOURCES = new Set([
 	"Cluster Input",
 	"Cluster Output",
 	"Geometry Pipeline",
+	"Earth Anchor Point",
+	// Display-only viewers just show what the script outputs.
+	"Param Viewer",
+	"Quick Graph",
+	"Bar Graph",
+	"Pie Chart",
+	"Display Matrix",
+	"Image Gallery",
 ]);
 
 function isOperation(c: Component) {

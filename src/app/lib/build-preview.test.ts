@@ -649,6 +649,7 @@ test.each([
 	"Value Tracker",
 	"Geometry Cache",
 	"Galapagos",
+	"Data Input",
 ])("a wired %s computes, so it rules the signature out", (type) => {
 	const wires = [{ from: "s.a", to: `${type}.value` }];
 	expect(
@@ -667,6 +668,10 @@ test.each([
 	"Value List",
 	"Cluster Input",
 	"Geometry Pipeline",
+	"Calendar",
+	"Earth Anchor Point",
+	"Param Viewer",
+	"Quick Graph",
 ])("a wired native %s keeps the signature", (type) => {
 	const wires = [{ from: "s.a", to: `${type}.value` }];
 	expect(
