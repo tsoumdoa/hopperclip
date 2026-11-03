@@ -20,7 +20,6 @@ import {
 	enqueueUnreferencedObject,
 } from "./storageLifecycle";
 import { deletePostAndReferences } from "./postLifecycle";
-import type { Doc } from "./_generated/dataModel";
 
 const DEFAULT_SHARE_EXPIRY_HOURS = 24 * 7;
 const MAX_SHARE_EXPIRY_HOURS = 24 * 30;
@@ -149,11 +148,6 @@ export const updatePost = mutation({
 	},
 });
 
-function publicPost(post: Doc<"post">) {
-	const { storageMissingSince: _storageMissingSince, ...visible } = post;
-	return visible;
-}
-
 function sortedPosts(ctx: QueryCtx, userId: string, sortOrder: SortOrder) {
 	switch (sortOrder) {
 		case "recommended":
@@ -227,9 +221,7 @@ export const getAll = query({
 			normalizeSortOrder(args.sortOrder ?? DEFAULT_SORT_ORDER)
 		);
 
-		const posts = (await sortedPosts(ctx, userId, sortOrder).collect()).map(
-			publicPost
-		);
+		const posts = await sortedPosts(ctx, userId, sortOrder).collect();
 
 		if (tags.length === 0) return posts;
 
@@ -252,12 +244,11 @@ export const listPage = query({
 		);
 		const posts = sortedPosts(ctx, identity.id, sortOrder);
 		const tags = args.tags ?? [];
-		const result = await (
+		return (
 			tags.length
 				? filter(posts, (post) => tags.some((tag) => post.tags?.includes(tag)))
 				: posts
 		).paginate(args.paginationOpts);
-		return { ...result, page: result.page.map(publicPost) };
 	},
 });
 

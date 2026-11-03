@@ -187,10 +187,10 @@ export const run = internalAction({
 			cursor = result.continueCursor;
 		}
 		summary.checked = summary.present + summary.missing;
+		const attempted = summary.checked + summary.unknown;
 		summary.breakerTripped =
-			summary.checked === 0 ||
 			(summary.missing > 0 && summary.missing / summary.checked > 0.2) ||
-			summary.unknown / (summary.checked + summary.unknown) > 0.2;
+			(attempted > 0 && summary.unknown / attempted > 0.2);
 		if (summary.breakerTripped && overrideBreaker !== true) {
 			console.error(
 				"Storage reconciliation breaker tripped; no writes performed",

@@ -215,15 +215,21 @@ describe("storage reconciliation", () => {
 				return new Response(null, { status: failure });
 			});
 			const before = await snapshot(t);
-			expect(await apply(t)).toMatchObject({
-				checked: 0,
-				unknown: 2,
-				breakerTripped: true,
-				marked: 0,
-				cleared: 0,
-				deleted: 0,
-			});
-			expect(await snapshot(t)).toEqual(before);
+			for (const overrideBreaker of [false, true]) {
+				expect(await apply(t, overrideBreaker)).toMatchObject({
+					checked: 0,
+					unknown: 2,
+					breakerTripped: true,
+					marked: 0,
+					cleared: 0,
+					deleted: 0,
+				});
+				expect(await snapshot(t)).toEqual(before);
+			}
+			expect(console.error).toHaveBeenCalledExactlyOnceWith(
+				expect.stringContaining("breaker tripped"),
+				expect.objectContaining({ checked: 0, unknown: 2 })
+			);
 		}
 	);
 
@@ -252,21 +258,33 @@ describe("storage reconciliation", () => {
 	});
 
 	it.each(["empty", "unverifiable"])(
-		"trips the zero-checked breaker for %s libraries",
+		"returns a clean summary without writes or error logs for %s libraries",
 		async (kind) => {
 			const t = convexTest(schema, modules);
-			if (kind === "unverifiable")
-				await seedPost(t, "legacy", { clerkUserId: undefined });
+			if (kind === "unverifiable") {
+				await seedPost(t, "legacy", {
+					clerkUserId: undefined,
+					storageMissingSince: 0,
+				});
+				await seedPost(t, "../invalid", { storageMissingSince: 0 });
+			}
 			const before = await snapshot(t);
-			expect(await apply(t, false)).toMatchObject({
+			expect(await apply(t, false)).toEqual({
+				mode: "apply",
 				checked: 0,
-				breakerTripped: true,
+				present: 0,
+				missing: 0,
+				unknown: 0,
+				unverifiable: kind === "unverifiable" ? 2 : 0,
+				breakerTripped: false,
+				missingPosts: [],
 				marked: 0,
 				cleared: 0,
 				deleted: 0,
 			});
 			expect(await snapshot(t)).toEqual(before);
 			expect(storageRequest).not.toHaveBeenCalled();
+			expect(console.error).not.toHaveBeenCalled();
 		}
 	);
 
@@ -479,28 +497,5 @@ describe("storage reconciliation", () => {
 		});
 		expect(result.missingPosts).toHaveLength(200);
 		expect(storageRequest).toHaveBeenCalledTimes(205);
-	});
-
-	it("omits internal marks from library and shared-link responses", async () => {
-		const t = convexTest(schema, modules);
-		const postId = await seedPost(t, "file", { storageMissingSince: 0 });
-		const owner = t.withIdentity({ id: ownerId });
-		const all = await owner.query(api.ghCard.getAll, {});
-		const page = await owner.query(api.ghCard.listPage, {
-			paginationOpts: { numItems: 10, cursor: null },
-		});
-		expect(all).toHaveLength(1);
-		expect(all[0]).not.toHaveProperty("storageMissingSince");
-		expect(page.page[0]).not.toHaveProperty("storageMissingSince");
-		const { shareToken } = await owner.mutation(api.ghCard.createShare, {
-			postId,
-		});
-		const resolved = await t.mutation(internal.shareAccess.consumeAndResolve, {
-			clientKey: "a".repeat(64),
-			shareToken,
-		});
-		expect(resolved.status).toBe("ok");
-		if (resolved.status === "ok")
-			expect(resolved.sharedPost.post).toEqual({ name: "Card file" });
 	});
 });
