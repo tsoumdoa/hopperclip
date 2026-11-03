@@ -37,6 +37,6 @@ export type IngestResult = {
 };
 
 export type UseXmlPasteHandlerOptions = {
-	onSingleScriptComponent?: (nickName: string) => void;
+	onScriptNickName?: (nickName: string) => void;
 	onFilePicked?: (name: string) => void;
 };

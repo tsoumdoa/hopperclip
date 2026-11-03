@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import {
+	GRIP_KINDS,
 	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
@@ -31,6 +32,8 @@ export const previewDataValidator = v.object({
 	signature: v.optional(
 		v.object({
 			language: v.string(),
+			inputKinds: v.optional(v.array(v.number())),
+			outputKinds: v.optional(v.array(v.number())),
 			inputs: v.array(v.string()),
 			inputCount: v.number(),
 			outputs: v.array(v.string()),
@@ -82,12 +85,18 @@ export function validatePreview(data: PreviewData) {
 		)
 	)
 		throw new Error("Invalid preview groups");
+	const validKinds = (kinds: number[] | undefined, names: string[]) =>
+		kinds === undefined ||
+		(kinds.length === names.length &&
+			kinds.every((n) => integer(n, GRIP_KINDS.length - 1)));
 	const sig = data.signature;
 	const validName = (s: string) =>
 		!!s.trim() && s.length <= PREVIEW_CAPS.nameLength;
 	if (
 		sig &&
 		(!validName(sig.language) ||
+			!validKinds(sig.inputKinds, sig.inputs) ||
+			!validKinds(sig.outputKinds, sig.outputs) ||
 			!integer(sig.inputCount) ||
 			!integer(sig.outputCount) ||
 			sig.inputs.length !==

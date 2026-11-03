@@ -1,10 +1,11 @@
+import { getMainScriptNickName } from "../components/gh-card-xml-paste";
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import { buildGhJson } from "parser/src/parser";
 import type { Component, ParsedGrasshopper } from "parser/src/types";
 import { ghFileToGhXml } from "../utils/gh-file";
 import { PREVIEW_CAPS, PREVIEW_KINDS } from "../../types/preview";
-import { buildPreview } from "./build-preview";
+import { buildPreview, getSignatureScript } from "./build-preview";
 
 const CANVAS_GROUP_GUID = "c552a431-af5b-46a9-a8a4-0fcbc27ef596";
 
@@ -373,6 +374,8 @@ function parsedOf(items: Component[], wires: ParsedGrasshopper["wires"] = []) {
 test("real C# and VB script fixtures get a signature without the console out port", () => {
 	expect(buildPreview(fixture("csharp-component.xml")).signature).toEqual({
 		language: "C#",
+		inputKinds: [0, 0],
+		outputKinds: [0],
 		inputs: ["x", "y"],
 		inputCount: 2,
 		outputs: ["a"],
@@ -381,6 +384,8 @@ test("real C# and VB script fixtures get a signature without the console out por
 	// VB and IronPython scripts with no wires: the first one wins the tie.
 	expect(buildPreview(fixture("python3.xml")).signature).toEqual({
 		language: "VB",
+		inputKinds: [0, 0],
+		outputKinds: [0],
 		inputs: ["x", "y"],
 		inputCount: 2,
 		outputs: ["A"],
@@ -400,9 +405,13 @@ test("script-only clips with inputs, params and panels keep a signature", () => 
 	expect(data.signature?.language).toBe("C#");
 });
 
-function allXmlComponent(type: string) {
+// Some names are shared, e.g. the Group component and the Group param.
+function allXmlComponent(type: string, param = false) {
 	const found = Object.values(fixture("all.xml").components).find(
-		(c) => c.type === type
+		(c) =>
+			c.type === type &&
+			(!param ||
+				!Object.values(c.inputs).some((p) => p.instanceGuid !== c.instanceGuid))
 	);
 	if (!found) throw new Error(`all.xml has no ${type}`);
 	return { ...found, id: type };
@@ -441,7 +450,11 @@ test("truncation never splits a surrogate pair, so names stay well-formed", () =
 				inputs: { a: { nick, instanceGuid: "a" } },
 				outputs: { b: { nick, instanceGuid: "b" } },
 			}),
-			component("m", { nickName: nick, inputs: {} }),
+			component("m", {
+				nickName: nick,
+				inputs: {},
+				outputs: { o: { nick: "o", instanceGuid: "m-o" } },
+			}),
 		])
 	);
 	const strings = [
@@ -550,4 +563,161 @@ test("caps port names but keeps totals, skips blank nicks, and only drops a lead
 			])
 		).signature!.inputs[0]
 	).toHaveLength(PREVIEW_CAPS.nameLength);
+});
+
+test("wired standalone Curve keeps the signature and colours the grip", () => {
+	const param = component("p", {
+		type: "Curve",
+		description: "Contains a collection of generic curves",
+		inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [{ from: "s.a", to: "p.value" }];
+	expect(
+		buildPreview(parsedOf([script("s"), param], wires)).signature?.outputKinds
+	).toEqual([3]);
+	expect(
+		buildPreview(parsedOf([script("s"), param, component("native")], wires))
+			.signature
+	).toBeUndefined();
+});
+test("wired standalone Panel keeps the signature and colours the grip", () => {
+	const param = component("p", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "p", source: "s-a" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [{ from: "p.value", to: "s.x" }];
+	expect(
+		buildPreview(parsedOf([script("s"), param], wires)).signature?.inputKinds
+	).toEqual([2, 0]);
+	expect(
+		buildPreview(parsedOf([script("s"), param, component("native")], wires))
+			.signature
+	).toBeUndefined();
+});
+
+test("signature naming shares eligibility and the most-wired main script", () => {
+	const first = script("first", { nickName: "First" });
+	const main = script("main", { nickName: "Main" });
+	const parsed = parsedOf(
+		[first, main],
+		[
+			{ from: "first.a", to: "main.x" },
+			{ from: "main.a", to: "main.y" },
+		]
+	);
+	expect(getSignatureScript(parsed)).toBe(main);
+	expect(getSignatureScript(parsedOf([first, main]))).toBe(first);
+	expect(getSignatureScript(parsedOf([main, component("op")]))).toBeUndefined();
+});
+
+test("script with wired Panel and Curve auto-names from the main script", () => {
+	const main = script("s", { nickName: "My Script" });
+	const panel = component("panel", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "panel" } },
+		outputs: { value: { nick: "V", instanceGuid: "panel" } },
+	});
+	const curve = component("curve", {
+		type: "Curve",
+		description: "Contains a collection of generic curves",
+		inputs: { value: { nick: "V", instanceGuid: "curve" } },
+		outputs: { value: { nick: "V", instanceGuid: "curve" } },
+	});
+	expect(
+		getMainScriptNickName(
+			parsedOf(
+				[main, panel, curve],
+				[
+					{ from: "panel.value", to: "s.x" },
+					{ from: "s.a", to: "curve.value" },
+				]
+			)
+		)
+	).toBe("MyScript");
+});
+
+test.each([
+	"Path Mapper",
+	"Graph Mapper",
+	"Data Recorder",
+	"Image Sampler",
+	"Cherry Picker",
+	"Suirify",
+	"Point On Curve",
+	"Value Tracker",
+	"Geometry Cache",
+	"Galapagos",
+	"Data Input",
+])("a wired %s computes, so it rules the signature out", (type) => {
+	const wires = [{ from: "s.a", to: `${type}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type)], wires))
+			.signature
+	).toBeUndefined();
+});
+
+test.each([
+	"Curve",
+	"Number",
+	"Data",
+	"Group",
+	"Relay",
+	"Get Number",
+	"Value List",
+	"Cluster Input",
+	"Geometry Pipeline",
+	"Calendar",
+	"Earth Anchor Point",
+	"Param Viewer",
+	"Quick Graph",
+])("a wired native %s keeps the signature", (type) => {
+	const wires = [{ from: "s.a", to: `${type}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), allXmlComponent(type, true)], wires))
+			.signature?.outputKinds
+	).toEqual([type === "Value List" ? 1 : 3]);
+});
+
+test("a Number param with an expression computes", () => {
+	const num = Object.values(
+		fixture("flatten-internal-expression.xml").components
+	).find((c) => c.internalExpression)!;
+	const wires = [{ from: "s.a", to: `${num.id}.value` }];
+	expect(
+		buildPreview(parsedOf([script("s"), num], wires)).signature
+	).toBeUndefined();
+});
+
+test("a port wired to several components takes the most specific grip", () => {
+	const panel = component("p", {
+		type: "Panel",
+		inputs: { value: { nick: "V", instanceGuid: "p" } },
+		outputs: { value: { nick: "V", instanceGuid: "p" } },
+	});
+	const wires = [
+		{ from: "s.a", to: "s2.x" },
+		{ from: "s.a", to: "p.value" },
+		{ from: "s.a", to: "s2.y" },
+	];
+	expect(
+		buildPreview(parsedOf([script("s"), script("s2"), panel], wires)).signature
+			?.outputKinds
+	).toEqual([2]);
+});
+
+test("drops a port name that clips to nothing instead of storing it blank", () => {
+	const sig = buildPreview(
+		parsedOf([
+			script("s", {
+				inputs: {
+					x: { nick: "\uD83D", instanceGuid: "s-x" },
+					y: { nick: "y", instanceGuid: "s-y" },
+				},
+			}),
+		])
+	).signature!;
+	expect(sig.inputs).toEqual(["y"]);
+	expect(sig.inputKinds).toEqual([0]);
 });

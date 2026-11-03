@@ -9,6 +9,7 @@ import {
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 import {
+	GRIP_KINDS,
 	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
@@ -226,14 +227,82 @@ function visiblePorts(names: string[], count: number) {
 	return { shown, more: count - shown.length };
 }
 
+const WIRE_GAP = 30,
+	WIRE_HEIGHT = 68,
+	CENTER_Y = 34,
+	TRUNK_X = 20,
+	ROW_PITCH = 17,
+	GRIP_X = 5;
+
 function PortColumn(props: {
 	names: string[];
 	count: number;
 	className: string;
+	kinds?: number[];
+	output?: boolean;
 }) {
 	const { shown, more } = visiblePorts(props.names, props.count);
 	return (
-		<div className={cn("flex min-w-0 flex-1 flex-col gap-1", props.className)}>
+		<div
+			className={cn(
+				"relative flex min-w-0 flex-1 flex-col gap-1",
+				props.className
+			)}
+		>
+			<svg
+				width={WIRE_GAP}
+				height={WIRE_HEIGHT}
+				className={cn(
+					"absolute top-1/2 -translate-y-1/2 overflow-visible",
+					props.output ? "right-full" : "left-full"
+				)}
+				aria-hidden
+			>
+				<g
+					transform={
+						props.output ? `translate(${WIRE_GAP} 0) scale(-1 1)` : undefined
+					}
+				>
+					{[...shown, ...(more ? [""] : [])].map((_, i, rows) => {
+						const y = CENTER_Y + (i - (rows.length - 1) / 2) * ROW_PITCH;
+						const dy = CENTER_Y - y,
+							r = Math.min(4, Math.abs(dy) / 2),
+							sign = Math.sign(dy);
+						const kind = i < shown.length ? props.kinds?.[i] : 0;
+						const gripKind = GRIP_KINDS[kind ?? 0];
+						const style = gripKind ? KIND_STYLE[gripKind] : undefined;
+						return (
+							<g key={i} opacity={i >= shown.length ? 0.45 : 1}>
+								<path
+									d={
+										dy === 0
+											? `M${GRIP_X} ${y} H${WIRE_GAP}`
+											: `M${GRIP_X} ${y} H${TRUNK_X - r} Q${TRUNK_X} ${y} ${TRUNK_X} ${y + sign * r} V${CENTER_Y - sign * r} Q${TRUNK_X} ${CENTER_Y} ${TRUNK_X + r} ${CENTER_Y} H${WIRE_GAP}`
+									}
+									fill="none"
+									stroke="white"
+									strokeWidth="1.15"
+									strokeDasharray={i >= shown.length ? "2 2" : undefined}
+									className="stroke-white/24 group-hover:stroke-white/42"
+								/>
+								<circle
+									cx={GRIP_X}
+									cy={y}
+									r={style ? 2.7 : 1.9}
+									fill={style?.fill ?? "#737373"}
+								>
+									{style && (
+										<title>
+											{gripKind &&
+												gripKind[0].toUpperCase() + gripKind.slice(1)}
+										</title>
+									)}
+								</circle>
+							</g>
+						);
+					})}
+				</g>
+			</svg>
 			{shown.length === 0 && <span className="text-neutral-600">—</span>}
 			{shown.map((name, i) => (
 				<span key={i} className="truncate" title={name}>
@@ -247,8 +316,9 @@ function PortColumn(props: {
 
 function ScriptSignature({ signature }: { signature: PreviewSignature }) {
 	return (
-		<div className="absolute inset-x-0 top-0 bottom-6 flex items-center gap-4 px-4 font-mono text-[10.5px] leading-[13px] opacity-85 transition-opacity group-hover:opacity-100">
+		<div className="absolute inset-x-0 top-0 bottom-6 flex items-center gap-[30px] px-4 font-mono text-[10.5px] leading-[13px] opacity-85 transition-opacity group-hover:opacity-100">
 			<PortColumn
+				kinds={signature.inputKinds}
 				names={signature.inputs}
 				count={signature.inputCount}
 				className="text-right text-neutral-400"
@@ -260,6 +330,8 @@ function ScriptSignature({ signature }: { signature: PreviewSignature }) {
 				{monogram(signature.language)}
 			</span>
 			<PortColumn
+				output
+				kinds={signature.outputKinds}
 				names={signature.outputs}
 				count={signature.outputCount}
 				className="text-left text-neutral-300"

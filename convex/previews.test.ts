@@ -155,6 +155,9 @@ test.each(["public", "internal"])(
 			{ ...data, inputs: { sliders: 2, toggles: 0, lists: 0 } },
 			{ ...data, groups: [{ x: 0, y: 0, w: 1, h: 1, color: "red" }] },
 			...[
+				{ inputKinds: [4, 0, 0, 0] },
+				{ inputKinds: [0] },
+				{ outputKinds: [-1] },
 				{ language: "" },
 				{ language: "x".repeat(PREVIEW_CAPS.nameLength + 1) },
 				{ inputs: ["a"], inputCount: 0 },
@@ -297,8 +300,10 @@ const signature = {
 	language: "C#",
 	inputs: ["srf", "u", "v", "gap"],
 	inputCount: 7,
+	inputKinds: [1, 2, 3, 0],
 	outputs: ["panels"],
 	outputCount: 1,
+	outputKinds: [0],
 };
 
 test("stores a script signature with capped port names and full totals", async () => {

@@ -1,5 +1,6 @@
 import type { Component, ParsedGrasshopper, Visuals } from "parser/src/types";
 import {
+	GRIP_KINDS,
 	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
@@ -84,28 +85,56 @@ function clip(s: string) {
 	return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut;
 }
 
-function portNames(nicks: string[]) {
-	const all = nicks.map((s) => clip(s.trim())).filter(Boolean);
-	return {
-		names: all.slice(0, PREVIEW_CAPS.signaturePorts),
-		count: all.length,
+function signatureOf(
+	component: Component,
+	parsed: ParsedGrasshopper
+): PreviewSignature {
+	const ports = (output: boolean) => {
+		// Script components lead with a console "out" port that carries no result.
+		const entries = Object.entries(
+			output ? component.outputs : component.inputs
+		)
+			.map(([key, p]) => [key, clip(p.nick.trim())] as const)
+			.filter(
+				([, nick], i) =>
+					nick && (!output || i > 0 || nick.toLowerCase() !== "out")
+			);
+		const shown = entries.slice(0, PREVIEW_CAPS.signaturePorts);
+		return {
+			names: shown.map(([, nick]) => nick),
+			count: entries.length,
+			kinds: shown.map(([key]) => {
+				const handle = `${component.id}.${key}`;
+				const wired = parsed.wires
+					.filter((w) => (output ? w.from : w.to) === handle)
+					.map((w) => {
+						const id = resolveComponent(parsed, output ? w.to : w.from);
+						const kind = id && kindOf(parsed.components[id]);
+						return !kind || kind === "script"
+							? null
+							: kind === "input" || kind === "panel"
+								? kind
+								: "param";
+					});
+				// The most specific source wins when a port has several wires.
+				return GRIP_KINDS.indexOf(
+					(["input", "panel", "param"] as const).find((k) =>
+						wired.includes(k)
+					) ?? null
+				);
+			}),
+		};
 	};
-}
-
-function signatureOf(component: Component): PreviewSignature {
-	const inputs = portNames(Object.values(component.inputs).map((p) => p.nick));
-	// Script components lead with a console "out" port that carries no result.
-	const outputs = portNames(
-		Object.values(component.outputs)
-			.map((p) => p.nick)
-			.filter((nick, i) => i > 0 || nick.trim().toLowerCase() !== "out")
-	);
+	const inputs = ports(false),
+		outputs = ports(true);
 	return {
 		language: clip(scriptName(component).trim()) || "Script",
 		inputs: inputs.names,
 		inputCount: inputs.count,
+		inputKinds: inputs.kinds,
 		outputs: outputs.names,
 		outputCount: outputs.count,
+		outputKinds: outputs.kinds,
 	};
 }
 
@@ -113,6 +142,97 @@ function names(values: string[], cap = Infinity) {
 	return [...new Set(values.map((s) => s.trim()).filter(Boolean))]
 		.slice(0, cap)
 		.map(clip);
+}
+
+// Objects that only hold, pass or supply data: native params ("Contains a
+// collection of ..."), sliders and other inputs, panels, contextual Get *
+// inputs, and a few named widgets, data sources and viewers.
+const DATA_NODE_TYPES = new Set([
+	"slider",
+	"toggle",
+	"valueList",
+	"button",
+	"swatch",
+	"panel",
+	"scribble",
+	"value",
+]);
+const DATA_SOURCES = new Set([
+	"Relay",
+	"MD Slider",
+	"Digit Scroller",
+	"Control Knob",
+	"Colour Picker",
+	"Calendar",
+	"Clock",
+	"Jump",
+	"Cluster Input",
+	"Cluster Output",
+	"Geometry Pipeline",
+	"Earth Anchor Point",
+	// Display-only viewers just show what the script outputs.
+	"Param Viewer",
+	"Quick Graph",
+	"Bar Graph",
+	"Pie Chart",
+	"Display Matrix",
+	"Image Gallery",
+]);
+
+function isOperation(c: Component) {
+	if (c.expression || c.internalExpression) return true;
+	// Real parameter chunks have their own GUIDs; the parser's synthetic
+	// container-level ports share the component's instance GUID.
+	const ports = [...Object.values(c.inputs), ...Object.values(c.outputs)];
+	if (ports.some((p) => p.instanceGuid !== c.instanceGuid))
+		return Object.keys(c.inputs).length > 0;
+	// Objects with only synthetic ports (or none) include params and sliders,
+	// but also Path Mapper, Cherry Picker, Data Recorder... so allow known ones.
+	return !(
+		DATA_NODE_TYPES.has(getComponentNodeType(c)) ||
+		DATA_SOURCES.has(c.type) ||
+		/^(Contains a collection of|Contextual) /.test(c.description ?? "")
+	);
+}
+function resolveComponent(parsed: ParsedGrasshopper, endpoint: string) {
+	for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
+		if (Object.prototype.hasOwnProperty.call(parsed.components, id)) return id;
+		if (!id.includes(".")) return undefined;
+	}
+}
+
+export function getSignatureScript(
+	parsed: ParsedGrasshopper
+): Component | undefined {
+	const components = Object.values(parsed.components).filter(
+		(c) => !isCanvasGroup(c)
+	);
+	const scriptComponents = components.filter((c) => kindOf(c) === "script");
+	// Anything that computes or comes from a plugin rules out a signature. Kept
+	// separate from kindOf, whose panel check matches any type containing
+	// "panel" and which treats relays and Get * as operations.
+	const operations = components.some(
+		(c) =>
+			kindOf(c) !== "script" &&
+			(isOperation(c) || isPlugin(libraryName(c.library ?? "")))
+	);
+	if (
+		operations ||
+		scriptComponents.length === 0 ||
+		scriptComponents.length > PREVIEW_CAPS.signatureScripts
+	)
+		return undefined;
+	const wires = new Map<string, number>();
+	for (const wire of parsed.wires)
+		for (const id of new Set([
+			resolveComponent(parsed, wire.from),
+			resolveComponent(parsed, wire.to),
+		]))
+			if (id !== undefined) wires.set(id, (wires.get(id) ?? 0) + 1);
+	// Most connected script wins; ties keep definition order.
+	return scriptComponents.reduce((best, c) =>
+		(wires.get(c.id) ?? 0) > (wires.get(best.id) ?? 0) ? c : best
+	);
 }
 
 export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
@@ -132,11 +252,6 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	};
 	const frequency = new Map<string, number>();
 	const scripts: string[] = [];
-	const scriptComponents: Component[] = [];
-	// Anything that computes (has input ports) or comes from a plugin rules out
-	// a script signature. Kept separate from kindOf, whose panel check matches
-	// any type containing "panel" and which treats relays and Get * as operations.
-	let operations = 0;
 	for (const component of components) {
 		const type = getComponentNodeType(component);
 		if (type === "slider") data.inputs.sliders++;
@@ -145,14 +260,7 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 		const kind = kindOf(component);
 		if (kind === "script") {
 			scripts.push(scriptName(component));
-			scriptComponents.push(component);
 		}
-		if (
-			kind !== "script" &&
-			(Object.keys(component.inputs).length > 0 ||
-				isPlugin(libraryName(component.library ?? "")))
-		)
-			operations++;
 		// Most frequent operation nicknames first; ties keep definition order.
 		// Inputs, parameters, panels, relays, scribbles and scripts are excluded.
 		if (kind === "component" || kind === "plugin") {
@@ -178,30 +286,9 @@ export function buildPreview(parsed: ParsedGrasshopper): PreviewData {
 	data.pluginCount = pluginNames.length;
 	data.plugins = pluginNames.slice(0, PREVIEW_CAPS.plugins);
 
-	const resolve = (endpoint: string) => {
-		for (let id = endpoint; ; id = id.slice(0, id.lastIndexOf("."))) {
-			if (Object.prototype.hasOwnProperty.call(parsed.components, id))
-				return id;
-			if (!id.includes(".")) return undefined;
-		}
-	};
-	// Script-only clips (scripts plus inputs, params and panels) have no
-	// operations to name, so show the main script's ports instead.
-	if (
-		operations === 0 &&
-		scriptComponents.length > 0 &&
-		scriptComponents.length <= PREVIEW_CAPS.signatureScripts
-	) {
-		const wires = new Map<string, number>();
-		for (const wire of parsed.wires)
-			for (const id of new Set([resolve(wire.from), resolve(wire.to)]))
-				if (id !== undefined) wires.set(id, (wires.get(id) ?? 0) + 1);
-		// Most connected script wins; ties keep definition order.
-		const main = scriptComponents.reduce((best, c) =>
-			(wires.get(c.id) ?? 0) > (wires.get(best.id) ?? 0) ? c : best
-		);
-		data.signature = signatureOf(main);
-	}
+	const resolve = (endpoint: string) => resolveComponent(parsed, endpoint);
+	const main = getSignatureScript(parsed);
+	if (main) data.signature = signatureOf(main, parsed);
 
 	const bounds = new Map<string, NonNullable<Visuals["bounds"]>>();
 	function boundsOf(
