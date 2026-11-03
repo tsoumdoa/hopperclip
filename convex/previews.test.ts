@@ -37,7 +37,7 @@ async function setup() {
 		t,
 		postId,
 		owner: t.withIdentity({ id: "alice" }),
-		args: { storageKey: "old-file", version: 1, data },
+		args: { storageKey: "old-file", version: PREVIEW_VERSION, data },
 	};
 }
 
@@ -69,7 +69,7 @@ test("previews require authentication and ownership of the storage key", async (
 	).toBeNull();
 	expect(
 		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
-	).toEqual({ version: 1, data });
+	).toEqual({ version: PREVIEW_VERSION, data });
 });
 
 test("current previews are no-ops and only the current version can be saved", async () => {
@@ -154,6 +154,18 @@ test.each(["public", "internal"])(
 			{ ...data, plugins: ["Kangaroo"], pluginCount: 4 },
 			{ ...data, inputs: { sliders: 2, toggles: 0, lists: 0 } },
 			{ ...data, groups: [{ x: 0, y: 0, w: 1, h: 1, color: "red" }] },
+			...[
+				{ language: "" },
+				{ language: "x".repeat(PREVIEW_CAPS.nameLength + 1) },
+				{ inputs: ["a"], inputCount: 0 },
+				{ inputs: [], inputCount: 1 },
+				{ outputs: ["a", "b"], outputCount: 1 },
+				{ inputs: Array(5).fill("a"), inputCount: 5 },
+				{ inputs: [" "], inputCount: 1 },
+				{ outputs: ["x".repeat(PREVIEW_CAPS.nameLength + 1)], outputCount: 1 },
+				{ inputCount: -1 },
+				{ outputCount: 0.5 },
+			].map((patch) => ({ ...data, signature: { ...signature, ...patch } })),
 		];
 		for (const data of invalid)
 			await expect(
@@ -280,6 +292,26 @@ test.each(["delete", "replace"])(
 		).toHaveLength(0);
 	}
 );
+
+const signature = {
+	language: "C#",
+	inputs: ["srf", "u", "v", "gap"],
+	inputCount: 7,
+	outputs: ["panels"],
+	outputCount: 1,
+};
+
+test("stores a script signature with capped port names and full totals", async () => {
+	const { owner, args } = await setup();
+	const withSignature = { ...data, signature };
+	await owner.mutation(api.previews.savePreview, {
+		...args,
+		data: withSignature,
+	});
+	expect(
+		await owner.query(api.previews.getPreview, { storageKey: args.storageKey })
+	).toEqual({ version: PREVIEW_VERSION, data: withSignature });
+});
 
 test("stores full distinct script and plugin totals with capped name lists", async () => {
 	const { owner, args } = await setup();

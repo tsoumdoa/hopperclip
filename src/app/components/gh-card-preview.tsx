@@ -9,9 +9,11 @@ import {
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 import {
+	PREVIEW_CAPS,
 	PREVIEW_KINDS,
 	type PreviewData,
 	type PreviewKind,
+	type PreviewSignature,
 } from "@/types/preview";
 
 type RenderDigest = Omit<PreviewData, "nodes" | "edges"> & {
@@ -209,6 +211,69 @@ function CompositionBar(props: { digest: RenderDigest }) {
 	);
 }
 
+function monogram(language: string) {
+	if (/^python\s*3/i.test(language)) return "Py3";
+	if (/^python/i.test(language)) return "Py";
+	return language.length <= 3 ? language : language.slice(0, 2);
+}
+
+// Up to the cap, list every port; past it, leave the last row for "+N more".
+function visiblePorts(names: string[], count: number) {
+	const shown =
+		count <= PREVIEW_CAPS.signaturePorts
+			? names
+			: names.slice(0, PREVIEW_CAPS.signaturePorts - 1);
+	return { shown, more: count - shown.length };
+}
+
+function PortColumn(props: {
+	names: string[];
+	count: number;
+	className: string;
+}) {
+	const { shown, more } = visiblePorts(props.names, props.count);
+	return (
+		<div className={cn("flex min-w-0 flex-1 flex-col gap-1", props.className)}>
+			{shown.length === 0 && <span className="text-neutral-600">—</span>}
+			{shown.map((name, i) => (
+				<span key={i} className="truncate" title={name}>
+					{name}
+				</span>
+			))}
+			{more > 0 && <span className="text-neutral-600">+{more} more</span>}
+		</div>
+	);
+}
+
+function ScriptSignature({ signature }: { signature: PreviewSignature }) {
+	return (
+		<div className="absolute inset-x-0 top-0 bottom-6 flex items-center gap-4 px-4 font-mono text-[10.5px] leading-[13px] opacity-85 transition-opacity group-hover:opacity-100">
+			<PortColumn
+				names={signature.inputs}
+				count={signature.inputCount}
+				className="text-right text-neutral-400"
+			/>
+			<span
+				title={signature.language}
+				className="flex size-[30px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.03] font-sans text-[10px] font-medium tracking-wide text-neutral-300"
+			>
+				{monogram(signature.language)}
+			</span>
+			<PortColumn
+				names={signature.outputs}
+				count={signature.outputCount}
+				className="text-left text-neutral-300"
+			/>
+		</div>
+	);
+}
+
+function portList(names: string[], count: number) {
+	if (count === 0) return null;
+	const { shown, more } = visiblePorts(names, count);
+	return [...shown, ...(more > 0 ? [`+${more}`] : [])].join(", ");
+}
+
 export const RecipePreview = memo(function RecipePreview({
 	data,
 }: {
@@ -222,6 +287,35 @@ export const RecipePreview = memo(function RecipePreview({
 		{ n: d.inputs.lists, Icon: List, label: "value lists" },
 	].filter((i) => i.n > 0);
 	const ops = [...d.scripts, ...d.keyComponents].slice(0, 2);
+	const sig = d.signature;
+	if (sig)
+		return (
+			<PreviewBand className="flex h-14 flex-col justify-center gap-2 px-3">
+				<div className="flex min-w-0 items-center gap-2 font-mono text-[10.5px]">
+					<span className="shrink-0 text-neutral-500" title={sig.language}>
+						{monogram(sig.language)}
+					</span>
+					<span className="min-w-0 truncate text-neutral-400">
+						{portList(sig.inputs, sig.inputCount) ?? (
+							<span className="text-neutral-600">no inputs</span>
+						)}
+					</span>
+					<ArrowRight
+						className="size-3 shrink-0 text-neutral-600"
+						aria-hidden
+					/>
+					<span className="min-w-0 truncate text-neutral-300">
+						{portList(sig.outputs, sig.outputCount) ?? (
+							<span className="text-neutral-600">no outputs</span>
+						)}
+					</span>
+					<span className="ml-auto shrink-0 text-neutral-600 tabular-nums">
+						{d.count}
+					</span>
+				</div>
+				<CompositionBar digest={d} />
+			</PreviewBand>
+		);
 	return (
 		<PreviewBand className="flex h-14 flex-col justify-center gap-2 px-3">
 			<div className="flex min-w-0 items-center gap-2 text-[11px] text-neutral-400">
@@ -263,9 +357,13 @@ export const ThumbnailPreview = memo(function ThumbnailPreview({
 	if (!d) return <PreviewBand missing={data === null} className="h-28" />;
 	return (
 		<PreviewBand className="h-28">
-			<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
-				<Silhouette digest={d} dense={d.count > 60} />
-			</div>
+			{d.signature ? (
+				<ScriptSignature signature={d.signature} />
+			) : (
+				<div className="absolute inset-0 px-3 pt-2 pb-7 opacity-60 transition-opacity group-hover:opacity-100">
+					<Silhouette digest={d} dense={d.count > 60} />
+				</div>
+			)}
 			<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pt-4 pb-1.5 text-[10.5px]">
 				<span className="shrink-0 text-neutral-300 tabular-nums">
 					{d.count} {d.count === 1 ? "component" : "components"}
@@ -274,7 +372,8 @@ export const ThumbnailPreview = memo(function ThumbnailPreview({
 					{d.keyComponents.slice(0, 2).join(" · ")}
 				</span>
 				<span className="ml-auto flex min-w-0 gap-1 overflow-hidden">
-					{d.scripts.length > 0 && (
+					{/* The signature's monogram already names the language. */}
+					{d.scripts.length > 0 && !d.signature && (
 						<Chip
 							tone="script"
 							icon={<Code2 className="size-3 shrink-0" aria-hidden />}

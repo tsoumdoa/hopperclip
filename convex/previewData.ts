@@ -28,6 +28,15 @@ export const previewDataValidator = v.object({
 			color: v.string(),
 		})
 	),
+	signature: v.optional(
+		v.object({
+			language: v.string(),
+			inputs: v.array(v.string()),
+			inputCount: v.number(),
+			outputs: v.array(v.string()),
+			outputCount: v.number(),
+		})
+	),
 });
 
 export function validatePreview(data: PreviewData) {
@@ -73,4 +82,19 @@ export function validatePreview(data: PreviewData) {
 		)
 	)
 		throw new Error("Invalid preview groups");
+	const sig = data.signature;
+	const validName = (s: string) =>
+		!!s.trim() && s.length <= PREVIEW_CAPS.nameLength;
+	if (
+		sig &&
+		(!validName(sig.language) ||
+			!integer(sig.inputCount) ||
+			!integer(sig.outputCount) ||
+			sig.inputs.length !==
+				Math.min(sig.inputCount, PREVIEW_CAPS.signaturePorts) ||
+			sig.outputs.length !==
+				Math.min(sig.outputCount, PREVIEW_CAPS.signaturePorts) ||
+			![...sig.inputs, ...sig.outputs].every(validName))
+	)
+		throw new Error("Invalid preview signature");
 }

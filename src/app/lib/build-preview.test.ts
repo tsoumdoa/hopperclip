@@ -344,3 +344,151 @@ test("counts all four non-core libraries from all.xml while storing only three",
 	expect(data.plugins[0]).toBe("LunchBoxML");
 	expect(data.pluginCount).toBe(4);
 });
+
+function script(id: string, overrides: Partial<Component> = {}): Component {
+	return component(id, {
+		type: "C# Script",
+		nickName: "C#",
+		script: { language: "csharp", code: "" },
+		inputs: {
+			x: { nick: "x", instanceGuid: `${id}-x` },
+			y: { nick: "y", instanceGuid: `${id}-y` },
+		},
+		outputs: {
+			out: { nick: "out", instanceGuid: `${id}-out` },
+			a: { nick: "A", instanceGuid: `${id}-a` },
+		},
+		...overrides,
+	});
+}
+
+function parsedOf(items: Component[], wires: ParsedGrasshopper["wires"] = []) {
+	return {
+		version: "1",
+		components: Object.fromEntries(items.map((c) => [c.id, c])),
+		wires,
+	} as ParsedGrasshopper;
+}
+
+test("real C# and VB script fixtures get a signature without the console out port", () => {
+	expect(buildPreview(fixture("csharp-component.xml")).signature).toEqual({
+		language: "C#",
+		inputs: ["x", "y"],
+		inputCount: 2,
+		outputs: ["a"],
+		outputCount: 1,
+	});
+	// VB and IronPython scripts with no wires: the first one wins the tie.
+	expect(buildPreview(fixture("python3.xml")).signature).toEqual({
+		language: "VB",
+		inputs: ["x", "y"],
+		inputCount: 2,
+		outputs: ["A"],
+		outputCount: 1,
+	});
+});
+
+test("script-only clips with inputs, params and panels keep a signature", () => {
+	const data = buildPreview(
+		parsedOf([
+			script("s"),
+			component("slider", { value: { type: "slider" } }),
+			component("panel", { type: "Panel" }),
+			component("param", { type: "Number", inputs: {} }),
+		])
+	);
+	expect(data.signature?.language).toBe("C#");
+});
+
+test("clips with any operation or plugin component, or too many scripts, get no signature", () => {
+	expect(
+		buildPreview(parsedOf([script("s"), component("m")])).signature
+	).toBeUndefined();
+	expect(
+		buildPreview(
+			parsedOf([
+				script("s"),
+				component("p", { nickName: "Mesh+", library: "Kangaroo v2.0" }),
+			])
+		).signature
+	).toBeUndefined();
+	expect(
+		buildPreview(parsedOf(["1", "2", "3", "4"].map((id) => script(id))))
+			.signature
+	).toBeUndefined();
+	expect(buildPreview(parsedOf([component("m")])).signature).toBeUndefined();
+});
+
+test("picks the most-wired script, keeping definition order on ties", () => {
+	const helper = script("h", {
+		inputs: { q: { nick: "helperIn", instanceGuid: "h-q" } },
+	});
+	const main = script("m", {
+		inputs: { q: { nick: "mainIn", instanceGuid: "m-q" } },
+	});
+	const slider = component("slider", { value: { type: "slider" } });
+	expect(
+		buildPreview(
+			parsedOf(
+				[helper, main, slider],
+				[
+					{ from: "slider.out", to: "m.q" },
+					{ from: "h.a", to: "m.q" },
+				]
+			)
+		).signature?.inputs
+	).toEqual(["mainIn"]);
+	expect(buildPreview(parsedOf([helper, main])).signature?.inputs).toEqual([
+		"helperIn",
+	]);
+});
+
+test("caps port names but keeps totals, skips blank nicks, and only drops a leading out port", () => {
+	const ports = (prefix: string, n: number) =>
+		Object.fromEntries(
+			Array.from({ length: n }, (_, i) => [
+				`${prefix}${i}`,
+				{ nick: `${prefix}${i}`, instanceGuid: `${prefix}${i}` },
+			])
+		);
+	const signature = buildPreview(
+		parsedOf([
+			script("s", {
+				type: "Python 3 Script",
+				script: { language: "python", code: "" },
+				inputs: {
+					...ports("in", 6),
+					blank: { nick: "  ", instanceGuid: "blank" },
+					long: { nick: "x".repeat(80), instanceGuid: "long" },
+				},
+				outputs: {
+					first: { nick: "result", instanceGuid: "first" },
+					out: { nick: "out", instanceGuid: "out" },
+				},
+			}),
+		])
+	).signature!;
+	expect(signature.language).toBe("Python 3");
+	expect(signature.inputCount).toBe(7);
+	expect(signature.inputs).toHaveLength(PREVIEW_CAPS.signaturePorts);
+	expect(signature.outputs).toEqual(["result", "out"]);
+
+	const noPorts = buildPreview(
+		parsedOf([
+			script("s", {
+				inputs: {},
+				outputs: { out: { nick: "out", instanceGuid: "o" } },
+			}),
+		])
+	).signature!;
+	expect(noPorts).toMatchObject({ inputCount: 0, outputCount: 0 });
+	expect(
+		buildPreview(
+			parsedOf([
+				script("s", {
+					inputs: { long: { nick: "x".repeat(80), instanceGuid: "l" } },
+				}),
+			])
+		).signature!.inputs[0]
+	).toHaveLength(PREVIEW_CAPS.nameLength);
+});
