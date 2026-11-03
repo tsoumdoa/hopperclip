@@ -4,7 +4,8 @@ import { StorageKeySchema } from "../src/types/types";
 import { deletePreview } from "./previews";
 
 export const UPLOAD_EXPIRY_MS = 24 * 60 * 60 * 1000;
-// Actions are bounded below this lease. A crashed action is retried by sweep.
+// Actions are bounded below this lease. Once it expires, the half-hourly sweep
+// recovers crashed actions within roughly 30 minutes.
 export const CLEANUP_LEASE_MS = 5 * 60 * 1000;
 export const CLEANUP_BATCH_SIZE = 50;
 

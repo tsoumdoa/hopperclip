@@ -12,6 +12,7 @@ import type * as crons from "../crons.js";
 import type * as ghCard from "../ghCard.js";
 import type * as ghInternalMutation from "../ghInternalMutation.js";
 import type * as ghPublicAction from "../ghPublicAction.js";
+import type * as postLifecycle from "../postLifecycle.js";
 import type * as previewBackfill from "../previewBackfill.js";
 import type * as previewBackfillNode from "../previewBackfillNode.js";
 import type * as previewData from "../previewData.js";
@@ -24,6 +25,7 @@ import type * as storage from "../storage.js";
 import type * as storageActions from "../storageActions.js";
 import type * as storageLifecycle from "../storageLifecycle.js";
 import type * as storageR2 from "../storageR2.js";
+import type * as storageReconcile from "../storageReconcile.js";
 
 import type {
 	ApiFromModules,
@@ -36,6 +38,7 @@ declare const fullApi: ApiFromModules<{
 	ghCard: typeof ghCard;
 	ghInternalMutation: typeof ghInternalMutation;
 	ghPublicAction: typeof ghPublicAction;
+	postLifecycle: typeof postLifecycle;
 	previewBackfill: typeof previewBackfill;
 	previewBackfillNode: typeof previewBackfillNode;
 	previewData: typeof previewData;
@@ -48,6 +51,7 @@ declare const fullApi: ApiFromModules<{
 	storageActions: typeof storageActions;
 	storageLifecycle: typeof storageLifecycle;
 	storageR2: typeof storageR2;
+	storageReconcile: typeof storageReconcile;
 }>;
 
 /**
