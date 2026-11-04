@@ -1,5 +1,5 @@
 export const GRIP_KINDS = [null, "input", "panel", "param"] as const;
-export const PREVIEW_VERSION = 3;
+export const PREVIEW_VERSION = 4;
 export const PREVIEW_CAPS = {
 	nodes: 400,
 	edges: 800,

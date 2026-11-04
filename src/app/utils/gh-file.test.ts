@@ -104,3 +104,39 @@ test.each(["\n", "\r\n"])(
 		expect(normalizeGhXmlForClipboard(result)).toBe(result);
 	}
 );
+
+test("Combine Data keeps numeric input nicknames and their wires resolve", () => {
+	const xml = readFileSync("parser/sand/xmls/all.xml", "utf8");
+	const wired = xml.replace(
+		/(<item name="InstanceGuid"[^>]*>(?:48b4476c-f728-44eb-90bd-1be4b8f3eb01|88be08ee-25bf-4ea0-a8de-7375aabb3e21)<\/item>)/g,
+		'$1<item name="Source" index="0" type_name="gh_guid">c0741a52-0e9f-41be-84a9-8091bcc78b99</item>'
+	);
+	const graph = buildGhJson(wired);
+	const combine = Object.values(graph.components).find(
+		(c) => c.type === "Combine Data"
+	)!;
+	expect(Object.keys(combine.inputs)).toEqual(["0", "1"]);
+	for (const key of ["0", "1"]) {
+		expect(combine.inputs[key].nick).toBe(key);
+		expect(graph.wires.find((w) => w.to === `${combine.id}.${key}`)?.from).toBe(
+			`${combine.id}.r`
+		);
+	}
+});
+
+test.each(["007", "1e3", "true", "false"])(
+	"GH string nickname %s retains its text",
+	(value) => {
+		const xml = readFileSync("parser/sand/xmls/all.xml", "utf8");
+		const graph = buildGhJson(
+			xml.replace(
+				/(<item name="NickName" type_name="gh_string"[^>]*>)0(<\/item>)/g,
+				`$1${value}$2`
+			)
+		);
+		const combine = Object.values(graph.components).find(
+			(c) => c.type === "Combine Data"
+		)!;
+		expect(Object.values(combine.inputs).map((p) => p.nick)).toContain(value);
+	}
+);

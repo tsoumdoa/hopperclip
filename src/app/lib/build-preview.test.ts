@@ -435,6 +435,7 @@ test.each([
 	"Panel Connections",
 	"Diamond Panels",
 	"Cull Pattern",
+	"Combine Data",
 ])("a real %s operation next to a script rules the signature out", (type) => {
 	expect(
 		buildPreview(parsedOf([script("s"), allXmlComponent(type)])).signature

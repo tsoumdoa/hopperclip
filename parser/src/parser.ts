@@ -76,8 +76,10 @@ function extractItems(chunk: XmlChunk): Record<string, unknown> {
 			const key = index !== undefined ? `${name}_${index}` : name;
 			if (!isSafeKey(key)) continue;
 
-			// Try to parse as number or boolean
-			if (text === "true") {
+			// Preserve GH strings even when their contents look numeric or boolean.
+			if (typeName === "gh_string") {
+				result[key] = String(text);
+			} else if (text === "true") {
 				result[key] = true;
 			} else if (text === "false") {
 				result[key] = false;
