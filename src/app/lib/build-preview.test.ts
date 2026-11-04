@@ -435,6 +435,7 @@ test.each([
 	"Panel Connections",
 	"Diamond Panels",
 	"Cull Pattern",
+	"Combine Data",
 ])("a real %s operation next to a script rules the signature out", (type) => {
 	expect(
 		buildPreview(parsedOf([script("s"), allXmlComponent(type)])).signature
@@ -720,13 +721,4 @@ test("drops a port name that clips to nothing instead of storing it blank", () =
 	).signature!;
 	expect(sig.inputs).toEqual(["y"]);
 	expect(sig.inputKinds).toEqual([0]);
-});
-
-test("a script wired to Combine Data gets no signature", () => {
-	const combine = allXmlComponent("Combine Data");
-	expect(
-		buildPreview(
-			parsedOf([script("s"), combine], [{ from: "s.a", to: `${combine.id}.0` }])
-		).signature
-	).toBeUndefined();
 });

@@ -105,7 +105,7 @@ test.each(["\n", "\r\n"])(
 	}
 );
 
-test("Combine Data retains numeric input nicknames and resolves incoming wires", () => {
+test("Combine Data keeps numeric input nicknames and their wires resolve", () => {
 	const xml = readFileSync("parser/sand/xmls/all.xml", "utf8");
 	const wired = xml.replace(
 		/(<item name="InstanceGuid"[^>]*>(?:48b4476c-f728-44eb-90bd-1be4b8f3eb01|88be08ee-25bf-4ea0-a8de-7375aabb3e21)<\/item>)/g,
@@ -118,11 +118,13 @@ test("Combine Data retains numeric input nicknames and resolves incoming wires",
 	expect(Object.keys(combine.inputs)).toEqual(["0", "1"]);
 	for (const key of ["0", "1"]) {
 		expect(combine.inputs[key].nick).toBe(key);
-		expect(graph.wires.some((w) => w.to === `${combine.id}.${key}`)).toBe(true);
+		expect(graph.wires.find((w) => w.to === `${combine.id}.${key}`)?.from).toBe(
+			`${combine.id}.r`
+		);
 	}
 });
 
-test.each(["0", "007", "1e3", "true"])(
+test.each(["007", "1e3", "true", "false"])(
 	"GH string nickname %s retains its text",
 	(value) => {
 		const xml = readFileSync("parser/sand/xmls/all.xml", "utf8");
