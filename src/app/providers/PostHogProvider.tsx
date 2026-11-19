@@ -16,13 +16,13 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 			capture_pageview: "history_change",
 			capture_pageleave: true,
 			capture_exceptions: true,
+			// Private snippet text can appear outside form inputs.
+			disable_session_recording: true,
+			autocapture: false,
+			capture_dead_clicks: false,
+			mask_all_text: true,
 			debug: import.meta.env.DEV,
 			before_send: (event) => scrubPostHogEvent(event),
-			session_recording: {
-				// Explicitly mask all inputs; client config takes precedence over
-				// remote project masking settings.
-				maskAllInputs: true,
-			},
 		});
 	}, []);
 

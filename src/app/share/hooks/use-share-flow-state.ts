@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { decompress } from "../../utils/gzip";
+import { decompress, readGhDownload } from "../../utils/gzip";
 import { buildGhJson } from "parser/src/parser";
 import { generateFlowData } from "../../duckerweb/gh-flow-generator";
 import type { GHNode } from "../../duckerweb/types/type";
 import type { Edge } from "@xyflow/react";
-import { MAX_COMPRESSED_GH_XML_BYTES, type GetSharedPost } from "@/types/types";
+import type { GetSharedPost } from "@/types/types";
 import { requestSharedSnippet, ShareAccessError } from "../share-access";
 
 export function useShareFlowState(shareToken: string) {
@@ -19,6 +19,7 @@ export function useShareFlowState(shareToken: string) {
 	const [decodedXml, setDecodedXml] = useState<string | undefined>();
 	useEffect(() => {
 		let cancelled = false;
+		let downloadTimeout: number | undefined;
 		const controller = new AbortController();
 		setLoading(true);
 		setSharedPost(undefined);
@@ -41,6 +42,11 @@ export function useShareFlowState(shareToken: string) {
 				if (!result) return;
 				hasAccess = true;
 
+				downloadTimeout = window.setTimeout(() => {
+					controller.abort(
+						new DOMException("Snippet download timed out", "TimeoutError")
+					);
+				}, 120_000);
 				const res = await fetch(result.downloadUrl, {
 					signal: controller.signal,
 					cache: "no-store",
@@ -54,12 +60,9 @@ export function useShareFlowState(shareToken: string) {
 					throw new Error(`HTTP error! status: ${res.status}`);
 				}
 
-				const blob = await res.blob();
+				const payload = await readGhDownload(res);
 				if (cancelled) return;
-				if (blob.size > MAX_COMPRESSED_GH_XML_BYTES) {
-					throw new Error("GhXml download is too large");
-				}
-				const uncompressed = await decompress(await blob.arrayBuffer());
+				const uncompressed = await decompress(payload);
 				if (cancelled) return;
 				const decoded = new TextDecoder().decode(uncompressed);
 				const parsed = buildGhJson(decoded, { includeVisuals: true });
@@ -87,6 +90,7 @@ export function useShareFlowState(shareToken: string) {
 					}
 				}
 			} finally {
+				window.clearTimeout(downloadTimeout);
 				if (!cancelled) setLoading(false);
 			}
 		};
@@ -94,6 +98,7 @@ export function useShareFlowState(shareToken: string) {
 		void fetchAndParse();
 		return () => {
 			cancelled = true;
+			window.clearTimeout(downloadTimeout);
 			controller.abort();
 		};
 	}, [shareToken, attempt]);

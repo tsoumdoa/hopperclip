@@ -147,6 +147,16 @@
 		@apply h-full w-full;
 	}
 
+	@supports not (color: light-dark(white, black)) {
+		.gh-canvas-container .react-flow {
+			--xy-controls-button-background-color: #2b2b2b;
+			--xy-controls-button-background-color-hover: #3e3e3e;
+			--xy-controls-button-color: #f8f8f8;
+			--xy-controls-button-color-hover: #fff;
+			--xy-controls-button-border-color: #5b5b5b;
+		}
+	}
+
 	.react-flow__node-group {
 		padding: 0 !important;
 		border: 1px solid #bbb !important;

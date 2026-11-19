@@ -1,8 +1,7 @@
 import {
+	Show,
 	SignInButton,
 	SignUpButton,
-	SignedIn,
-	SignedOut,
 	UserButton,
 } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
@@ -36,7 +35,7 @@ export default function Header() {
 				Hopper Clip
 			</Link>
 			<nav className="flex items-center gap-1 sm:gap-2">
-				<SignedOut>
+				<Show when="signed-out">
 					<Link
 						to="/duckerweb"
 						className={`${navLinkClass} hidden sm:inline-flex`}
@@ -57,8 +56,8 @@ export default function Header() {
 							Sign up
 						</button>
 					</SignUpButton>
-				</SignedOut>
-				<SignedIn>
+				</Show>
+				<Show when="signed-in">
 					<Link
 						to="/ghcards"
 						className={navLinkClass}
@@ -87,7 +86,7 @@ export default function Header() {
 							</UserButton.MenuItems>
 						</UserButton>
 					</div>
-				</SignedIn>
+				</Show>
 			</nav>
 		</header>
 	);

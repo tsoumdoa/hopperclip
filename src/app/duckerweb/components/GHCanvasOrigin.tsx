@@ -1,9 +1,11 @@
-import { useStore, useViewport } from "@xyflow/react";
+import { useViewportStore } from "@xyflow/react";
 
 export function GHCanvasOrigin() {
-	const { x, y } = useViewport();
-	const width = useStore((state) => state.width);
-	const height = useStore((state) => state.height);
+	const {
+		transform: [x, y],
+		width,
+		height,
+	} = useViewportStore();
 
 	// Flow (0, 0) projects to the viewport translation. SVG clipping handles
 	// offscreen portions; stop at the origin if it is past the right/bottom edge.

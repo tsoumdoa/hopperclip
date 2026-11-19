@@ -1,4 +1,4 @@
-import pako from "pako";
+import { Inflate } from "pako";
 import { MAX_DECOMPRESSED_GH_XML_BYTES } from "@/types/types";
 
 export class GhSizeError extends Error {
@@ -654,7 +654,7 @@ export function inflateGrasshopperBinary(
 ) {
 	const chunks: Uint8Array[] = [];
 	let total = 0;
-	const inflator = new pako.Inflate({ raw: true, chunkSize: 64 * 1024 });
+	const inflator = new Inflate({ raw: true, chunkSize: 64 * 1024 });
 
 	inflator.onData = (chunk: Uint8Array) => {
 		total += chunk.length;

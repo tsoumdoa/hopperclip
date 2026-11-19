@@ -62,7 +62,7 @@ function FocusOnNode({ focus }: { focus: GHFlowCanvasProps["focus"] }) {
 		fitView({
 			nodes: [{ id: focus.nodeId }],
 			duration: 350,
-			padding: 0.4,
+			padding: "14.29%",
 			maxZoom: 1.2,
 		});
 	}, [focus, fitView]);
@@ -108,11 +108,11 @@ export function GHFlowCanvas({ nodes, edges, focus }: GHFlowCanvasProps) {
 				edgeTypes={edgeTypes}
 				defaultEdgeOptions={defaultEdgeOptions}
 				fitView
-				fitViewOptions={{ padding: 0.2 }}
+				fitViewOptions={{ padding: "8.33%" }}
 				minZoom={0.1}
 				maxZoom={4}
 				proOptions={{ hideAttribution: true }}
-				colorMode="dark"
+				forceColorMode="dark"
 				onNodeClick={(_, node) => setSelectedNodeId(node.id)}
 				onPaneClick={() => setSelectedNodeId(null)}
 			>

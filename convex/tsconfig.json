@@ -17,17 +17,20 @@
 			"ES2021",
 			"dom"
 		],
+		"types": ["node"],
 		"forceConsistentCasingInFileNames": true,
 		"module": "ESNext",
 		"isolatedModules": true,
 		"noEmit": true,
-		"baseUrl": "..",
 		"paths": {
 			"@convex/*": [
-				"convex/*"
+				"./*"
 			],
 			"@/*": [
-				"src/*"
+				"../src/*"
+			],
+			"parser/*": [
+				"../parser/*"
 			]
 		}
 	},

@@ -14,11 +14,10 @@
 		"jsx": "react-jsx",
 		"incremental": true,
 		"types": ["vite/client", "node"],
-		"baseUrl": ".",
 		"paths": {
-			"@convex/*": ["convex/*"],
-			"@/*": ["src/*"],
-			"parser/*": ["parser/*"]
+			"@convex/*": ["./convex/*"],
+			"@/*": ["./src/*"],
+			"parser/*": ["./parser/*"]
 		}
 	},
 	"include": [

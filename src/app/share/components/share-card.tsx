@@ -1,4 +1,4 @@
-import { SignUpButton, SignedOut } from "@clerk/tanstack-react-start";
+import { Show, SignUpButton } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
 import {
 	ArrowRight,
@@ -157,7 +157,7 @@ export default function GhShareCard(props: {
 				/>
 			</div>
 
-			<SignedOut>
+			<Show when="signed-out">
 				<div className="bg-card mt-4 flex flex-col items-start justify-between gap-4 rounded-xl border border-white/[0.08] px-5 py-4 sm:flex-row sm:items-center">
 					<div>
 						<p className="font-medium text-neutral-100">
@@ -177,7 +177,7 @@ export default function GhShareCard(props: {
 						</Button>
 					</SignUpButton>
 				</div>
-			</SignedOut>
+			</Show>
 		</div>
 	);
 }
