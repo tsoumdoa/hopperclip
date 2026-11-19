@@ -202,6 +202,26 @@ describe("bounded persistent snippet cache", () => {
 });
 
 describe("verified cache reads", () => {
+	test("cancels oversized download streams before reading the full body", async () => {
+		const { cache } = fixture();
+		const { client, download } = reader(cache);
+		const chunk = new Uint8Array(1024 * 1024);
+		const cancel = vi.fn();
+		const pull = vi.fn((controller: ReadableStreamDefaultController) => {
+			controller.enqueue(chunk);
+			// The response would eventually end even if the byte limit failed.
+			if (pull.mock.calls.length === 30) controller.close();
+		});
+		download.mockResolvedValueOnce(
+			new Response(new ReadableStream({ pull, cancel }))
+		);
+
+		await expect(client.read(target)).rejects.toThrow("GhXml is too large");
+		expect(cancel).toHaveBeenCalledOnce();
+		expect(pull.mock.calls.length).toBeLessThan(30);
+		cache.close();
+	});
+
 	test("the default browser transport preserves the fetch receiver on a cold read", async () => {
 		const { cache } = fixture();
 		const nativeFetch = vi.fn<typeof fetch>(async function (this: unknown) {

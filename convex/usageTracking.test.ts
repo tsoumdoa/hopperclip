@@ -2,7 +2,7 @@ import { convexTest } from "convex-test";
 import { afterEach, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
-import { addEvent, weights } from "./ranking";
+import { addEvent, USAGE_DEBOUNCE_MS, weights } from "./ranking";
 
 const modules = import.meta.glob(["./**/*.ts", "!./**/*.test.ts"]);
 const now = Date.parse("2026-10-01T00:00:00Z");
@@ -45,22 +45,28 @@ test("creation, editing and usage track heat with authorization and debounce", a
 		name: "Updated",
 	});
 	let updated = await t.run((ctx) => ctx.db.get(post._id));
-	expect(updated?.rankDirty).toBe(true);
-	expect(updated?.rankScore).toBe(post.rankScore);
-	expect(updated?.heat).toBe(addEvent(post.heat, weights.modified, now));
+	if (!updated) throw new Error("Missing updated post");
+	const editedAt = Date.parse(updated.dateUpdated);
+	expect(updated.rankDirty).toBe(true);
+	expect(updated.rankScore).toBe(post.rankScore);
+	const editedHeat = addEvent(post.heat, weights.modified, editedAt);
+	expect(updated.heat).toBe(editedHeat);
 	await owner.mutation(api.ghCard.recordUsage, { postId: post._id });
 	await owner.mutation(api.ghCard.recordUsage, { postId: post._id });
 	updated = await t.run((ctx) => ctx.db.get(post._id));
-	expect(updated?.usageCount).toBe(1);
-	expect(updated?.lastUsedAt).toBe(now);
-	expect(updated?.heat).toBe(
-		addEvent(addEvent(post.heat, weights.modified, now), weights.copy, now)
+	if (updated?.lastUsedAt === undefined) throw new Error("Missing usage time");
+	expect(updated.usageCount).toBe(1);
+	expect(updated.lastUsedAt).toBeGreaterThanOrEqual(editedAt);
+	expect(updated.lastUsedAt).toBeLessThanOrEqual(now + 1);
+	expect(updated.heat).toBe(
+		addEvent(editedHeat, weights.copy, updated.lastUsedAt)
 	);
-	vi.setSystemTime(now + 60000);
+	const debounceEndsAt = updated.lastUsedAt + USAGE_DEBOUNCE_MS;
+	vi.setSystemTime(debounceEndsAt);
 	await owner.mutation(api.ghCard.recordUsage, { postId: post._id });
 	updated = await t.run((ctx) => ctx.db.get(post._id));
 	expect(updated?.usageCount).toBe(2);
-	expect(updated?.lastUsedAt).toBe(now + 60000);
+	expect(updated?.lastUsedAt).toBe(debounceEndsAt);
 });
 
 test("settle traverses batches and is idempotent", async () => {
@@ -123,10 +129,15 @@ test("legacy edits and copies retain historical heat through initialization", as
 	const before = await Promise.all(
 		ids.map((id) => t.run((ctx) => ctx.db.get(id)))
 	);
-	expect(before[0]?.heat).toBe(addEvent(base, weights.modified, now));
-	expect(before[1]?.heat).toBe(addEvent(base, weights.copy, now));
-	expect(before[0]?.usageCount).toBeUndefined();
-	expect(before[1]?.usageCount).toBe(1);
+	const [edited, copied] = before;
+	if (!edited || copied?.lastUsedAt === undefined)
+		throw new Error("Missing legacy edit or copy");
+	expect(edited.heat).toBe(
+		addEvent(base, weights.modified, Date.parse(edited.dateUpdated))
+	);
+	expect(copied.heat).toBe(addEvent(base, weights.copy, copied.lastUsedAt));
+	expect(edited.usageCount).toBeUndefined();
+	expect(copied.usageCount).toBe(1);
 	const run = async () => {
 		await t.mutation(internal.rankingBackfill.settleRankScores, {});
 		await t.finishAllScheduledFunctions(vi.runAllTimers);

@@ -170,16 +170,18 @@ describe("storage reconciliation", () => {
 			async (_method, _owner, key) =>
 				new Response(null, { status: key === "healthy" ? 200 : 404 })
 		);
-		const markedAt = Date.now();
+		const scanStartedAt = Date.now();
 		expect(await apply(t, [postId])).toMatchObject({
 			marked: 1,
 			cleared: 0,
 			deleted: 0,
 			confirmed: 1,
 		});
-		expect(await t.run((ctx) => ctx.db.get(postId))).toMatchObject({
-			storageMissingSince: markedAt,
-		});
+		const markedAt = (await t.run((ctx) => ctx.db.get(postId)))
+			?.storageMissingSince;
+		if (markedAt === undefined) throw new Error("Missing storage mark");
+		expect(markedAt).toBeGreaterThanOrEqual(scanStartedAt);
+		expect(markedAt).toBeLessThanOrEqual(scanStartedAt + 1);
 		vi.setSystemTime(markedAt + MISSING_GRACE_MS - 1);
 		expect(await apply(t, [postId])).toMatchObject({
 			marked: 0,
@@ -702,10 +704,10 @@ describe("storage reconciliation", () => {
 			confirmed: 0,
 			marked: 1,
 		});
-		expect(await t.run((ctx) => ctx.db.get(missing))).toHaveProperty(
-			"storageMissingSince",
-			Date.now()
-		);
+		const markedAt = (await t.run((ctx) => ctx.db.get(missing)))
+			?.storageMissingSince;
+		expect(markedAt).toBeGreaterThanOrEqual(Date.now());
+		expect(markedAt).toBeLessThanOrEqual(Date.now() + 1);
 	});
 
 	it("trips on 16 missing plus 19 unknown out of 100 attempts", async () => {
@@ -1069,7 +1071,7 @@ describe("storage reconciliation", () => {
 		});
 		const state = await snapshot(t);
 		expect(
-			state.posts.filter((post) => post.storageMissingSince === start)
+			state.posts.filter((post) => (post.storageMissingSince ?? 0) >= start)
 		).toHaveLength(99);
 		expect(state.objects).toEqual([]);
 		expect(

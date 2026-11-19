@@ -1,7 +1,6 @@
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 import viteReact from "@vitejs/plugin-react";
-// nitro 3.x beta is currently required by TanStack Start — track stable releases.
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 import path from "node:path";
@@ -28,7 +27,7 @@ function buildSecurityHeaders({
 		"frame-ancestors 'none'",
 		"form-action 'self'",
 		// challenges.cloudflare.com: Clerk bot protection (Turnstile);
-		// us-assets.i.posthog.com: lazy-loaded session-recording + remote-config scripts.
+		// us-assets.i.posthog.com: PostHog remote configuration and SDK extensions.
 		// 'unsafe-inline' is required in production: TanStack Start streams inline
 		// hydration scripts and several routes are prerendered to static HTML, so
 		// per-request nonces can never match (Clerk also requires it without a full
@@ -119,6 +118,9 @@ export default defineConfig(({ command, mode }) => {
 				routeRules: {
 					"/**": {
 						headers: securityHeaders,
+					},
+					"/share": {
+						headers: { "Referrer-Policy": "no-referrer" },
 					},
 				},
 			}),

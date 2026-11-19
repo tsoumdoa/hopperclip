@@ -211,7 +211,8 @@ export class GhXmlClient {
 			});
 			if (!response.ok)
 				throw new Error("Could not download this snippet. Please try again.");
-			const payload = await response.arrayBuffer();
+			const { readGhDownload } = await import("../utils/gzip");
+			const payload = await readGhDownload(response);
 			const xml = await decode(payload);
 			assertCurrent();
 			if (lease) {

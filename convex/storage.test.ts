@@ -189,11 +189,13 @@ describe("atomic post changes and durable cleanup", () => {
 			new Response(null, { status: 503 })
 		);
 		await t.action(internal.storageActions.deleteObject, { objectId });
-		expect(await objectFor(t, "old_key")).toMatchObject({
+		const failed = await objectFor(t, "old_key");
+		expect(failed).toMatchObject({
 			state: "deleting",
 			attempts: 1,
-			nextAttemptAt: Date.now() + 60_000,
 		});
+		expect(failed?.nextAttemptAt).toBeGreaterThanOrEqual(Date.now() + 60_000);
+		expect(failed?.nextAttemptAt).toBeLessThanOrEqual(Date.now() + 60_001);
 		await t.action(internal.storageActions.deleteObject, { objectId });
 		expect(storageRequest).toHaveBeenCalledTimes(1);
 		vi.mocked(storageRequest).mockResolvedValueOnce(

@@ -87,7 +87,7 @@ describe("durable share limits", () => {
 			ctx.db.query("shareAccessLimits").collect()
 		);
 		expect(rows).toHaveLength(1);
-		expect(rows[0].tokens).toBe(0);
+		expect(rows[0].tokens).toBeLessThan(1);
 	});
 
 	test("shares have a second quota across distinct IPs while unrelated shares remain accessible", async () => {

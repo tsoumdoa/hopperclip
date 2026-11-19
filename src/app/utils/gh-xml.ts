@@ -53,8 +53,8 @@ export function normalizeGhXmlForClipboard(xml: string): string {
 
 	// Use parser boundaries so comments, CDATA and sibling chunks cannot be
 	// mistaken for the definition. Slice the source to preserve its payload.
-	const definitionRange = sourceRange(xml, definition);
-	const outerRange = sourceRange(xml, archive.chunks);
+	const definitionRange = sourceRange(definition);
+	const outerRange = sourceRange(archive.chunks);
 	if (!definitionRange || !outerRange) return xml;
 
 	const outerChunksOpenEnd = xml.indexOf(">", outerRange.start) + 1;
@@ -80,21 +80,12 @@ export function normalizeGhXmlForClipboard(xml: string): string {
 	);
 }
 
-function sourceRange(xml: string, node: XmlNode) {
+function sourceRange(node: XmlNode) {
 	const metadata = node[XMLParser.getMetaDataSymbol() as symbol];
 	if (metadata?.startIndex === undefined || metadata.endIndex === undefined)
 		return undefined;
 
-	// fast-xml-parser indexes after normalizing CRLF to LF. Map those offsets
-	// back to the input so Windows line endings and script text stay untouched.
-	let start = metadata.startIndex;
-	let end = metadata.endIndex;
-	for (const match of xml.matchAll(/\r\n/g)) {
-		if (match.index >= end) break;
-		if (match.index < start) start += 1;
-		end += 1;
-	}
-	return { start, end };
+	return { start: metadata.startIndex, end: metadata.endIndex };
 }
 
 export function validateGhXml(xml: string) {
