@@ -62,7 +62,7 @@ export const addPost = mutation({
 		const nowMs = Date.now();
 		const now = new Date(nowMs).toISOString();
 		const heat = addEvent(undefined, weights.created, nowMs);
-		await ctx.db.insert("post", {
+		return await ctx.db.insert("post", {
 			name: args.name,
 			description: args.description,
 			tags: [...new Set(args.tags)],

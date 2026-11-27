@@ -11,7 +11,10 @@ import { useDropZone } from "../hooks/use-drop-zone";
 import GhCardTags from "./gh-card-tags";
 import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useIsBefore } from "../hooks/use-is-before";
+import { useCardArrival } from "../hooks/use-card-arrival";
+import { newCardExpiresAt } from "../utils/new-card";
 import {
 	useGhCardsPageActions,
 	useGhCardsPageState,
@@ -101,18 +104,13 @@ export default function GHCard(props: {
 		loadMetrics,
 	} = useScriptMetrics();
 
-	const expiry = Date.parse(props.cardInfo.activeShareExpiresAt ?? "");
-	const [clock, setClock] = useState(0);
-	const hasActiveShare = expiry > Date.now();
-	useEffect(() => {
-		const delay = expiry - Date.now();
-		if (!(delay > 0)) return;
-		const timer = setTimeout(
-			() => setClock((value) => value + 1),
-			Math.min(delay, 2_147_483_647)
-		);
-		return () => clearTimeout(timer);
-	}, [expiry, clock]);
+	const hasActiveShare = useIsBefore(
+		Date.parse(props.cardInfo.activeShareExpiresAt ?? "")
+	);
+	const isNew = useIsBefore(newCardExpiresAt(props.cardInfo) ?? Number.NaN);
+
+	const cardRef = useRef<HTMLDivElement>(null);
+	const isArriving = useCardArrival(props.cardInfo._id, cardRef);
 
 	const handleShare = () => {
 		setOpenSharedDialog(true);
@@ -152,12 +150,14 @@ export default function GHCard(props: {
 	return (
 		<>
 			<div
+				ref={cardRef}
 				className={cn(
 					"group bg-card focus-visible:ring-ring relative flex flex-col rounded-xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none",
 					isEditing
 						? "border-green-300/30 ring-1 ring-green-300/15"
 						: "cursor-pointer border-white/[0.08] hover:border-white/20 hover:bg-neutral-900",
-					updating && "pointer-events-none opacity-70"
+					updating && "pointer-events-none opacity-70",
+					isArriving && !isEditing && "gh-card-arrive"
 				)}
 				role="button"
 				tabIndex={editMode ? -1 : 0}
@@ -189,18 +189,30 @@ export default function GHCard(props: {
 					setGhInfo={setGhInfo}
 					ghInfo={ghInfo}
 					titleAdornment={
-						hasActiveShare && (
-							<button
-								type="button"
-								className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-green-300/10 px-2 py-0.5 text-[11px] font-semibold text-green-300 ring-1 ring-green-300/30 transition-colors ring-inset hover:bg-green-300/20"
-								onClick={(e) => {
-									e.stopPropagation();
-									handleShare();
-								}}
-							>
-								<span className="size-1.5 rounded-full bg-green-300" />
-								Shared
-							</button>
+						(isNew || hasActiveShare) && (
+							<div className="flex shrink-0 items-center gap-1.5">
+								{isNew && (
+									<span
+										className="inline-flex items-center rounded-full bg-sky-300/10 px-2 py-0.5 text-[11px] font-semibold text-sky-300 ring-1 ring-sky-300/30 ring-inset"
+										title="Added in the last 7 days and not copied yet"
+									>
+										New
+									</span>
+								)}
+								{hasActiveShare && (
+									<button
+										type="button"
+										className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-green-300/10 px-2 py-0.5 text-[11px] font-semibold text-green-300 ring-1 ring-green-300/30 transition-colors ring-inset hover:bg-green-300/20"
+										onClick={(e) => {
+											e.stopPropagation();
+											handleShare();
+										}}
+									>
+										<span className="size-1.5 rounded-full bg-green-300" />
+										Shared
+									</button>
+								)}
+							</div>
 						)
 					}
 					tagsSlot={

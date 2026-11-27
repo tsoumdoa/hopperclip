@@ -172,7 +172,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 				const ghXmlZipped = compress(xmlData);
 				const storageKey = await uploadCompressedXml(ghXmlZipped);
 
-				await addGhCard({
+				const postId = await addGhCard({
 					name: name,
 					description: description,
 					tags: tags,
@@ -181,6 +181,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 
 				// New storage key: no preview can exist yet.
 				savePreview(storageKey, xmlData, false);
+				props.onCardAdded?.(postId);
 				props.setAdding(false);
 				props.setOpen(false);
 
