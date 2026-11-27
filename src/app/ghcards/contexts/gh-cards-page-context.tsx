@@ -5,9 +5,12 @@ import {
 	type SetStateAction,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
+import { CARD_ARRIVAL_MS } from "@/app/utils/new-card";
 import { updateEditingCardIds } from "@/app/utils/gh-card-edit-state";
 import {
 	useCardPreviewPreference,
@@ -34,6 +37,8 @@ type GhCardsPageState = {
 	pendingFile: File | null;
 	pendingXml: string | null;
 	hasEditingCards: boolean;
+	/** Cards saved in this tab within the last CARD_ARRIVAL_MS. */
+	arrivingCardIds: ReadonlySet<string>;
 };
 
 type GhCardsPageActions = {
@@ -45,6 +50,7 @@ type GhCardsPageActions = {
 	consumePendingFile: () => void;
 	consumePendingXml: () => void;
 	setCardEditing: (cardId: string, editMode: boolean) => void;
+	markCardArrived: (cardId: string) => void;
 };
 
 const GhCardsPageStateContext = createContext<GhCardsPageState | null>(null);
@@ -61,6 +67,17 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 	const [editingCardIds, setEditingCardIds] = useState<Set<string>>(
 		() => new Set()
 	);
+	const [arrivingCardIds, setArrivingCardIds] = useState<ReadonlySet<string>>(
+		() => new Set()
+	);
+	const arrivalTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
+	useEffect(() => {
+		const timers = arrivalTimers.current;
+		return () => {
+			for (const timer of timers) clearTimeout(timer);
+			timers.clear();
+		};
+	}, []);
 
 	const openAddDialog = useCallback((file?: File) => {
 		const pending = pendingGhCardFileImport(file);
@@ -88,6 +105,19 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 		);
 	}, []);
 
+	const markCardArrived = useCallback((cardId: string) => {
+		setArrivingCardIds((current) => new Set(current).add(cardId));
+		const timer = setTimeout(() => {
+			arrivalTimers.current.delete(timer);
+			setArrivingCardIds((current) => {
+				const next = new Set(current);
+				next.delete(cardId);
+				return next;
+			});
+		}, CARD_ARRIVAL_MS);
+		arrivalTimers.current.add(timer);
+	}, []);
+
 	const state = useMemo(
 		() => ({
 			cardPreview,
@@ -96,6 +126,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			pendingFile,
 			pendingXml,
 			hasEditingCards: editingCardIds.size > 0,
+			arrivingCardIds,
 		}),
 		[
 			cardPreview,
@@ -104,6 +135,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			pendingFile,
 			pendingXml,
 			editingCardIds,
+			arrivingCardIds,
 		]
 	);
 	const actions = useMemo(
@@ -116,6 +148,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			consumePendingFile,
 			consumePendingXml,
 			setCardEditing,
+			markCardArrived,
 		}),
 		[
 			setCardPreviewPreference,
@@ -124,6 +157,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			consumePendingFile,
 			consumePendingXml,
 			setCardEditing,
+			markCardArrived,
 		]
 	);
 
