@@ -37,6 +37,9 @@ describe("isNewCard", () => {
 		expect(newCardExpiresAt({ dateCreated: created, usageCount: 3 })).toBe(
 			null
 		);
+		expect(isNewCard({ dateCreated: created, usageCount: -1 }, createdMs)).toBe(
+			false
+		);
 	});
 
 	it("hides when the created date cannot be parsed", () => {

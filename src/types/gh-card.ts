@@ -9,6 +9,8 @@ export type AddGhDialogProps = {
 	onInitialFileConsumed?: () => void;
 	initialXml?: string | null;
 	onInitialXmlConsumed?: () => void;
+	/** Called with the new post id once the card is saved. */
+	onCardAdded?: (postId: string) => void;
 };
 
 export type GhPageFileDropLayerProps = {

@@ -10,7 +10,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { CARD_ARRIVAL_MS } from "@/app/utils/new-card";
+import { CARD_ARRIVAL_PENDING_MS } from "@/app/utils/new-card";
 import { updateEditingCardIds } from "@/app/utils/gh-card-edit-state";
 import {
 	useCardPreviewPreference,
@@ -37,7 +37,7 @@ type GhCardsPageState = {
 	pendingFile: File | null;
 	pendingXml: string | null;
 	hasEditingCards: boolean;
-	/** Cards saved in this tab within the last CARD_ARRIVAL_MS. */
+	/** Cards saved in this tab whose arrival ring has not played yet. */
 	arrivingCardIds: ReadonlySet<string>;
 };
 
@@ -51,6 +51,7 @@ type GhCardsPageActions = {
 	consumePendingXml: () => void;
 	setCardEditing: (cardId: string, editMode: boolean) => void;
 	markCardArrived: (cardId: string) => void;
+	consumeCardArrival: (cardId: string) => void;
 };
 
 const GhCardsPageStateContext = createContext<GhCardsPageState | null>(null);
@@ -105,18 +106,27 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 		);
 	}, []);
 
-	const markCardArrived = useCallback((cardId: string) => {
-		setArrivingCardIds((current) => new Set(current).add(cardId));
-		const timer = setTimeout(() => {
-			arrivalTimers.current.delete(timer);
-			setArrivingCardIds((current) => {
-				const next = new Set(current);
-				next.delete(cardId);
-				return next;
-			});
-		}, CARD_ARRIVAL_MS);
-		arrivalTimers.current.add(timer);
+	const consumeCardArrival = useCallback((cardId: string) => {
+		setArrivingCardIds((current) => {
+			if (!current.has(cardId)) return current;
+			const next = new Set(current);
+			next.delete(cardId);
+			return next;
+		});
 	}, []);
+	// The card consumes its marker when it renders; this only drops markers
+	// for cards that never show up (filtered out, on an unloaded page).
+	const markCardArrived = useCallback(
+		(cardId: string) => {
+			setArrivingCardIds((current) => new Set(current).add(cardId));
+			const timer = setTimeout(() => {
+				arrivalTimers.current.delete(timer);
+				consumeCardArrival(cardId);
+			}, CARD_ARRIVAL_PENDING_MS);
+			arrivalTimers.current.add(timer);
+		},
+		[consumeCardArrival]
+	);
 
 	const state = useMemo(
 		() => ({
@@ -149,6 +159,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			consumePendingXml,
 			setCardEditing,
 			markCardArrived,
+			consumeCardArrival,
 		}),
 		[
 			setCardPreviewPreference,
@@ -158,6 +169,7 @@ export function GhCardsPageProvider({ children }: { children: ReactNode }) {
 			consumePendingXml,
 			setCardEditing,
 			markCardArrived,
+			consumeCardArrival,
 		]
 	);
 

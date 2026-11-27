@@ -13,6 +13,7 @@ import { MetricsDialog } from "./metrics-dialog";
 import { useScriptMetrics } from "../hooks/use-script-metrics";
 import { useEffect, useRef, useState } from "react";
 import { useIsBefore } from "../hooks/use-is-before";
+import { useCardArrival } from "../hooks/use-card-arrival";
 import { newCardExpiresAt } from "../utils/new-card";
 import {
 	useGhCardsPageActions,
@@ -64,7 +65,7 @@ export default function GHCard(props: {
 		editMode
 	);
 	const { setCardEditing } = useGhCardsPageActions();
-	const { cardPreview, arrivingCardIds } = useGhCardsPageState();
+	const { cardPreview } = useGhCardsPageState();
 	const preview = useQuery(
 		api.previews.getPreview,
 		cardPreview === "off" ? "skip" : { storageKey: props.cardInfo.bucketUrl }
@@ -108,19 +109,8 @@ export default function GHCard(props: {
 	);
 	const isNew = useIsBefore(newCardExpiresAt(props.cardInfo) ?? Number.NaN);
 
-	// Saved in this tab a moment ago: ring it and bring it into view.
 	const cardRef = useRef<HTMLDivElement>(null);
-	const isArriving = arrivingCardIds.has(props.cardInfo._id);
-	useEffect(() => {
-		if (!isArriving) return;
-		const reduceMotion = window.matchMedia(
-			"(prefers-reduced-motion: reduce)"
-		).matches;
-		cardRef.current?.scrollIntoView({
-			block: "nearest",
-			behavior: reduceMotion ? "auto" : "smooth",
-		});
-	}, [isArriving]);
+	const isArriving = useCardArrival(props.cardInfo._id, cardRef);
 
 	const handleShare = () => {
 		setOpenSharedDialog(true);

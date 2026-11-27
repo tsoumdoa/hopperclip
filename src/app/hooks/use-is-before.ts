@@ -13,12 +13,14 @@ export function useIsBefore(deadline: number): boolean {
 	const before = deadline > Date.now();
 	useEffect(() => {
 		const delay = deadline - Date.now();
-		if (!(delay > 0)) return;
+		// Render saw the deadline ahead but it passed before this effect ran:
+		// re-render now, or the stale "before" would stick.
+		if (!before && !(delay > 0)) return;
 		const timer = setTimeout(
 			() => setTick((value) => value + 1),
-			Math.min(delay, MAX_TIMEOUT_MS)
+			Math.min(Math.max(delay, 0), MAX_TIMEOUT_MS)
 		);
 		return () => clearTimeout(timer);
-	}, [deadline, tick]);
+	}, [deadline, before, tick]);
 	return before;
 }

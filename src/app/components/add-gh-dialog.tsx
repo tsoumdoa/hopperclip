@@ -28,7 +28,6 @@ import { api as convex } from "../../../convex/_generated/api";
 import { UploadError, uploadCompressedXml } from "../utils/upload";
 import { compress } from "../utils/gzip";
 import type { AddGhDialogProps } from "@/types/gh-card";
-import { useGhCardsPageActions } from "@/app/ghcards/contexts/gh-cards-page-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFlowPreview } from "../duckerweb/gh-flow-generator";
 import { GhFlowView } from "./gh-flow-view";
@@ -41,7 +40,6 @@ export function AddGhDialog(props: AddGhDialogProps) {
 	const userTags = useQuery(convex.ghCard.getUserTags, {});
 	const savePreview = useSavePreview();
 	const addGhCard = useMutation(convex.ghCard.addPost);
-	const { markCardArrived } = useGhCardsPageActions();
 	const [addError, setAddError] = useState("");
 	const [xmlData, setXmlData] = useState<string>();
 	const [isValidXml, setIsValidXml] = useState(false);
@@ -183,7 +181,7 @@ export function AddGhDialog(props: AddGhDialogProps) {
 
 				// New storage key: no preview can exist yet.
 				savePreview(storageKey, xmlData, false);
-				markCardArrived(postId);
+				props.onCardAdded?.(postId);
 				props.setAdding(false);
 				props.setOpen(false);
 

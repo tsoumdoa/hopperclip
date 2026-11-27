@@ -19,6 +19,7 @@ export default function AddGHCard() {
 		openAddDialogFromPaste,
 		consumePendingFile,
 		consumePendingXml,
+		markCardArrived,
 	} = useGhCardsPageActions();
 
 	useNativeGhXmlPaste({
@@ -66,6 +67,7 @@ export default function AddGHCard() {
 				onInitialFileConsumed={consumePendingFile}
 				initialXml={pendingXml}
 				onInitialXmlConsumed={consumePendingXml}
+				onCardAdded={markCardArrived}
 			/>
 			<Button
 				type="button"
